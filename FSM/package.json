@@ -1,0 +1,7 @@
+{
+  "name": "paps-fsm",
+  "version": "1.0.0",
+  "devDependencies": {
+    "com.iptech.nsubstitute": "1.0.1"
+  }
+}
