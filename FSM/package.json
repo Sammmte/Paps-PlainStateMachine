@@ -1,7 +1,16 @@
 {
-  "name": "paps-fsm",
+  "name": "paps.fsm",
   "version": "1.0.0",
+  "description": "A simple finite state machine made in c# 7.3",
   "devDependencies": {
     "com.iptech.nsubstitute": "1.0.1"
-  }
+  },
+  "keywords": [
+	"c#",
+	"fsm",
+	"paps"
+  ],
+  "author": "Santiago Perez",
+  "license": "WTFPL",
+  "homepage": "https://github.com/Sammmte/FSM"
 }

@@ -98,8 +98,8 @@ namespace FSMTests
 
             FSM<int, int> fsm = new FSM<int, int>();
 
-            fsm.AddTransition(transition1);
-            fsm.AddTransition(transition2);
+            fsm.AddTransition(transition1.StateFrom, transition1.Trigger, transition1.StateTo);
+            fsm.AddTransition(transition2.StateFrom, transition2.Trigger, transition2.StateTo);
 
             FSMTransition<int, int> item1 = default;
             FSMTransition<int, int> item2 = default;
@@ -132,11 +132,11 @@ namespace FSMTests
 
             FSM<int, int> fsm = new FSM<int, int>();
 
-            fsm.AddTransition(transition);
+            fsm.AddTransition(transition.StateFrom, transition.Trigger, transition.StateTo);
 
             Assert.IsTrue(fsm.TransitionCount == 1);
 
-            fsm.RemoveTransition(transition);
+            fsm.RemoveTransition(transition.StateFrom, transition.Trigger, transition.StateTo);
 
             Assert.IsTrue(fsm.TransitionCount == 0);
         }
