@@ -13,7 +13,7 @@ namespace Paps.FSM
         IFSM<TState, TTrigger> StateMachine { get; }
 
         void Enter();
-        void Udpate();
+        void Update();
         void Exit();
     }
 }

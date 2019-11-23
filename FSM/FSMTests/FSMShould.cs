@@ -140,5 +140,250 @@ namespace FSMTests
 
             Assert.IsTrue(fsm.TransitionCount == 0);
         }
+
+        [TestMethod]
+        public void ThrowAnExceptionIfUserTriesToStartAndInitialStateIsNotSet()
+        {
+            var fsm = new FSM<int, int>();
+
+            Assert.ThrowsException<InvalidInitialStateException>(() => fsm.Start());
+        }
+
+        [TestMethod]
+        public void ThrowAnExceptionIfUserTriesToStartAndInitialStateIsInvalid()
+        {
+            var fsm = new FSM<int, int>();
+
+            fsm.SetInitialState(1);
+
+            Assert.ThrowsException<InvalidInitialStateException>(() => fsm.Start());
+        }
+
+        [TestMethod]
+        public void ThrowAnExceptionIfUserTriesToStartAndItsAlreadyStarted()
+        {
+            var state1 = Substitute.For<IFSMState<int, int>>();
+
+            state1.StateId.Returns(1);
+
+            var fsm = new FSM<int, int>();
+
+            fsm.AddState(state1);
+
+            fsm.SetInitialState(state1.StateId);
+
+            fsm.Start();
+
+            Assert.ThrowsException<FSMStartedException>(() => fsm.Start());
+        }
+
+        [TestMethod]
+        public void ShowCorrespondingValueWhenAskedIfIsStarted()
+        {
+            var state1 = Substitute.For<IFSMState<int, int>>();
+
+            var fsm = new FSM<int, int>();
+
+            state1.StateId.Returns(1);
+
+            fsm.AddState(state1);
+
+            fsm.SetInitialState(state1.StateId);
+
+            Assert.IsFalse(fsm.IsStarted);
+
+            fsm.Start();
+
+            Assert.IsTrue(fsm.IsStarted);
+        }
+        
+        [TestMethod]
+        public void EnterInitialStartWhenStarted()
+        {
+            var state1 = Substitute.For<IFSMState<int, int>>();
+            
+            var fsm = new FSM<int, int>();
+
+            fsm.AddState(state1);
+
+            fsm.SetInitialState(state1.StateId);
+
+            fsm.Start();
+
+            state1.Received().Enter();
+        }
+
+        [TestMethod]
+        public void ReturnsCorrespondingValueWhenAskedIsInState()
+        {
+            var state1 = Substitute.For<IFSMState<int, int>>();
+
+            var fsm = new FSM<int, int>();
+
+            state1.StateId.Returns(1);
+
+            fsm.AddState(state1);
+
+            fsm.SetInitialState(state1.StateId);
+
+            fsm.Start();
+
+            Assert.IsTrue(fsm.IsInState(state1.StateId));
+        }
+        
+        [TestMethod]
+        public void ChangeStateWhenTriggeringAnExistingTransition()
+        {
+            var state1 = Substitute.For<IFSMState<int, int>>();
+            var state2 = Substitute.For<IFSMState<int, int>>();
+
+            var fsm = new FSM<int, int>();
+
+            state1.StateId.Returns(1);
+            state2.StateId.Returns(2);
+
+            fsm.AddState(state1);
+            fsm.AddState(state2);
+
+            fsm.SetInitialState(state1.StateId);
+
+            fsm.AddTransition(state1.StateId, 0, state2.StateId);
+
+            fsm.Start();
+
+            Assert.IsTrue(fsm.IsInState(state1.StateId));
+
+            fsm.Trigger(0);
+
+            Assert.IsTrue(fsm.IsInState(state2.StateId));
+        }
+
+        [TestMethod]
+        public void ThrowAnExceptionIfUserTriesToTriggerWhenFSMIsNotStarted()
+        {
+            var fsm = new FSM<int, int>();
+
+            Assert.ThrowsException<FSMNotStartedException>(() => fsm.Trigger(0));
+        }
+
+        [TestMethod]
+        public void ReturnCorrespondingValueWhenAskedIfContainsTransition()
+        {
+            var fsm = new FSM<int, int>();
+
+            fsm.AddTransition(1, 2, 3);
+
+            Assert.IsTrue(fsm.ContainsTransition(1, 2, 3));
+            Assert.IsFalse(fsm.ContainsTransition(4, 5, 6));
+        }
+
+        [TestMethod]
+        public void ReturnCorrespondingValueWhenAskedIfContainsState()
+        {
+            var state1 = Substitute.For<IFSMState<int, int>>();
+
+            var fsm = new FSM<int, int>();
+
+            state1.StateId.Returns(1);
+
+            fsm.AddState(state1);
+
+            Assert.IsTrue(fsm.ContainsState(state1.StateId));
+            Assert.IsFalse(fsm.ContainsState(2));
+        }
+
+        [TestMethod]
+        public void ExitCurrentStateWhenStopped()
+        {
+            var state1 = Substitute.For<IFSMState<int, int>>();
+            var state2 = Substitute.For<IFSMState<int, int>>();
+
+            var fsm = new FSM<int, int>();
+
+            state1.StateId.Returns(1);
+            state2.StateId.Returns(2);
+
+            fsm.AddState(state1);
+            fsm.AddState(state2);
+
+            fsm.SetInitialState(state1.StateId);
+
+            fsm.AddTransition(state1.StateId, 0, state2.StateId);
+
+            fsm.Start();
+
+            fsm.Trigger(0);
+
+            fsm.Stop();
+
+            state2.Received().Exit();
+        }
+
+        [TestMethod]
+        public void ThrowAnExceptionIfUserTriesToUpdateAndItIsNotStarted()
+        {
+            var state1 = Substitute.For<IFSMState<int, int>>();
+
+            var fsm = new FSM<int, int>();
+
+            state1.StateId.Returns(1);
+
+            fsm.AddState(state1);
+
+            fsm.SetInitialState(state1.StateId);
+
+            Assert.ThrowsException<FSMNotStartedException>(fsm.Update);
+        }
+
+        [TestMethod]
+        public void UpdateCurrentState()
+        {
+            var state1 = Substitute.For<IFSMState<int, int>>();
+
+            var fsm = new FSM<int, int>();
+
+            state1.StateId.Returns(1);
+
+            fsm.AddState(state1);
+
+            fsm.SetInitialState(state1.StateId);
+
+            fsm.Start();
+
+            fsm.Update();
+
+            state1.Received().Update();
+        }
+
+        [TestMethod]
+        public void RaiseStateChangedEventWhenHasSuccessfullyTransitioned()
+        {
+            var state1 = Substitute.For<IFSMState<int, int>>();
+            var state2 = Substitute.For<IFSMState<int, int>>();
+
+            var stateChangedEventHandler = Substitute.For<StateChanged<int, int>>();
+
+            var fsm = new FSM<int, int>();
+
+            fsm.OnStateChanged += stateChangedEventHandler;
+
+            state1.StateId.Returns(1);
+            state2.StateId.Returns(2);
+
+            fsm.AddState(state1);
+            fsm.AddState(state2);
+
+            fsm.SetInitialState(state1.StateId);
+
+            fsm.AddTransition(state1.StateId, 0, state2.StateId);
+
+            fsm.Start();
+
+            fsm.Trigger(0);
+
+            stateChangedEventHandler
+                .Received()
+                .Invoke(1, 0, 2);
+        }
     }
 }

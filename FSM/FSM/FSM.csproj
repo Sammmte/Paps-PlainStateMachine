@@ -29,6 +29,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -41,12 +42,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FSM\Errors\FSMNotStartedException.cs" />
     <Compile Include="FSM\Extensions\IFSMExtensions.cs" />
     <Compile Include="FSM\FSM.cs" />
+    <Compile Include="FSM\Errors\FSMStartedException.cs" />
     <Compile Include="FSM\IFSM.cs" />
     <Compile Include="FSM\IFSMState.cs" />
-    <Compile Include="FSM\StateIdAlreadyAddedException.cs" />
+    <Compile Include="FSM\Errors\InvalidInitialStateException.cs" />
+    <Compile Include="FSM\Errors\StateIdAlreadyAddedException.cs" />
     <Compile Include="FSM\FSMTransition.cs" />
+    <Compile Include="FSM\Errors\StateNotAddedException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
