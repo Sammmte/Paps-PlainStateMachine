@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Paps.FSM;
 using NSubstitute;
+using Paps.FSM.Extensions;
 
 namespace FSMTests
 {
@@ -54,19 +55,21 @@ namespace FSMTests
 
             int cont = 1;
 
-            foreach(IFSMState<int, int> state in fsm)
-            {
-                if(cont == 1)
+            fsm.ForeachState(
+                state =>
                 {
-                    item1 = state;
-                }
-                else
-                {
-                    item2 = state;
-                }
+                    if (cont == 1)
+                    {
+                        item1 = state;
+                    }
+                    else
+                    {
+                        item2 = state;
+                    }
 
-                cont++;
-            }
+                    cont++;
+                }
+                );
 
             Assert.IsTrue(item1.StateId == 1 && item2.StateId == 2);
         }
@@ -85,6 +88,57 @@ namespace FSMTests
             fsm.RemoveState(state);
 
             Assert.IsTrue(fsm.StateCount == 0);
+        }
+
+        [TestMethod]
+        public void IterateOverTransitions()
+        {
+            var transition1 = new FSMTransition<int, int>(1,2,3);
+            var transition2 = new FSMTransition<int, int>(4,5,6);
+
+            FSM<int, int> fsm = new FSM<int, int>();
+
+            fsm.AddTransition(transition1);
+            fsm.AddTransition(transition2);
+
+            FSMTransition<int, int> item1 = default;
+            FSMTransition<int, int> item2 = default;
+
+            int cont = 1;
+
+            fsm.ForeachTransition(
+                transition =>
+                {
+                    if (cont == 1)
+                    {
+                        item1 = transition;
+                    }
+                    else
+                    {
+                        item2 = transition;
+                    }
+
+                    cont++;
+                }
+                );
+
+            Assert.IsTrue(item1.Equals(transition1) && item2.Equals(transition2));
+        }
+
+        [TestMethod]
+        public void RemoveTransitions()
+        {
+            var transition = new FSMTransition<int, int>(1, 2, 3);
+
+            FSM<int, int> fsm = new FSM<int, int>();
+
+            fsm.AddTransition(transition);
+
+            Assert.IsTrue(fsm.TransitionCount == 1);
+
+            fsm.RemoveTransition(transition);
+
+            Assert.IsTrue(fsm.TransitionCount == 0);
         }
     }
 }

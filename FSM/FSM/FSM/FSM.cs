@@ -6,9 +6,12 @@ namespace Paps.FSM
 {
     public class FSM<TState, TTrigger> : IFSM<TState, TTrigger>
     {
-        public int StateCount { get => _states.Count; }
+        public int StateCount => _states.Count;
+
+        public int TransitionCount => _transitions.Count;
 
         private HashSet<IFSMState<TState, TTrigger>> _states;
+        private HashSet<FSMTransition<TState, TTrigger>> _transitions;
 
         private Func<TState, TState, bool> _stateComparer;
         private Func<TTrigger, TTrigger, bool> _triggerComparer;
@@ -23,6 +26,7 @@ namespace Paps.FSM
             _stateEqualityComparer = new FSMStateEqualityComparer(stateComparer);
 
             _states = new HashSet<IFSMState<TState, TTrigger>>(_stateEqualityComparer);
+            _transitions = new HashSet<FSMTransition<TState, TTrigger>>();
         }
 
         public FSM() : this(DefaultComparer, DefaultComparer)
@@ -48,16 +52,21 @@ namespace Paps.FSM
 
         public void AddState(IFSMState<TState, TTrigger> state)
         {
-            if(state == null)
+            ValidateInputStateForAddOperation(state);
+
+            InternalAddState(state);
+        }
+
+        private void ValidateInputStateForAddOperation(IFSMState<TState, TTrigger> state)
+        {
+            if (state == null)
             {
                 throw new ArgumentNullException(nameof(state));
             }
-            else if(_states.Contains(state))
+            else if (_states.Contains(state))
             {
                 throw new StateIdAlreadyAddedException("State id " + state.StateId + " was already added to state machine");
             }
-
-            InternalAddState(state);
         }
 
         private void InternalAddState(IFSMState<TState, TTrigger> state)
@@ -65,9 +74,12 @@ namespace Paps.FSM
             _states.Add(state);
         }
 
-        public IEnumerator<IFSMState<TState, TTrigger>> GetEnumerator()
+        public void ForeachState(Action<IFSMState<TState, TTrigger>> action)
         {
-            return _states.GetEnumerator();
+            foreach(IFSMState<TState, TTrigger> state in _states)
+            {
+                action(state);
+            }
         }
 
         public void RemoveState(IFSMState<TState, TTrigger> state)
@@ -75,9 +87,22 @@ namespace Paps.FSM
             _states.Remove(state);
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
+        public void AddTransition(TState stateFrom, TTrigger trigger, TState stateTo)
         {
-            return GetEnumerator();
+            _transitions.Add(new FSMTransition<TState, TTrigger>(stateFrom, trigger, stateTo));
+        }
+
+        public void RemoveTransition(TState stateFrom, TTrigger trigger, TState stateTo)
+        {
+            _transitions.Remove(new FSMTransition<TState, TTrigger>(stateFrom, trigger, stateTo));
+        }
+
+        public void ForeachTransition(Action<FSMTransition<TState, TTrigger>> action)
+        {
+            foreach(FSMTransition<TState, TTrigger> transition in _transitions)
+            {
+                action(transition);
+            }
         }
 
         private class FSMStateEqualityComparer : IEqualityComparer<IFSMState<TState, TTrigger>>

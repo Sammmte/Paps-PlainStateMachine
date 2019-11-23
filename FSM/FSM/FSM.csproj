@@ -41,10 +41,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FSM\Extensions\IFSMExtensions.cs" />
     <Compile Include="FSM\FSM.cs" />
     <Compile Include="FSM\IFSM.cs" />
     <Compile Include="FSM\IFSMState.cs" />
     <Compile Include="FSM\StateIdAlreadyAddedException.cs" />
+    <Compile Include="FSM\FSMTransition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
