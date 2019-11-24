@@ -4,6 +4,7 @@ using Paps.FSM;
 using NSubstitute;
 using Paps.FSM.Extensions;
 using System.Linq;
+using System.Threading;
 
 namespace FSMTests
 {
@@ -98,6 +99,30 @@ namespace FSMTests
 
             Assert.IsTrue(state1.TryGetIdOf(out id));
             Assert.AreEqual(1, id);
+        }
+
+        [TestMethod]
+        public void AddTimerState()
+        {
+            var stateAfterTimer = Substitute.For<IFSMState<int, int>>();
+
+            var fsm = new FSM<int, int>();
+
+            stateAfterTimer.StateMachine.Returns(fsm);
+            
+            fsm.AddTransition(new FSMTransition<int, int>(1, 0, 2))
+                .AddTimerState(1, 1000, stateId => fsm.Trigger(0))
+                .AddStateBuilder(2, stateAfterTimer);
+
+            fsm.SetInitialState(1);
+
+            fsm.Start();
+
+            Thread.Sleep(1200);
+
+            fsm.Update();
+
+            stateAfterTimer.Received().Enter();
         }
     }
 }

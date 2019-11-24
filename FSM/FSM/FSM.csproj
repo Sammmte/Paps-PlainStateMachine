@@ -44,6 +44,7 @@
   <ItemGroup>
     <Compile Include="FSM\Errors\FSMNotStartedException.cs" />
     <Compile Include="FSM\Errors\UnboundFSMException.cs" />
+    <Compile Include="FSM\Extensions\TimerState.cs" />
     <Compile Include="FSM\Extensions\IFSMExtensions.cs" />
     <Compile Include="FSM\FSM.cs" />
     <Compile Include="FSM\Errors\FSMStartedException.cs" />

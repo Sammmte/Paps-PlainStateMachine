@@ -8,14 +8,32 @@ namespace Paps.FSM.Extensions
 {
     public static class IFSMExtensions
     {
-        public static void AddTransition<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, FSMTransition<TState, TTrigger> transition)
+        public static IFSM<TState, TTrigger> AddStateBuilder<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId, IFSMState<TState, TTrigger> state)
         {
-            fsm.AddTransition(transition.StateFrom, transition.Trigger, transition.StateTo);
+            fsm.AddState(stateId, state);
+
+            return fsm;
         }
 
-        public static void RemoveTransition<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, FSMTransition<TState, TTrigger> transition)
+        public static IFSM<TState, TTrigger> RemoveStateBuilder<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId)
+        {
+            fsm.RemoveState(stateId);
+
+            return fsm;
+        }
+
+        public static IFSM<TState, TTrigger> AddTransition<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, FSMTransition<TState, TTrigger> transition)
+        {
+            fsm.AddTransition(transition.StateFrom, transition.Trigger, transition.StateTo);
+
+            return fsm;
+        }
+
+        public static IFSM<TState, TTrigger> RemoveTransition<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, FSMTransition<TState, TTrigger> transition)
         {
             fsm.RemoveTransition(transition.StateFrom, transition.Trigger, transition.StateTo);
+
+            return fsm;
         }
 
         public static bool ContainsStateByReference<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, IFSMState<TState, TTrigger> stateRef)
@@ -118,6 +136,14 @@ namespace Paps.FSM.Extensions
                 stateId = default;
                 return false;
             }
+        }
+
+        public static IFSM<TState, TTrigger> AddTimerState<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId, 
+            double milliseconds, Action<TState> onTimerElapsed)
+        {
+            fsm.AddState(stateId, new TimerState<TState, TTrigger>(fsm, milliseconds, onTimerElapsed));
+
+            return fsm;
         }
     }
 }
