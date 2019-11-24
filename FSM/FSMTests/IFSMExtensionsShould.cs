@@ -91,13 +91,13 @@ namespace FSMTests
 
             int id;
 
-            Assert.IsFalse(state1.TryGetIdOf(out id));
+            Assert.IsFalse(fsm.TryGetIdOf(state1, out id));
 
             id = default;
 
             fsm.AddState(1, state1);
 
-            Assert.IsTrue(state1.TryGetIdOf(out id));
+            Assert.IsTrue(fsm.TryGetIdOf(state1, out id));
             Assert.AreEqual(1, id);
         }
 
@@ -109,10 +109,10 @@ namespace FSMTests
             var fsm = new FSM<int, int>();
 
             stateAfterTimer.StateMachine.Returns(fsm);
-            
-            fsm.AddTransition(new FSMTransition<int, int>(1, 0, 2))
-                .AddTimerState(1, 1000, stateId => fsm.Trigger(0))
-                .AddStateBuilder(2, stateAfterTimer);
+
+            fsm.AddTimerState(1, 1000, stateId => fsm.Trigger(0))
+                .AddStateBuilder(2, stateAfterTimer)
+                .AddTransition(new FSMTransition<int, int>(1, 0, 2));
 
             fsm.SetInitialState(1);
 

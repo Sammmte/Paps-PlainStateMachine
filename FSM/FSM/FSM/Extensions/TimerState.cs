@@ -36,7 +36,7 @@ namespace Paps.FSM.Extensions
         {
             if(_timer.Enabled == false)
             {
-                _onTimerElapsed(this.GetStateId());
+                _onTimerElapsed(StateMachine.GetIdOf(this));
             }
         }
     }

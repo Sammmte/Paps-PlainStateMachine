@@ -124,14 +124,14 @@ namespace Paps.FSM.Extensions
             return candidate;
         }
 
-        public static bool TryGetIdOf<TState, TTrigger>(this IFSMState<TState, TTrigger> state, out TState stateId)
+        public static bool TryGetIdOf<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, IFSMState<TState, TTrigger> state, out TState stateId)
         {
             try
             {
-                stateId = state.GetStateId();
+                stateId = fsm.GetIdOf(state);
                 return true;
             }
-            catch(StateNotAddedException e)
+            catch (StateNotAddedException e)
             {
                 stateId = default;
                 return false;
@@ -145,5 +145,7 @@ namespace Paps.FSM.Extensions
 
             return fsm;
         }
+
+
     }
 }

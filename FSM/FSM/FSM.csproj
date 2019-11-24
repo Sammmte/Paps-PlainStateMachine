@@ -54,7 +54,8 @@
     <Compile Include="FSM\Errors\StateIdAlreadyAddedException.cs" />
     <Compile Include="FSM\FSMTransition.cs" />
     <Compile Include="FSM\Errors\StateNotAddedException.cs" />
-    <Compile Include="FSM\IFSMStateCoreExtensions.cs" />
+    <Compile Include="FSM\IFSMWithGuardConditions.cs" />
+    <Compile Include="FSM\Errors\TransitionNotAddedException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
