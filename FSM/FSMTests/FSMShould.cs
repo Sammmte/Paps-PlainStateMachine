@@ -65,6 +65,8 @@ namespace FSMTests
                     }
 
                     cont++;
+
+                    return false;
                 }
                 );
 
@@ -118,6 +120,8 @@ namespace FSMTests
                     }
 
                     cont++;
+
+                    return false;
                 }
                 );
 

@@ -176,11 +176,14 @@ namespace Paps.FSM
             _states.Add(stateId, state);
         }
 
-        public void ForeachState(Action<IFSMState<TState, TTrigger>> action)
+        public void ForeachState(ReturnTrueToFinishIteration<IFSMState<TState, TTrigger>> finishable)
         {
             foreach(IFSMState<TState, TTrigger> state in _states.Values)
             {
-                action(state);
+                if(finishable(state))
+                {
+                    break;
+                }
             }
         }
 
@@ -225,11 +228,14 @@ namespace Paps.FSM
             _transitions.Remove(new FSMTransition<TState, TTrigger>(stateFrom, trigger, stateTo));
         }
 
-        public void ForeachTransition(Action<FSMTransition<TState, TTrigger>> action)
+        public void ForeachTransition(ReturnTrueToFinishIteration<FSMTransition<TState, TTrigger>> finishable)
         {
             foreach(FSMTransition<TState, TTrigger> transition in _transitions)
             {
-                action(transition);
+                if(finishable(transition))
+                {
+                    break;
+                }
             }
         }
 

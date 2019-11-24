@@ -26,7 +26,12 @@ namespace Paps.FSM.Extensions
                 state =>
                 {
                     if (state == stateRef)
+                    {
                         contains = true;
+                        return true;
+                    }
+
+                    return false;
                 });
 
             return contains;
@@ -35,16 +40,17 @@ namespace Paps.FSM.Extensions
         public static T GetState<T, TState, TTrigger>(this IFSM<TState, TTrigger> fsm) where T : IFSMState<TState, TTrigger>
         {
             T candidate = default;
-            bool candidateHasValue = false;
 
             fsm.ForeachState(
                 state =>
                 {
-                    if(state is T cast && candidateHasValue == false)
+                    if(state is T cast)
                     {
                         candidate = cast;
-                        candidateHasValue = true;
+                        return true;
                     }
+
+                    return false;
                 }
                 );
 
@@ -67,6 +73,8 @@ namespace Paps.FSM.Extensions
 
                         states.Add(cast);
                     }
+
+                    return false;
                 }
                 );
 
@@ -76,6 +84,40 @@ namespace Paps.FSM.Extensions
             }
 
             return null;
+        }
+
+        public static T GetStateById<T, TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId) where T : IFSMState<TState, TTrigger>
+        {
+            T candidate = default;
+
+            fsm.ForeachState(
+                state =>
+                {
+                    if(state is T cast)
+                    {
+                        candidate = cast;
+                        return true;
+                    }
+
+                    return false;
+                }
+                );
+
+            return candidate;
+        }
+
+        public static bool TryGetIdOf<TState, TTrigger>(this IFSMState<TState, TTrigger> state, out TState stateId)
+        {
+            try
+            {
+                stateId = state.GetStateId();
+                return true;
+            }
+            catch(StateNotAddedException e)
+            {
+                stateId = default;
+                return false;
+            }
         }
     }
 }

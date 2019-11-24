@@ -4,6 +4,7 @@ using System.Collections.Generic;
 namespace Paps.FSM
 {
     public delegate void StateChanged<TState, TTrigger>(TState stateFrom, TTrigger trigger, TState stateTo);
+    public delegate bool ReturnTrueToFinishIteration<T>(T current);
 
     public interface IFSM<TState, TTrigger>
     {
@@ -21,14 +22,14 @@ namespace Paps.FSM
 
         bool ContainsState(TState stateId);
 
-        void ForeachState(Action<IFSMState<TState, TTrigger>> action);
+        void ForeachState(ReturnTrueToFinishIteration<IFSMState<TState, TTrigger>> action);
 
         void AddTransition(TState stateFrom, TTrigger trigger, TState stateTo);
         void RemoveTransition(TState stateFrom, TTrigger trigger, TState stateTo);
 
         bool ContainsTransition(TState stateFrom, TTrigger trigger, TState stateTo);
 
-        void ForeachTransition(Action<FSMTransition<TState, TTrigger>> action);
+        void ForeachTransition(ReturnTrueToFinishIteration<FSMTransition<TState, TTrigger>> action);
 
         void SetInitialState(TState stateId);
 
