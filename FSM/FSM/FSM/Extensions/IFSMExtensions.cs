@@ -8,32 +8,19 @@ namespace Paps.FSM.Extensions
 {
     public static class IFSMExtensions
     {
-        public static IFSM<TState, TTrigger> AddStateBuilder<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId, IFSMState<TState, TTrigger> state)
+        public static FSMBuilder<TState, TTrigger> Build<TState, TTrigger>(this IFSM<TState, TTrigger> fsm)
         {
-            fsm.AddState(stateId, state);
-
-            return fsm;
+            return new FSMBuilder<TState, TTrigger>(fsm);
         }
 
-        public static IFSM<TState, TTrigger> RemoveStateBuilder<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId)
-        {
-            fsm.RemoveState(stateId);
-
-            return fsm;
-        }
-
-        public static IFSM<TState, TTrigger> AddTransition<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, FSMTransition<TState, TTrigger> transition)
+        public static void AddTransitionWithValuesOf<TTransition, TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TTransition transition) where TTransition : IFSMTransition<TState, TTrigger>
         {
             fsm.AddTransition(transition.StateFrom, transition.Trigger, transition.StateTo);
-
-            return fsm;
         }
 
-        public static IFSM<TState, TTrigger> RemoveTransition<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, FSMTransition<TState, TTrigger> transition)
+        public static void RemoveTransitionWithValuesOf<TTransition, TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TTransition transition) where TTransition : IFSMTransition<TState, TTrigger>
         {
             fsm.RemoveTransition(transition.StateFrom, transition.Trigger, transition.StateTo);
-
-            return fsm;
         }
 
         public static bool ContainsStateByReference<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, IFSMState<TState, TTrigger> stateRef)
@@ -124,20 +111,6 @@ namespace Paps.FSM.Extensions
             return candidate;
         }
 
-        public static bool TryGetIdOf<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, IFSMState<TState, TTrigger> state, out TState stateId)
-        {
-            try
-            {
-                stateId = fsm.GetIdOf(state);
-                return true;
-            }
-            catch (StateNotAddedException e)
-            {
-                stateId = default;
-                return false;
-            }
-        }
-
         public static IFSM<TState, TTrigger> AddTimerState<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId, 
             double milliseconds, Action<TState> onTimerElapsed)
         {
@@ -145,7 +118,7 @@ namespace Paps.FSM.Extensions
 
             return fsm;
         }
-
+        
 
     }
 }

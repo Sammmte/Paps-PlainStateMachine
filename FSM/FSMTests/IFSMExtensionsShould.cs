@@ -81,27 +81,6 @@ namespace FSMTests
         }
 
         [TestMethod]
-        public void GetStateIdSafely()
-        {
-            var state1 = Substitute.For<IFSMState<int, int>>();
-
-            var fsm = new FSM<int, int>();
-
-            state1.StateMachine.Returns(fsm);
-
-            int id;
-
-            Assert.IsFalse(fsm.TryGetIdOf(state1, out id));
-
-            id = default;
-
-            fsm.AddState(1, state1);
-
-            Assert.IsTrue(fsm.TryGetIdOf(state1, out id));
-            Assert.AreEqual(1, id);
-        }
-
-        [TestMethod]
         public void AddTimerState()
         {
             var stateAfterTimer = Substitute.For<IFSMState<int, int>>();
@@ -110,9 +89,9 @@ namespace FSMTests
 
             stateAfterTimer.StateMachine.Returns(fsm);
 
-            fsm.AddTimerState(1, 1000, stateId => fsm.Trigger(0))
-                .AddStateBuilder(2, stateAfterTimer)
-                .AddTransition(new FSMTransition<int, int>(1, 0, 2));
+            fsm.Build().AddState(2, stateAfterTimer)
+                .InnerFSM.AddTimerState(1, 1000, stateId => fsm.Trigger(0))
+                .AddTransitionWithValuesOf(new FSMTransition<int, int>(1, 0, 2));
 
             fsm.SetInitialState(1);
 

@@ -120,11 +120,11 @@ namespace FSMTests
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
 
-            fsm.AddTransition(transition);
+            fsm.AddTransitionWithValuesOf(transition);
 
             Assert.IsTrue(fsm.TransitionCount == 1 && fsm.ContainsTransition(1, 0, 2));
 
-            fsm.RemoveTransition(transition);
+            fsm.RemoveTransitionWithValuesOf(transition);
 
             Assert.IsTrue(fsm.TransitionCount == 0 && fsm.ContainsTransition(1, 0, 2) == false);
         }
@@ -136,9 +136,9 @@ namespace FSMTests
 
             var fsm = new FSM<int, int>();
 
-            Assert.ThrowsException<StateNotAddedException>(() => fsm.AddTransition(transition1));
+            Assert.ThrowsException<StateNotAddedException>(() => fsm.AddTransitionWithValuesOf(transition1));
 
-            Assert.ThrowsException<StateNotAddedException>(() => fsm.RemoveTransition(transition1));
+            Assert.ThrowsException<StateNotAddedException>(() => fsm.RemoveTransitionWithValuesOf(transition1));
         }
 
         [TestMethod]
@@ -163,8 +163,8 @@ namespace FSMTests
             fsm.AddTransition(transition1.StateFrom, transition1.Trigger, transition1.StateTo);
             fsm.AddTransition(transition2.StateFrom, transition2.Trigger, transition2.StateTo);
 
-            FSMTransition<int, int> item1 = default;
-            FSMTransition<int, int> item2 = default;
+            IFSMTransition<int, int> item1 = default;
+            IFSMTransition<int, int> item2 = default;
 
             int cont = 1;
 
@@ -678,5 +678,74 @@ namespace FSMTests
 
             Assert.IsFalse(fsm.IsInState(2));
         }
+
+        [TestMethod]
+        public void ReenterStateWhenStateToIsEqualToStateFrom()
+        {
+            var state1 = Substitute.For<IFSMState<int, int>>();
+
+            var fsm = new FSM<int, int>();
+
+            fsm.AddState(1, state1);
+
+            fsm.AddTransition(1, 0, 1);
+
+            fsm.SetInitialState(1);
+
+            fsm.Start();
+
+            fsm.Trigger(0);
+
+            state1.Received().Exit();
+            state1.Received(2).Enter();
+        }
+
+        [TestMethod]
+        public void RemoveTransitionsRelatedToAStateIdWhenItIsRemoved()
+        {
+            var state1 = Substitute.For<IFSMState<int, int>>();
+            var state2 = Substitute.For<IFSMState<int, int>>();
+
+            var fsm = new FSM<int, int>();
+
+            fsm.AddState(1, state1);
+            fsm.AddState(2, state2);
+
+            fsm.AddTransition(1, 0, 1);
+            fsm.AddTransition(1, 0, 2);
+            fsm.AddTransition(2, 0, 1);
+
+            fsm.RemoveState(2);
+
+            Assert.IsFalse(fsm.ContainsTransition(1, 0, 2) && fsm.ContainsTransition(2, 0, 1));
+        }
+
+        [TestMethod]
+        public void RemoveGuardConditionsRelatedToATransitionWhenItIsRemoved()
+        {
+            var state1 = Substitute.For<IFSMState<int, int>>();
+            var state2 = Substitute.For<IFSMState<int, int>>();
+
+            var fsm = new FSM<int, int>();
+
+            fsm.AddState(1, state1);
+            fsm.AddState(2, state2);
+
+            fsm.AddTransition(1, 0, 2);
+
+            fsm.AddANDGuardConditionTo(1, 0, 2, TestGuardCondition);
+            fsm.AddORGuardConditionTo(1, 0, 2, TestGuardCondition);
+
+            fsm.RemoveState(1);
+
+            Assert.IsFalse(fsm.ContainsANDGuardConditionOn(1, 0, 2, TestGuardCondition));
+            Assert.IsFalse(fsm.ContainsORGuardConditionOn(1, 0, 2, TestGuardCondition));
+
+            bool TestGuardCondition(int a, int b, int c)
+            {
+                return true;
+            }
+        }
+
     }
 }

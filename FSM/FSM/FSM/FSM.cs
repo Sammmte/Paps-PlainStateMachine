@@ -32,11 +32,12 @@ namespace Paps.FSM
             _triggerComparer = triggerComparer;
 
             _stateEqualityComparer = new FSMStateEqualityComparer(stateComparer);
+            var transitionEqualityComparer = new FSMTransitionEqualityComparer();
 
             _states = new Dictionary<TState, IFSMState<TState, TTrigger>>(_stateEqualityComparer);
             _transitions = new HashSet<FSMTransition<TState, TTrigger>>();
-            _ANDguardConditions = new Dictionary<FSMTransition<TState, TTrigger>, Func<TState, TTrigger, TState, bool>>();
-            _ORguardConditions = new Dictionary<FSMTransition<TState, TTrigger>, Func<TState, TTrigger, TState, bool>>();
+            _ANDguardConditions = new Dictionary<FSMTransition<TState, TTrigger>, Func<TState, TTrigger, TState, bool>>(transitionEqualityComparer);
+            _ORguardConditions = new Dictionary<FSMTransition<TState, TTrigger>, Func<TState, TTrigger, TState, bool>>(transitionEqualityComparer);
         }
 
         public FSM() : this(DefaultComparer, DefaultComparer)
@@ -192,7 +193,24 @@ namespace Paps.FSM
 
         public void RemoveState(TState stateId)
         {
-            _states.Remove(stateId);
+            if(_states.Remove(stateId))
+            {
+                RemoveTransitionsRelatedTo(stateId);
+            }
+        }
+
+        private void RemoveTransitionsRelatedTo(TState stateId)
+        {
+            FSMTransition<TState, TTrigger>[] transitions = _transitions.Where(
+                (transition) => _stateComparer(transition.StateFrom, stateId) || _stateComparer(transition.StateTo, stateId)
+                ).ToArray();
+
+            for(int i = 0; i < transitions.Length; i++)
+            {
+                var transition = transitions[i];
+
+                InternalRemoveTransition(transition.StateFrom, transition.Trigger, transition.StateTo);
+            }
         }
 
         private IFSMState<TState, TTrigger> GetStateById(TState stateId)
@@ -226,6 +244,11 @@ namespace Paps.FSM
             ValidateHasStateWithId(stateFrom);
             ValidateHasStateWithId(stateTo);
 
+            InternalAddTransition(stateFrom, trigger, stateTo);
+        }
+
+        private void InternalAddTransition(TState stateFrom, TTrigger trigger, TState stateTo)
+        {
             _transitions.Add(new FSMTransition<TState, TTrigger>(stateFrom, trigger, stateTo));
         }
 
@@ -234,7 +257,23 @@ namespace Paps.FSM
             ValidateHasStateWithId(stateFrom);
             ValidateHasStateWithId(stateTo);
 
-            _transitions.Remove(new FSMTransition<TState, TTrigger>(stateFrom, trigger, stateTo));
+            InternalRemoveTransition(stateFrom, trigger, stateTo);
+        }
+
+        private void InternalRemoveTransition(TState stateFrom, TTrigger trigger, TState stateTo)
+        {
+            var comparisonTransition = new FSMTransition<TState, TTrigger>(stateFrom, trigger, stateTo);
+
+            if (_transitions.Remove(comparisonTransition))
+            {
+                RemoveAllGuardConditionsRelatedTo(comparisonTransition);
+            }
+        }
+
+        private void RemoveAllGuardConditionsRelatedTo(FSMTransition<TState, TTrigger> transition)
+        {
+            _ANDguardConditions.Remove(transition);
+            _ORguardConditions.Remove(transition);
         }
 
         private void ValidateHasStateWithId(TState stateId)
@@ -245,7 +284,7 @@ namespace Paps.FSM
             }
         }
 
-        public void ForeachTransition(ReturnTrueToFinishIteration<FSMTransition<TState, TTrigger>> finishable)
+        public void ForeachTransition(ReturnTrueToFinishIteration<IFSMTransition<TState, TTrigger>> finishable)
         {
             foreach(FSMTransition<TState, TTrigger> transition in _transitions)
             {
@@ -475,8 +514,6 @@ namespace Paps.FSM
         private bool ContainsGuardConditionOn(Dictionary<FSMTransition<TState, TTrigger>, Func<TState, TTrigger, TState, bool>> guardConditions,
             TState stateFrom, TTrigger trigger, TState stateTo, Func<TState, TTrigger, TState, bool> guardCondition)
         {
-            ValidateHasTransition(stateFrom, trigger, stateTo);
-
             var comparisonTransition = new FSMTransition<TState, TTrigger>(stateFrom, trigger, stateTo);
 
             if (guardConditions.ContainsKey(comparisonTransition))
@@ -518,6 +555,19 @@ namespace Paps.FSM
             }
 
             public int GetHashCode(TState obj)
+            {
+                return obj.GetHashCode();
+            }
+        }
+
+        private class FSMTransitionEqualityComparer : IEqualityComparer<FSMTransition<TState, TTrigger>>
+        {
+            public bool Equals(FSMTransition<TState, TTrigger> x, FSMTransition<TState, TTrigger> y)
+            {
+                return x == y;
+            }
+
+            public int GetHashCode(FSMTransition<TState, TTrigger> obj)
             {
                 return obj.GetHashCode();
             }

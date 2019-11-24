@@ -44,6 +44,10 @@
   <ItemGroup>
     <Compile Include="FSM\Errors\FSMNotStartedException.cs" />
     <Compile Include="FSM\Errors\UnboundFSMException.cs" />
+    <Compile Include="FSM\Extensions\FSMBuilder.cs" />
+    <Compile Include="FSM\Extensions\FSMBuilderExtensions.cs" />
+    <Compile Include="FSM\Extensions\FSMWithGuardConditionsBuilder.cs" />
+    <Compile Include="FSM\Extensions\IFSMWithGuardConditionsExtensions.cs" />
     <Compile Include="FSM\Extensions\TimerState.cs" />
     <Compile Include="FSM\Extensions\IFSMExtensions.cs" />
     <Compile Include="FSM\FSM.cs" />
@@ -56,6 +60,7 @@
     <Compile Include="FSM\Errors\StateNotAddedException.cs" />
     <Compile Include="FSM\IFSMWithGuardConditions.cs" />
     <Compile Include="FSM\Errors\TransitionNotAddedException.cs" />
+    <Compile Include="FSM\IFSMTransition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

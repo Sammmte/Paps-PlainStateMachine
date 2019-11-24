@@ -29,7 +29,7 @@ namespace Paps.FSM
 
         bool ContainsTransition(TState stateFrom, TTrigger trigger, TState stateTo);
 
-        void ForeachTransition(ReturnTrueToFinishIteration<FSMTransition<TState, TTrigger>> action);
+        void ForeachTransition(ReturnTrueToFinishIteration<IFSMTransition<TState, TTrigger>> action);
 
         void SetInitialState(TState stateId);
 
