@@ -54,6 +54,7 @@
   <ItemGroup>
     <Compile Include="FSMShould.cs" />
     <Compile Include="FSMTransitionShould.cs" />
+    <Compile Include="IFSMExtensionsShould.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

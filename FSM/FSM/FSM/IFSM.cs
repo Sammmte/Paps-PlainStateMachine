@@ -16,8 +16,8 @@ namespace Paps.FSM
 
         TState InitialState { get; }
 
-        void AddState(IFSMState<TState, TTrigger> state);
-        void RemoveState(IFSMState<TState, TTrigger> state);
+        void AddState(TState stateId, IFSMState<TState, TTrigger> state);
+        void RemoveState(TState stateId);
 
         bool ContainsState(TState stateId);
 
@@ -33,6 +33,8 @@ namespace Paps.FSM
         void SetInitialState(TState stateId);
 
         bool IsInState(TState stateId);
+
+        TState GetIdOf(IFSMState<TState, TTrigger> state);
 
         void Start();
         void Update();

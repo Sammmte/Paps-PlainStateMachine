@@ -8,8 +8,6 @@ namespace Paps.FSM
 {
     public interface IFSMState<TState, TTrigger>
     {
-        TState StateId { get; }
-
         IFSM<TState, TTrigger> StateMachine { get; }
 
         void Enter();

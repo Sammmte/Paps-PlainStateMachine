@@ -12,5 +12,10 @@ namespace Paps.FSM
         {
 
         }
+
+        public StateNotAddedException()
+        {
+
+        }
     }
 }

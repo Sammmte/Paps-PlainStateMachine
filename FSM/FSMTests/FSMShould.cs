@@ -15,16 +15,13 @@ namespace FSMTests
             var state1 = Substitute.For<IFSMState<int, int>>();
             var state2 = Substitute.For<IFSMState<int, int>>();
 
-            state1.StateId.Returns(1);
-            state2.StateId.Returns(1);
-
             FSM<int, int> fsm = new FSM<int, int>();
 
             Assert.ThrowsException<StateIdAlreadyAddedException>(
                 () => 
                 {
-                    fsm.AddState(state1);
-                    fsm.AddState(state2);
+                    fsm.AddState(1, state1);
+                    fsm.AddState(1, state2);
                 });
         }
 
@@ -33,7 +30,7 @@ namespace FSMTests
         {
             FSM<int, int> fsm = new FSM<int, int>();
 
-            Assert.ThrowsException<ArgumentNullException>(() => fsm.AddState(null));
+            Assert.ThrowsException<ArgumentNullException>(() => fsm.AddState(1, null));
         }
 
         [TestMethod]
@@ -41,17 +38,17 @@ namespace FSMTests
         {
             var state1 = Substitute.For<IFSMState<int, int>>();
             var state2 = Substitute.For<IFSMState<int, int>>();
-
-            state1.StateId.Returns(1);
-            state2.StateId.Returns(2);
-
+            
             IFSMState<int, int> item1 = null;
             IFSMState<int, int> item2 = null;
 
             FSM<int, int> fsm = new FSM<int, int>();
 
-            fsm.AddState(state1);
-            fsm.AddState(state2);
+            state1.StateMachine.Returns(fsm);
+            state2.StateMachine.Returns(fsm);
+
+            fsm.AddState(1, state1);
+            fsm.AddState(2, state2);
 
             int cont = 1;
 
@@ -71,7 +68,7 @@ namespace FSMTests
                 }
                 );
 
-            Assert.IsTrue(item1.StateId == 1 && item2.StateId == 2);
+            Assert.IsTrue(item1.GetStateId() == 1 && item2.GetStateId() == 2);
         }
 
         [TestMethod]
@@ -81,11 +78,13 @@ namespace FSMTests
 
             FSM<int, int> fsm = new FSM<int, int>();
 
-            fsm.AddState(state);
+            state.StateMachine.Returns(fsm);
+
+            fsm.AddState(1, state);
 
             Assert.IsTrue(fsm.StateCount == 1);
 
-            fsm.RemoveState(state);
+            fsm.RemoveState(state.GetStateId());
 
             Assert.IsTrue(fsm.StateCount == 0);
         }
@@ -164,13 +163,13 @@ namespace FSMTests
         {
             var state1 = Substitute.For<IFSMState<int, int>>();
 
-            state1.StateId.Returns(1);
-
             var fsm = new FSM<int, int>();
 
-            fsm.AddState(state1);
+            state1.StateMachine.Returns(fsm);
 
-            fsm.SetInitialState(state1.StateId);
+            fsm.AddState(1, state1);
+
+            fsm.SetInitialState(state1.GetStateId());
 
             fsm.Start();
 
@@ -184,11 +183,11 @@ namespace FSMTests
 
             var fsm = new FSM<int, int>();
 
-            state1.StateId.Returns(1);
+            state1.StateMachine.Returns(fsm);
 
-            fsm.AddState(state1);
+            fsm.AddState(1, state1);
 
-            fsm.SetInitialState(state1.StateId);
+            fsm.SetInitialState(state1.GetStateId());
 
             Assert.IsFalse(fsm.IsStarted);
 
@@ -204,9 +203,11 @@ namespace FSMTests
             
             var fsm = new FSM<int, int>();
 
-            fsm.AddState(state1);
+            state1.StateMachine.Returns(fsm);
 
-            fsm.SetInitialState(state1.StateId);
+            fsm.AddState(1, state1);
+
+            fsm.SetInitialState(state1.GetStateId());
 
             fsm.Start();
 
@@ -220,15 +221,15 @@ namespace FSMTests
 
             var fsm = new FSM<int, int>();
 
-            state1.StateId.Returns(1);
+            state1.StateMachine.Returns(fsm);
 
-            fsm.AddState(state1);
+            fsm.AddState(1, state1);
 
-            fsm.SetInitialState(state1.StateId);
+            fsm.SetInitialState(state1.GetStateId());
 
             fsm.Start();
 
-            Assert.IsTrue(fsm.IsInState(state1.StateId));
+            Assert.IsTrue(fsm.IsInState(state1.GetStateId()));
         }
         
         [TestMethod]
@@ -239,23 +240,23 @@ namespace FSMTests
 
             var fsm = new FSM<int, int>();
 
-            state1.StateId.Returns(1);
-            state2.StateId.Returns(2);
+            state1.StateMachine.Returns(fsm);
+            state2.StateMachine.Returns(fsm);
 
-            fsm.AddState(state1);
-            fsm.AddState(state2);
+            fsm.AddState(1, state1);
+            fsm.AddState(2, state2);
 
-            fsm.SetInitialState(state1.StateId);
+            fsm.SetInitialState(state1.GetStateId());
 
-            fsm.AddTransition(state1.StateId, 0, state2.StateId);
+            fsm.AddTransition(state1.GetStateId(), 0, state2.GetStateId());
 
             fsm.Start();
 
-            Assert.IsTrue(fsm.IsInState(state1.StateId));
+            Assert.IsTrue(fsm.IsInState(state1.GetStateId()));
 
             fsm.Trigger(0);
 
-            Assert.IsTrue(fsm.IsInState(state2.StateId));
+            Assert.IsTrue(fsm.IsInState(state2.GetStateId()));
         }
 
         [TestMethod]
@@ -284,11 +285,11 @@ namespace FSMTests
 
             var fsm = new FSM<int, int>();
 
-            state1.StateId.Returns(1);
+            state1.StateMachine.Returns(fsm);
 
-            fsm.AddState(state1);
+            fsm.AddState(1, state1);
 
-            Assert.IsTrue(fsm.ContainsState(state1.StateId));
+            Assert.IsTrue(fsm.ContainsState(state1.GetStateId()));
             Assert.IsFalse(fsm.ContainsState(2));
         }
 
@@ -300,15 +301,15 @@ namespace FSMTests
 
             var fsm = new FSM<int, int>();
 
-            state1.StateId.Returns(1);
-            state2.StateId.Returns(2);
+            state1.StateMachine.Returns(fsm);
+            state2.StateMachine.Returns(fsm);
 
-            fsm.AddState(state1);
-            fsm.AddState(state2);
+            fsm.AddState(1, state1);
+            fsm.AddState(2, state2);
 
-            fsm.SetInitialState(state1.StateId);
+            fsm.SetInitialState(state1.GetStateId());
 
-            fsm.AddTransition(state1.StateId, 0, state2.StateId);
+            fsm.AddTransition(state1.GetStateId(), 0, state2.GetStateId());
 
             fsm.Start();
 
@@ -326,11 +327,11 @@ namespace FSMTests
 
             var fsm = new FSM<int, int>();
 
-            state1.StateId.Returns(1);
+            state1.StateMachine.Returns(fsm);
 
-            fsm.AddState(state1);
+            fsm.AddState(1, state1);
 
-            fsm.SetInitialState(state1.StateId);
+            fsm.SetInitialState(state1.GetStateId());
 
             Assert.ThrowsException<FSMNotStartedException>(fsm.Update);
         }
@@ -342,11 +343,11 @@ namespace FSMTests
 
             var fsm = new FSM<int, int>();
 
-            state1.StateId.Returns(1);
+            state1.StateMachine.Returns(fsm);
 
-            fsm.AddState(state1);
+            fsm.AddState(1, state1);
 
-            fsm.SetInitialState(state1.StateId);
+            fsm.SetInitialState(state1.GetStateId());
 
             fsm.Start();
 
@@ -367,15 +368,15 @@ namespace FSMTests
 
             fsm.OnStateChanged += stateChangedEventHandler;
 
-            state1.StateId.Returns(1);
-            state2.StateId.Returns(2);
+            state1.StateMachine.Returns(fsm);
+            state2.StateMachine.Returns(fsm);
 
-            fsm.AddState(state1);
-            fsm.AddState(state2);
+            fsm.AddState(1, state1);
+            fsm.AddState(2, state2);
 
-            fsm.SetInitialState(state1.StateId);
+            fsm.SetInitialState(state1.GetStateId());
 
-            fsm.AddTransition(state1.StateId, 0, state2.StateId);
+            fsm.AddTransition(state1.GetStateId(), 0, state2.GetStateId());
 
             fsm.Start();
 

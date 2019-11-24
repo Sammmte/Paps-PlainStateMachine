@@ -13,7 +13,7 @@ namespace Paps.FSM
 
         private IFSMState<TState, TTrigger> _currentState;
 
-        private HashSet<IFSMState<TState, TTrigger>> _states;
+        private Dictionary<TState, IFSMState<TState, TTrigger>> _states;
         private HashSet<FSMTransition<TState, TTrigger>> _transitions;
 
         private Func<TState, TState, bool> _stateComparer;
@@ -30,7 +30,7 @@ namespace Paps.FSM
 
             _stateEqualityComparer = new FSMStateEqualityComparer(stateComparer);
 
-            _states = new HashSet<IFSMState<TState, TTrigger>>(_stateEqualityComparer);
+            _states = new Dictionary<TState, IFSMState<TState, TTrigger>>(_stateEqualityComparer);
             _transitions = new HashSet<FSMTransition<TState, TTrigger>>();
         }
 
@@ -152,48 +152,48 @@ namespace Paps.FSM
             InitialState = stateId;
         }
 
-        public void AddState(IFSMState<TState, TTrigger> state)
+        public void AddState(TState stateId, IFSMState<TState, TTrigger> state)
         {
-            ValidateInputStateForAddOperation(state);
+            ValidateInputStateForAddOperation(stateId, state);
 
-            InternalAddState(state);
+            InternalAddState(stateId, state);
         }
 
-        private void ValidateInputStateForAddOperation(IFSMState<TState, TTrigger> state)
+        private void ValidateInputStateForAddOperation(TState stateId, IFSMState<TState, TTrigger> state)
         {
             if (state == null)
             {
                 throw new ArgumentNullException(nameof(state));
             }
-            else if (_states.Contains(state))
+            else if (_states.ContainsKey(stateId))
             {
-                throw new StateIdAlreadyAddedException("State id " + state.StateId + " was already added to state machine");
+                throw new StateIdAlreadyAddedException("State id " + state.GetStateId() + " was already added to state machine");
             }
         }
 
-        private void InternalAddState(IFSMState<TState, TTrigger> state)
+        private void InternalAddState(TState stateId, IFSMState<TState, TTrigger> state)
         {
-            _states.Add(state);
+            _states.Add(stateId, state);
         }
 
         public void ForeachState(Action<IFSMState<TState, TTrigger>> action)
         {
-            foreach(IFSMState<TState, TTrigger> state in _states)
+            foreach(IFSMState<TState, TTrigger> state in _states.Values)
             {
                 action(state);
             }
         }
 
-        public void RemoveState(IFSMState<TState, TTrigger> state)
+        public void RemoveState(TState stateId)
         {
-            _states.Remove(state);
+            _states.Remove(stateId);
         }
 
         private IFSMState<TState, TTrigger> GetStateById(TState stateId)
         {
-            foreach(IFSMState<TState, TTrigger> state in _states)
+            foreach(IFSMState<TState, TTrigger> state in _states.Values)
             {
-                if(_stateComparer(state.StateId, stateId))
+                if(_stateComparer(state.GetStateId(), stateId))
                 {
                     return state;
                 }
@@ -237,7 +237,7 @@ namespace Paps.FSM
         {
             if(_currentState != null)
             {
-                return _stateComparer(_currentState.StateId, stateId);
+                return _stateComparer(_currentState.GetStateId(), stateId);
             }
 
             return false;
@@ -245,9 +245,9 @@ namespace Paps.FSM
 
         public bool ContainsState(TState stateId)
         {
-            foreach(IFSMState<TState, TTrigger> state in _states)
+            foreach(IFSMState<TState, TTrigger> state in _states.Values)
             {
-                if(_stateComparer(state.StateId, stateId))
+                if(_stateComparer(state.GetStateId(), stateId))
                 {
                     return true;
                 }
@@ -287,7 +287,7 @@ namespace Paps.FSM
         {
             foreach(FSMTransition<TState, TTrigger> transition in _transitions)
             {
-                if(_stateComparer(transition.StateFrom, _currentState.StateId) 
+                if(_stateComparer(transition.StateFrom, _currentState.GetStateId()) 
                     && _triggerComparer(transition.Trigger, trigger))
                 {
                     return TryGetStateById(transition.StateTo);
@@ -303,7 +303,7 @@ namespace Paps.FSM
 
             _currentState = null;
 
-            CallOnStateChangedEvent(stateFrom.StateId, trigger, stateTo.StateId);
+            CallOnStateChangedEvent(stateFrom.GetStateId(), trigger, stateTo.GetStateId());
 
             _currentState = stateTo;
 
@@ -318,7 +318,20 @@ namespace Paps.FSM
             }
         }
 
-        private class FSMStateEqualityComparer : IEqualityComparer<IFSMState<TState, TTrigger>>
+        public TState GetIdOf(IFSMState<TState, TTrigger> state)
+        {
+            foreach(KeyValuePair<TState, IFSMState<TState, TTrigger>> entry in _states)
+            {
+                if(entry.Value == state)
+                {
+                    return entry.Key;
+                }
+            }
+
+            throw new StateNotAddedException();
+        }
+
+        private class FSMStateEqualityComparer : IEqualityComparer<TState>
         {
             public Func<TState, TState, bool> _stateComparer;
 
@@ -327,14 +340,14 @@ namespace Paps.FSM
                 _stateComparer = stateComparer;
             }
 
-            public bool Equals(IFSMState<TState, TTrigger> x, IFSMState<TState, TTrigger> y)
+            public bool Equals(TState x, TState y)
             {
-                return _stateComparer(x.StateId, y.StateId);
+                return _stateComparer(x, y);
             }
 
-            public int GetHashCode(IFSMState<TState, TTrigger> obj)
+            public int GetHashCode(TState obj)
             {
-                return obj.StateId.GetHashCode();
+                return obj.GetHashCode();
             }
         }
     }
