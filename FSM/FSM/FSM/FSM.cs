@@ -156,11 +156,13 @@ namespace Paps.FSM
             InitialState = stateId;
         }
 
-        public void AddState(TState stateId, IFSMState<TState, TTrigger> state)
+        public IFSM<TState, TTrigger> AddState(TState stateId, IFSMState<TState, TTrigger> state)
         {
             ValidateCanAddState(stateId, state);
 
             InternalAddState(stateId, state);
+
+            return this;
         }
 
         private void ValidateCanAddState(TState stateId, IFSMState<TState, TTrigger> state)
@@ -191,12 +193,14 @@ namespace Paps.FSM
             }
         }
 
-        public void RemoveState(TState stateId)
+        public IFSM<TState, TTrigger> RemoveState(TState stateId)
         {
             if(_states.Remove(stateId))
             {
                 RemoveTransitionsRelatedTo(stateId);
             }
+
+            return this;
         }
 
         private void RemoveTransitionsRelatedTo(TState stateId)
@@ -239,12 +243,14 @@ namespace Paps.FSM
             }
         }
 
-        public void AddTransition(TState stateFrom, TTrigger trigger, TState stateTo)
+        public IFSM<TState, TTrigger> AddTransition(TState stateFrom, TTrigger trigger, TState stateTo)
         {
             ValidateHasStateWithId(stateFrom);
             ValidateHasStateWithId(stateTo);
 
             InternalAddTransition(stateFrom, trigger, stateTo);
+
+            return this;
         }
 
         private void InternalAddTransition(TState stateFrom, TTrigger trigger, TState stateTo)
@@ -252,12 +258,14 @@ namespace Paps.FSM
             _transitions.Add(new FSMTransition<TState, TTrigger>(stateFrom, trigger, stateTo));
         }
 
-        public void RemoveTransition(TState stateFrom, TTrigger trigger, TState stateTo)
+        public IFSM<TState, TTrigger> RemoveTransition(TState stateFrom, TTrigger trigger, TState stateTo)
         {
             ValidateHasStateWithId(stateFrom);
             ValidateHasStateWithId(stateTo);
 
             InternalRemoveTransition(stateFrom, trigger, stateTo);
+
+            return this;
         }
 
         private void InternalRemoveTransition(TState stateFrom, TTrigger trigger, TState stateTo)
@@ -445,24 +453,32 @@ namespace Paps.FSM
             throw new StateNotAddedException();
         }
 
-        public void AddANDGuardConditionTo(TState stateFrom, TTrigger trigger, TState stateTo, Func<TState, TTrigger, TState, bool> guardCondition)
+        public IFSMWithGuardConditions<TState, TTrigger> AddANDGuardConditionTo(TState stateFrom, TTrigger trigger, TState stateTo, Func<TState, TTrigger, TState, bool> guardCondition)
         {
             AddGuardConditionTo(_ANDguardConditions, stateFrom, trigger, stateTo, guardCondition);
+
+            return this;
         }
 
-        public void RemoveANDGuardConditionFrom(TState stateFrom, TTrigger trigger, TState stateTo, Func<TState, TTrigger, TState, bool> guardCondition)
+        public IFSMWithGuardConditions<TState, TTrigger> RemoveANDGuardConditionFrom(TState stateFrom, TTrigger trigger, TState stateTo, Func<TState, TTrigger, TState, bool> guardCondition)
         {
             RemoveGuardConditionFrom(_ANDguardConditions, stateFrom, trigger, stateTo, guardCondition);
+
+            return this;
         }
 
-        public void AddORGuardConditionTo(TState stateFrom, TTrigger trigger, TState stateTo, Func<TState, TTrigger, TState, bool> guardCondition)
+        public IFSMWithGuardConditions<TState, TTrigger> AddORGuardConditionTo(TState stateFrom, TTrigger trigger, TState stateTo, Func<TState, TTrigger, TState, bool> guardCondition)
         {
             AddGuardConditionTo(_ORguardConditions, stateFrom, trigger, stateTo, guardCondition);
+
+            return this;
         }
 
-        public void RemoveORGuardConditionFrom(TState stateFrom, TTrigger trigger, TState stateTo, Func<TState, TTrigger, TState, bool> guardCondition)
+        public IFSMWithGuardConditions<TState, TTrigger> RemoveORGuardConditionFrom(TState stateFrom, TTrigger trigger, TState stateTo, Func<TState, TTrigger, TState, bool> guardCondition)
         {
             RemoveGuardConditionFrom(_ORguardConditions, stateFrom, trigger, stateTo, guardCondition);
+
+            return this;
         }
 
 

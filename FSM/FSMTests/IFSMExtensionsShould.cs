@@ -83,14 +83,14 @@ namespace FSMTests
         [TestMethod]
         public void AddTimerState()
         {
-            var stateAfterTimer = Substitute.For<IFSMState<int, int>>();
+            var stateAfter = Substitute.For<IFSMState<int, int>>();
 
             var fsm = new FSM<int, int>();
 
-            stateAfterTimer.StateMachine.Returns(fsm);
+            stateAfter.StateMachine.Returns(fsm);
 
-            fsm.Build().AddState(2, stateAfterTimer)
-                .InnerFSM.AddTimerState(1, 1000, stateId => fsm.Trigger(0))
+            fsm.AddState(2, stateAfter)
+                .AddTimerState(1, 1000, stateId => fsm.Trigger(0))
                 .AddTransitionWithValuesOf(new FSMTransition<int, int>(1, 0, 2));
 
             fsm.SetInitialState(1);
@@ -101,7 +101,63 @@ namespace FSMTests
 
             fsm.Update();
 
-            stateAfterTimer.Received().Enter();
+            stateAfter.Received().Enter();
+        }
+
+        [TestMethod]
+        public void AddEmpty()
+        {
+            var stateAfter = Substitute.For<IFSMState<int, int>>();
+
+            var fsm = new FSM<int, int>();
+
+            stateAfter.StateMachine.Returns(fsm);
+
+            fsm.AddState(2, stateAfter)
+                .AddEmpty(1)
+                .AddTransitionWithValuesOf(new FSMTransition<int, int>(1, 0, 2));
+
+            fsm.SetInitialState(1);
+
+            fsm.Start();
+
+            fsm.Trigger(0);
+
+            stateAfter.Received().Enter();
+        }
+
+        [TestMethod]
+        public void AddWithEvents()
+        {
+            var stateAfter = Substitute.For<IFSMState<int, int>>();
+
+            var fsm = new FSM<int, int>();
+
+            stateAfter.StateMachine.Returns(fsm);
+
+            Action enterEvent = Substitute.For<Action>();
+            Action updateEvent = Substitute.For<Action>();
+            Action exitEvent = Substitute.For<Action>();
+
+            fsm.AddState(2, stateAfter)
+                .AddWithEvents(1, enterEvent, updateEvent, exitEvent)
+                .AddTransitionWithValuesOf(new FSMTransition<int, int>(1, 0, 2));
+
+            fsm.SetInitialState(1);
+
+            fsm.Start();
+
+            enterEvent.Received().Invoke();
+
+            fsm.Update();
+
+            updateEvent.Received().Invoke();
+
+            fsm.Trigger(0);
+
+            stateAfter.Received().Enter();
+
+            exitEvent.Received().Invoke();
         }
     }
 }

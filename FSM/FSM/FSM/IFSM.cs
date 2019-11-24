@@ -17,15 +17,15 @@ namespace Paps.FSM
 
         TState InitialState { get; }
 
-        void AddState(TState stateId, IFSMState<TState, TTrigger> state);
-        void RemoveState(TState stateId);
+        IFSM<TState, TTrigger> AddState(TState stateId, IFSMState<TState, TTrigger> state);
+        IFSM<TState, TTrigger> RemoveState(TState stateId);
 
         bool ContainsState(TState stateId);
 
         void ForeachState(ReturnTrueToFinishIteration<IFSMState<TState, TTrigger>> action);
 
-        void AddTransition(TState stateFrom, TTrigger trigger, TState stateTo);
-        void RemoveTransition(TState stateFrom, TTrigger trigger, TState stateTo);
+        IFSM<TState, TTrigger> AddTransition(TState stateFrom, TTrigger trigger, TState stateTo);
+        IFSM<TState, TTrigger> RemoveTransition(TState stateFrom, TTrigger trigger, TState stateTo);
 
         bool ContainsTransition(TState stateFrom, TTrigger trigger, TState stateTo);
 
