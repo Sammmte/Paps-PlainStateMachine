@@ -49,6 +49,7 @@
     <Compile Include="FSM\Extensions\IFSMExtensions.cs" />
     <Compile Include="FSM\FSM.cs" />
     <Compile Include="FSM\Errors\FSMStartedException.cs" />
+    <Compile Include="FSM\FSMGuardConditionRepository.cs" />
     <Compile Include="FSM\FSMState.cs" />
     <Compile Include="FSM\IFSM.cs" />
     <Compile Include="FSM\IFSMState.cs" />
