@@ -123,5 +123,124 @@ namespace Paps.FSM.Extensions
             return fsm.AddState(stateId, new DelegateFSMState<TState, TTrigger>(fsm, onEnter, onUpdate, onExit));
         }
 
+        public static IFSM<TState, TTrigger> FromAny<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TTrigger trigger, TState stateTo)
+        {
+            fsm.ForeachState(
+                state =>
+                {
+                    fsm.AddTransition(fsm.GetIdOf(state), trigger, stateTo);
+
+                    return false;
+                }
+                );
+
+            return fsm;
+        }
+
+        public static IFSM<TState, TTrigger> FromAnyExceptTarget<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TTrigger trigger, TState stateTo)
+        {
+            fsm.ForeachState(
+                state =>
+                {
+                    TState stateId = fsm.GetIdOf(state);
+
+                    if (stateId.Equals(stateTo) == false)
+                    {
+                        fsm.AddTransition(fsm.GetIdOf(state), trigger, stateTo);
+                    }
+
+                    return false;
+                }
+                );
+
+            return fsm;
+        }
+
+        public static IFSMTransition<TState, TTrigger>[] GetTransitionsWithTrigger<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TTrigger trigger)
+        {
+            List<IFSMTransition<TState, TTrigger>> transitions = null;
+
+            fsm.ForeachTransition(
+                transition =>
+                {
+                    if(transition.Trigger.Equals(trigger))
+                    {
+                        if(transitions == null)
+                        {
+                            transitions = new List<IFSMTransition<TState, TTrigger>>();
+                        }
+
+                        transitions.Add(transition);
+                    }
+
+                    return false;
+                }
+                );
+
+            if(transitions == null)
+            {
+                return null;
+            }
+
+            return transitions.ToArray();
+        }
+
+        public static IFSMTransition<TState, TTrigger>[] GetTransitionsWithStateFrom<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateFrom)
+        {
+            List<IFSMTransition<TState, TTrigger>> transitions = null;
+
+            fsm.ForeachTransition(
+                transition =>
+                {
+                    if (transition.StateFrom.Equals(stateFrom))
+                    {
+                        if (transitions == null)
+                        {
+                            transitions = new List<IFSMTransition<TState, TTrigger>>();
+                        }
+
+                        transitions.Add(transition);
+                    }
+
+                    return false;
+                }
+                );
+
+            if (transitions == null)
+            {
+                return null;
+            }
+
+            return transitions.ToArray();
+        }
+
+        public static IFSMTransition<TState, TTrigger>[] GetTransitionsWithStateTo<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateTo)
+        {
+            List<IFSMTransition<TState, TTrigger>> transitions = null;
+
+            fsm.ForeachTransition(
+                transition =>
+                {
+                    if (transition.StateTo.Equals(stateTo))
+                    {
+                        if (transitions == null)
+                        {
+                            transitions = new List<IFSMTransition<TState, TTrigger>>();
+                        }
+
+                        transitions.Add(transition);
+                    }
+
+                    return false;
+                }
+                );
+
+            if (transitions == null)
+            {
+                return null;
+            }
+
+            return transitions.ToArray();
+        }
     }
 }

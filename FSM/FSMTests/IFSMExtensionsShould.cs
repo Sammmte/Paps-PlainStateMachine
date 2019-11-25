@@ -1,8 +1,8 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Paps.FSM;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using Paps.FSM;
 using Paps.FSM.Extensions;
+using System;
 using System.Linq;
 using System.Threading;
 
@@ -159,5 +159,200 @@ namespace FSMTests
 
             exitEvent.Received().Invoke();
         }
+
+        [TestMethod]
+        public void AddTransitionFromAnyState()
+        {
+            var state1 = Substitute.For<IFSMState<int, int>>();
+            var state2 = Substitute.For<IFSMState<int, int>>();
+            var state3 = Substitute.For<IFSMState<int, int>>();
+            var state4 = Substitute.For<IFSMState<int, int>>();
+            var stateTarget = Substitute.For<IFSMState<int, int>>();
+
+            var fsm = new FSM<int, int>();
+
+            fsm.AddState(1, state1)
+                .AddState(2, state2)
+                .AddState(3, state3)
+                .AddState(4, state4)
+                .AddState(5, stateTarget)
+                .FromAny(0, 5);
+
+            Assert.IsTrue(
+                fsm.ContainsTransition(1, 0, 5) &&
+                fsm.ContainsTransition(2, 0, 5) &&
+                fsm.ContainsTransition(3, 0, 5) &&
+                fsm.ContainsTransition(4, 0, 5) &&
+                fsm.ContainsTransition(5, 0, 5)
+                        );
+        }
+
+        [TestMethod]
+        public void AddTransitionFromAnyStateExceptTarget()
+        {
+            var state1 = Substitute.For<IFSMState<int, int>>();
+            var state2 = Substitute.For<IFSMState<int, int>>();
+            var state3 = Substitute.For<IFSMState<int, int>>();
+            var state4 = Substitute.For<IFSMState<int, int>>();
+            var stateTarget = Substitute.For<IFSMState<int, int>>();
+
+            var fsm = new FSM<int, int>();
+
+            fsm.AddState(1, state1)
+                .AddState(2, state2)
+                .AddState(3, state3)
+                .AddState(4, state4)
+                .AddState(5, stateTarget)
+                .FromAnyExceptTarget(0, 5);
+
+            Assert.IsTrue(
+                fsm.ContainsTransition(1, 0, 5) &&
+                fsm.ContainsTransition(2, 0, 5) &&
+                fsm.ContainsTransition(3, 0, 5) &&
+                fsm.ContainsTransition(4, 0, 5)
+                        );
+
+            Assert.IsFalse(fsm.ContainsTransition(5, 0, 5));
+        }
+
+        [TestMethod]
+        public void ReturnTransitionsWithSpecificTrigger()
+        {
+            var state1 = Substitute.For<IFSMState<int, int>>();
+            var state2 = Substitute.For<IFSMState<int, int>>();
+            var stateTarget = Substitute.For<IFSMState<int, int>>();
+
+            var fsm = new FSM<int, int>();
+
+            fsm.AddState(1, state1)
+                .AddState(2, state2)
+                .AddState(3, stateTarget)
+                .FromAny(0, 3)
+                .AddTransition(1, 1, 1);
+
+            var transitions = fsm.GetTransitionsWithTrigger(0);
+
+            Assert.IsFalse(HasAnyWithoutTrigger(transitions, 0));
+            Assert.IsFalse(HasAnyWithTrigger(transitions, 1));
+
+            bool HasAnyWithTrigger<TState, TTrigger>(IFSMTransition<TState, TTrigger>[] transitionArray, TTrigger trigger)
+            {
+                foreach (var transition in transitionArray)
+                {
+                    if (transition.Trigger.Equals(trigger))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            bool HasAnyWithoutTrigger<TState, TTrigger>(IFSMTransition<TState, TTrigger>[] transitionArray, TTrigger trigger)
+            {
+                foreach (var transition in transitionArray)
+                {
+                    if (transition.Trigger.Equals(trigger) == false)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        [TestMethod]
+        public void ReturnTransitionsWithSpecificStateFrom()
+        {
+            var state1 = Substitute.For<IFSMState<int, int>>();
+            var state2 = Substitute.For<IFSMState<int, int>>();
+
+            var fsm = new FSM<int, int>();
+
+            fsm.AddState(1, state1)
+                .AddState(2, state2)
+                .AddTransition(1, 0, 1)
+                .AddTransition(1, 1, 1)
+                .AddTransition(2, 1, 1);
+
+            var transitions = fsm.GetTransitionsWithStateFrom(1);
+
+            Assert.IsFalse(HasAnyWithoutStateFrom(transitions, 1));
+            Assert.IsFalse(HasAnyWithStateFrom(transitions, 2));
+
+            bool HasAnyWithStateFrom<TState, TTrigger>(IFSMTransition<TState, TTrigger>[] transitionArray, TState stateFrom)
+            {
+                foreach (var transition in transitionArray)
+                {
+                    if (transition.StateFrom.Equals(stateFrom))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            bool HasAnyWithoutStateFrom<TState, TTrigger>(IFSMTransition<TState, TTrigger>[] transitionArray, TState stateFrom)
+            {
+                foreach (var transition in transitionArray)
+                {
+                    if (transition.StateFrom.Equals(stateFrom) == false)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        [TestMethod]
+        public void ReturnTransitionsWithSpecificStateTo()
+        {
+            var state1 = Substitute.For<IFSMState<int, int>>();
+            var state2 = Substitute.For<IFSMState<int, int>>();
+
+            var fsm = new FSM<int, int>();
+
+            fsm.AddState(1, state1)
+                .AddState(2, state2)
+                .AddTransition(1, 0, 1)
+                .AddTransition(1, 1, 1)
+                .AddTransition(1, 1, 2);
+
+            var transitions = fsm.GetTransitionsWithStateTo(1);
+
+            Assert.IsFalse(HasAnyWithoutStateTo(transitions, 1));
+            Assert.IsFalse(HasAnyWithStateTo(transitions, 2));
+
+            bool HasAnyWithStateTo<TState, TTrigger>(IFSMTransition<TState, TTrigger>[] transitionArray, TState stateTo)
+            {
+                foreach (var transition in transitionArray)
+                {
+                    if (transition.StateTo.Equals(stateTo))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            bool HasAnyWithoutStateTo<TState, TTrigger>(IFSMTransition<TState, TTrigger>[] transitionArray, TState stateTo)
+            {
+                foreach (var transition in transitionArray)
+                {
+                    if (transition.StateTo.Equals(stateTo) == false)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
     }
 }
