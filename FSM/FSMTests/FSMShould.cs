@@ -789,5 +789,46 @@ namespace FSMTests
             Assert.IsTrue(fsm.IsInState(5));
 
         }
+
+        [TestMethod]
+        public void ReplaceStateEvenWhenStarted()
+        {
+            var fsm = new FSM<int, int>();
+
+            var state1 = Substitute.For<IFSMState<int, int>>();
+            var state2 = Substitute.For<IFSMState<int, int>>();
+            var stateReplace = Substitute.For<IFSMState<int, int>>();
+
+            fsm.AddState(1, state1)
+                .AddState(2, state2)
+                .AddTransition(1, 0, 2);
+
+            fsm.SetInitialState(1);
+
+            fsm.Start();
+
+            fsm.ReplaceState(2, stateReplace);
+
+            fsm.Trigger(0);
+
+            stateReplace.Received().Enter();
+        }
+
+        [TestMethod]
+        public void ThrowAnExceptionIfUserTriesToReplaceCurrentState()
+        {
+            var fsm = new FSM<int, int>();
+
+            var state1 = Substitute.For<IFSMState<int, int>>();
+            var stateReplace = Substitute.For<IFSMState<int, int>>();
+
+            fsm.AddState(1, state1);
+
+            fsm.SetInitialState(1);
+
+            fsm.Start();
+
+            Assert.ThrowsException<InvalidOperationException>(() => fsm.ReplaceState(1, stateReplace));
+        }
     }
 }

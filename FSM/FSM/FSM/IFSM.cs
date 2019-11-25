@@ -37,6 +37,8 @@ namespace Paps.FSM
 
         TState GetIdOf(IFSMState<TState, TTrigger> state);
 
+        IFSM<TState, TTrigger> ReplaceState(TState stateId, IFSMState<TState, TTrigger> newState);
+
         void Start();
         void Update();
         void Stop();

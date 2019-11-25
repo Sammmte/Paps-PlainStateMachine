@@ -296,12 +296,7 @@ namespace Paps.FSM
 
         public bool IsInState(TState stateId)
         {
-            if(_currentState != null)
-            {
-                return _stateComparer(GetIdOf(_currentState), stateId);
-            }
-
-            return false;
+            return IsStarted && _stateComparer(GetIdOf(_currentState), stateId);
         }
 
         public bool ContainsState(TState stateId)
@@ -524,6 +519,29 @@ namespace Paps.FSM
             if(guardCondition == null)
             {
                 throw new ArgumentNullException("Guard condition was null");
+            }
+        }
+
+        public IFSM<TState, TTrigger> ReplaceState(TState stateId, IFSMState<TState, TTrigger> newState)
+        {
+            ValidateCanReplace(stateId);
+
+            _states[stateId] = newState;
+
+            return this;
+        }
+
+        private void ValidateCanReplace(TState stateId)
+        {
+            ValidateHasStateWithId(stateId);
+            ValidateReplaceOverCurrentState(stateId);
+        }
+
+        private void ValidateReplaceOverCurrentState(TState stateId)
+        {
+            if(IsInState(stateId))
+            {
+                throw new InvalidOperationException("Cannot replace running state");
             }
         }
  
