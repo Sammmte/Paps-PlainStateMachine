@@ -747,5 +747,47 @@ namespace FSMTests
             }
         }
 
+        [TestMethod]
+        public void TransitionQueued()
+        {
+            var fsm = new FSM<int, int>();
+
+            var transition1 = new FSMTransition<int, int>(1, 0, 2);
+            var transition2 = new FSMTransition<int, int>(2, 0, 3);
+            var transition3 = new FSMTransition<int, int>(3, 0, 4);
+            var transition4 = new FSMTransition<int, int>(4, 0, 5);
+
+            var state1 = Substitute.For<IFSMState<int, int>>();
+            var state3 = Substitute.For<IFSMState<int, int>>();
+            var state4 = Substitute.For<IFSMState<int, int>>();
+            var state5 = Substitute.For<IFSMState<int, int>>();
+            var state2 = new DelegateFSMState<int, int>
+                (fsm, 
+                () =>
+                {
+                    fsm.Trigger(transition2.Trigger);
+                    fsm.Trigger(transition3.Trigger);
+                    fsm.Trigger(transition4.Trigger);
+                    state3.DidNotReceive().Enter();
+                }, null, null);
+
+
+            fsm.AddState(1, state1)
+                .AddState(2, state2)
+                .AddState(3, state3)
+                .AddState(4, state4)
+                .AddState(5, state5)
+                .AddTransitionWithValuesOf(transition1)
+                .AddTransitionWithValuesOf(transition2)
+                .AddTransitionWithValuesOf(transition3)
+                .AddTransitionWithValuesOf(transition4)
+                .SetInitialState(1)
+                .Start();
+
+            fsm.Trigger(transition1.Trigger);
+
+            Assert.IsTrue(fsm.IsInState(5));
+
+        }
     }
 }

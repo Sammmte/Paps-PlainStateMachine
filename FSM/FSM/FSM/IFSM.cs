@@ -31,7 +31,7 @@ namespace Paps.FSM
 
         void ForeachTransition(ReturnTrueToFinishIteration<IFSMTransition<TState, TTrigger>> action);
 
-        void SetInitialState(TState stateId);
+        IFSM<TState, TTrigger> SetInitialState(TState stateId);
 
         bool IsInState(TState stateId);
 
