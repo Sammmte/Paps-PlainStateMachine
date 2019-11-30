@@ -4,7 +4,6 @@ using System.Collections.Generic;
 namespace Paps.FSM
 {
     public delegate void StateChanged<TState, TTrigger>(TState stateFrom, TTrigger trigger, TState stateTo);
-    public delegate bool ReturnTrueToFinishIteration<T>(T current);
 
     public interface IFSM<TState, TTrigger>
     {
@@ -17,27 +16,25 @@ namespace Paps.FSM
 
         TState InitialState { get; }
 
-        IFSM<TState, TTrigger> AddState(TState stateId, IFSMState<TState, TTrigger> state);
-        IFSM<TState, TTrigger> RemoveState(TState stateId);
+        void AddState(TState stateId, IFSMState state);
+        void RemoveState(TState stateId);
 
         bool ContainsState(TState stateId);
 
-        void ForeachState(ReturnTrueToFinishIteration<IFSMState<TState, TTrigger>> action);
+        IFSMState[] GetStates();
 
-        IFSM<TState, TTrigger> AddTransition(TState stateFrom, TTrigger trigger, TState stateTo);
-        IFSM<TState, TTrigger> RemoveTransition(TState stateFrom, TTrigger trigger, TState stateTo);
+        void AddTransition(TState stateFrom, TTrigger trigger, TState stateTo);
+        void RemoveTransition(TState stateFrom, TTrigger trigger, TState stateTo);
 
         bool ContainsTransition(TState stateFrom, TTrigger trigger, TState stateTo);
 
-        void ForeachTransition(ReturnTrueToFinishIteration<IFSMTransition<TState, TTrigger>> action);
+        IFSMTransition<TState, TTrigger>[] GetTransitions();
 
-        IFSM<TState, TTrigger> SetInitialState(TState stateId);
+        void SetInitialState(TState stateId);
 
         bool IsInState(TState stateId);
 
-        TState GetIdOf(IFSMState<TState, TTrigger> state);
-
-        IFSM<TState, TTrigger> ReplaceState(TState stateId, IFSMState<TState, TTrigger> newState);
+        TState GetIdOf(IFSMState state);
 
         void Start();
         void Update();

@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 
 namespace Paps.FSM
 {
-    public interface IFSMState<TState, TTrigger>
+    public interface IFSMState
     {
-        IFSM<TState, TTrigger> StateMachine { get; }
-
         void Enter();
         void Update();
         void Exit();

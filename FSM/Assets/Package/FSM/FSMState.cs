@@ -2,7 +2,7 @@
 
 namespace Paps.FSM
 {
-    public class FSMState<TState, TTrigger> : IFSMState<TState, TTrigger>
+    public class FSMState<TState, TTrigger> : IFSMState
     {
         public IFSM<TState, TTrigger> StateMachine { get; private set; }
 

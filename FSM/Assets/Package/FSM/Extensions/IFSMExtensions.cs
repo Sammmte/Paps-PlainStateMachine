@@ -6,385 +6,352 @@ using System.Threading.Tasks;
 
 namespace Paps.FSM.Extensions
 {
+    public delegate bool ReturnTrueToFinishIteration<T>(T current);
+
     public static class IFSMExtensions
     {
-        public static IFSM<TState, TTrigger> AddTransitionWithValuesOf<TTransition, TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TTransition transition) where TTransition : IFSMTransition<TState, TTrigger>
+        public static void AddTransitionWithValuesOf<TTransition, TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TTransition transition) where TTransition : IFSMTransition<TState, TTrigger>
         {
-            return fsm.AddTransition(transition.StateFrom, transition.Trigger, transition.StateTo);
+            fsm.AddTransition(transition.StateFrom, transition.Trigger, transition.StateTo);
         }
 
-        public static IFSM<TState, TTrigger> RemoveTransitionWithValuesOf<TTransition, TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TTransition transition) where TTransition : IFSMTransition<TState, TTrigger>
+        public static void RemoveTransitionWithValuesOf<TTransition, TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TTransition transition) where TTransition : IFSMTransition<TState, TTrigger>
         {
-            return fsm.RemoveTransition(transition.StateFrom, transition.Trigger, transition.StateTo);
+            fsm.RemoveTransition(transition.StateFrom, transition.Trigger, transition.StateTo);
         }
 
-        public static bool ContainsStateByReference<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, IFSMState<TState, TTrigger> stateRef)
+        public static bool ContainsStateByReference<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, IFSMState stateRef)
         {
-            bool contains = false;
+            IFSMState[] states = fsm.GetStates();
 
-            fsm.ForeachState(
-                state =>
+            foreach(IFSMState state in states)
+            {
+                if (state == stateRef)
                 {
-                    if (state == stateRef)
-                    {
-                        contains = true;
-                        return true;
-                    }
+                    return true;
+                }
+            }
 
-                    return false;
-                });
-
-            return contains;
+            return false;
         }
         
-        public static T GetState<T, TState, TTrigger>(this IFSM<TState, TTrigger> fsm) where T : IFSMState<TState, TTrigger>
+        public static T GetState<T, TState, TTrigger>(this IFSM<TState, TTrigger> fsm)
         {
             T candidate = default;
 
-            fsm.ForeachState(
-                state =>
-                {
-                    if(state is T cast)
-                    {
-                        candidate = cast;
-                        return true;
-                    }
+            IFSMState[] states = fsm.GetStates();
 
-                    return false;
+            foreach(IFSMState state in states)
+            {
+                if (state is T cast)
+                {
+                    candidate = cast;
+                    break;
                 }
-                );
+            }
 
             return candidate;
         }
 
-        public static T[] GetStates<T, TState, TTrigger>(this IFSM<TState, TTrigger> fsm) where T : IFSMState<TState, TTrigger>
+        public static T[] GetStates<T, TState, TTrigger>(this IFSM<TState, TTrigger> fsm)
         {
-            List<T> states = null;
+            List<T> statesList = null;
 
-            fsm.ForeachState(
-                state =>
+            IFSMState[] states = fsm.GetStates();
+
+            foreach(IFSMState state in states)
+            {
+                if (state is T cast)
                 {
-                    if(state is T cast)
+                    if (statesList == null)
                     {
-                        if(states == null)
-                        {
-                            states = new List<T>();
-                        }
-
-                        states.Add(cast);
+                        statesList = new List<T>();
                     }
 
-                    return false;
+                    statesList.Add(cast);
                 }
-                );
+            }
 
-            if(states != null)
+            if(statesList != null)
             {
-                return states.ToArray();
+                return statesList.ToArray();
             }
 
             return null;
         }
 
-        public static T GetStateById<T, TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId) where T : IFSMState<TState, TTrigger>
+        public static T GetStateById<T, TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId)
         {
             T candidate = default;
 
-            fsm.ForeachState(
-                state =>
-                {
-                    if(state is T cast)
-                    {
-                        candidate = cast;
-                        return true;
-                    }
+            IFSMState[] states = fsm.GetStates();
 
-                    return false;
+            foreach(IFSMState state in states)
+            {
+                if (state is T cast)
+                {
+                    candidate = cast;
+                    break;
                 }
-                );
+            }
 
             return candidate;
         }
 
-        public static IFSM<TState, TTrigger> AddTimerState<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId, 
+        public static void AddTimerState<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId, 
             double milliseconds, Action<TState> onTimerElapsed)
         {
-            return fsm.AddState(stateId, new TimerState<TState, TTrigger>(fsm, milliseconds, onTimerElapsed));
+            fsm.AddState(stateId, new TimerState<TState, TTrigger>(fsm, milliseconds, onTimerElapsed));
         }
 
-        public static IFSM<TState, TTrigger> AddEmpty<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId)
+        public static void AddEmpty<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId)
         {
-            return fsm.AddState(stateId, new FSMState<TState, TTrigger>(fsm));
+            fsm.AddState(stateId, new FSMState<TState, TTrigger>(fsm));
         }
         
-        public static IFSM<TState, TTrigger> AddWithEvents<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId,
-            Action onEnter, Action onUpdate = null, Action onExit = null)
+        public static void AddWithEvents<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId,
+            Action onEnter, Action onUpdate, Action onExit)
         {
-            return fsm.AddState(stateId, new DelegateFSMState<TState, TTrigger>(fsm, onEnter, onUpdate, onExit));
+            fsm.AddState(stateId, new DelegateFSMState<TState, TTrigger>(fsm, onEnter, onUpdate, onExit));
         }
 
-        public static IFSM<TState, TTrigger> FromAny<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TTrigger trigger, TState stateTo)
+        public static void ForeachState<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, ReturnTrueToFinishIteration<IFSMState> finishable)
         {
-            fsm.ForeachState(
-                state =>
+            IFSMState[] states = fsm.GetStates();
+
+            foreach(IFSMState state in states)
+            {
+                if(finishable(state))
+                {
+                    return;
+                }
+            }
+        }
+
+        public static void ForeachTransition<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, ReturnTrueToFinishIteration<IFSMTransition<TState, TTrigger>> finishable)
+        {
+            IFSMTransition<TState, TTrigger>[] transitions = fsm.GetTransitions();
+
+            foreach (IFSMTransition<TState, TTrigger> transition in transitions)
+            {
+                if (finishable(transition))
+                {
+                    return;
+                }
+            }
+        }
+
+        public static void FromAny<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TTrigger trigger, TState stateTo)
+        {
+            IFSMState[] states = fsm.GetStates();
+
+            foreach(IFSMState state in states)
+            {
+                fsm.AddTransition(fsm.GetIdOf(state), trigger, stateTo);
+            }
+        }
+
+        public static void FromAnyExceptTarget<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TTrigger trigger, TState stateTo)
+        {
+            IFSMState[] states = fsm.GetStates();
+
+            foreach (IFSMState state in states)
+            {
+                TState stateId = fsm.GetIdOf(state);
+
+                if (stateId.Equals(stateTo) == false)
                 {
                     fsm.AddTransition(fsm.GetIdOf(state), trigger, stateTo);
-
-                    return false;
                 }
-                );
-
-            return fsm;
-        }
-
-        public static IFSM<TState, TTrigger> FromAnyExceptTarget<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TTrigger trigger, TState stateTo)
-        {
-            fsm.ForeachState(
-                state =>
-                {
-                    TState stateId = fsm.GetIdOf(state);
-
-                    if (stateId.Equals(stateTo) == false)
-                    {
-                        fsm.AddTransition(fsm.GetIdOf(state), trigger, stateTo);
-                    }
-
-                    return false;
-                }
-                );
-
-            return fsm;
+            }
         }
 
         public static IFSMTransition<TState, TTrigger>[] GetTransitionsWithTrigger<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TTrigger trigger)
         {
-            List<IFSMTransition<TState, TTrigger>> transitions = null;
+            List<IFSMTransition<TState, TTrigger>> transitionsList = null;
 
-            fsm.ForeachTransition(
-                transition =>
+            IFSMTransition<TState, TTrigger>[] transitions = fsm.GetTransitions();
+
+            foreach(var transition in transitions)
+            {
+                if (transition.Trigger.Equals(trigger))
                 {
-                    if(transition.Trigger.Equals(trigger))
+                    if (transitionsList == null)
                     {
-                        if(transitions == null)
-                        {
-                            transitions = new List<IFSMTransition<TState, TTrigger>>();
-                        }
-
-                        transitions.Add(transition);
+                        transitionsList = new List<IFSMTransition<TState, TTrigger>>();
                     }
 
-                    return false;
+                    transitionsList.Add(transition);
                 }
-                );
+            }
 
-            if(transitions == null)
+            if(transitionsList == null)
             {
                 return null;
             }
 
-            return transitions.ToArray();
+            return transitionsList.ToArray();
         }
 
         public static IFSMTransition<TState, TTrigger>[] GetTransitionsWithStateFrom<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateFrom)
         {
-            List<IFSMTransition<TState, TTrigger>> transitions = null;
+            List<IFSMTransition<TState, TTrigger>> transitionsList = null;
 
-            fsm.ForeachTransition(
-                transition =>
+            IFSMTransition<TState, TTrigger>[] transitions = fsm.GetTransitions();
+
+            foreach (var transition in transitions)
+            {
+                if (transition.StateFrom.Equals(stateFrom))
                 {
-                    if (transition.StateFrom.Equals(stateFrom))
+                    if (transitionsList == null)
                     {
-                        if (transitions == null)
-                        {
-                            transitions = new List<IFSMTransition<TState, TTrigger>>();
-                        }
-
-                        transitions.Add(transition);
+                        transitionsList = new List<IFSMTransition<TState, TTrigger>>();
                     }
 
-                    return false;
+                    transitionsList.Add(transition);
                 }
-                );
+            }
 
-            if (transitions == null)
+            if (transitionsList == null)
             {
                 return null;
             }
 
-            return transitions.ToArray();
+            return transitionsList.ToArray();
         }
 
         public static IFSMTransition<TState, TTrigger>[] GetTransitionsWithStateTo<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateTo)
         {
-            List<IFSMTransition<TState, TTrigger>> transitions = null;
+            List<IFSMTransition<TState, TTrigger>> transitionsList = null;
 
-            fsm.ForeachTransition(
-                transition =>
+            IFSMTransition<TState, TTrigger>[] transitions = fsm.GetTransitions();
+
+            foreach (var transition in transitions)
+            {
+                if (transition.StateTo.Equals(stateTo))
                 {
-                    if (transition.StateTo.Equals(stateTo))
+                    if (transitionsList == null)
                     {
-                        if (transitions == null)
-                        {
-                            transitions = new List<IFSMTransition<TState, TTrigger>>();
-                        }
-
-                        transitions.Add(transition);
+                        transitionsList = new List<IFSMTransition<TState, TTrigger>>();
                     }
 
-                    return false;
+                    transitionsList.Add(transition);
                 }
-                );
+            }
 
-            if (transitions == null)
+            if (transitionsList == null)
             {
                 return null;
             }
 
-            return transitions.ToArray();
+            return transitionsList.ToArray();
         }
-
-        
-        /* PARA PROBAR!!
 
         public static bool ContainsTransitionWithStateTo<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateTo)
         {
-            bool contains = false;
-
-            fsm.ForeachTransition(
-                transition =>
+            IFSMTransition<TState, TTrigger>[] transitions = fsm.GetTransitions();
+            
+            foreach(var transition in transitions)
+            {
+                if (transition.StateTo.Equals(stateTo))
                 {
-                    if (transition.StateTo.Equals(stateTo))
-                    {
-                        contains = true;
-                        return true;
-                    }
-
-                    return false;
+                    return true;
                 }
-                );
+            }
 
-            return contains;
+            return false;
         }
 
         public static bool ContainsTransitionWithStateFrom<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateFrom)
         {
-            bool contains = false;
+            IFSMTransition<TState, TTrigger>[] transitions = fsm.GetTransitions();
 
-            fsm.ForeachTransition(
-                transition =>
+            foreach (var transition in transitions)
+            {
+                if (transition.StateFrom.Equals(stateFrom))
                 {
-                    if (transition.StateFrom.Equals(stateFrom))
-                    {
-                        contains = true;
-                        return true;
-                    }
-
-                    return false;
+                    return true;
                 }
-                );
+            }
 
-            return contains;
+            return false;
         }
 
         public static bool ContainsTransitionWithTrigger<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TTrigger trigger)
         {
-            bool contains = false;
+            IFSMTransition<TState, TTrigger>[] transitions = fsm.GetTransitions();
 
-            fsm.ForeachTransition(
-                transition =>
+            foreach (var transition in transitions)
+            {
+                if (transition.Trigger.Equals(trigger))
                 {
-                    if (transition.Trigger.Equals(trigger))
-                    {
-                        contains = true;
-                        return true;
-                    }
-
-                    return false;
+                    return true;
                 }
-                );
+            }
 
-            return contains;
+            return false;
         }
 
         public static IFSMTransition<TState, TTrigger>[] GetTransitionsRelatedTo<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId)
         {
-            List<IFSMTransition<TState, TTrigger>> transitions = null;
+            List<IFSMTransition<TState, TTrigger>> transitionsList = null;
 
-            fsm.ForeachTransition(
-                transition =>
+            IFSMTransition<TState, TTrigger>[] transitions = fsm.GetTransitions();
+
+            foreach(var transition in transitions)
+            {
+                if (transition.StateFrom.Equals(stateId) || transition.StateTo.Equals(stateId))
                 {
-                    if (transition.StateFrom.Equals(stateId) || transition.StateTo.Equals(stateId))
+                    if (transitionsList == null)
                     {
-                        if (transitions == null)
-                        {
-                            transitions = new List<IFSMTransition<TState, TTrigger>>();
-                        }
-
-                        transitions.Add(transition);
+                        transitionsList = new List<IFSMTransition<TState, TTrigger>>();
                     }
 
-                    return false;
+                    transitionsList.Add(transition);
                 }
-                );
+            }
 
-            if (transitions == null)
+            if (transitionsList == null)
             {
                 return null;
             }
 
-            return transitions.ToArray();
+            return transitionsList.ToArray();
         }
 
-        public static IFSMTransition<TState, TTrigger>[] GetTransitions<TState, TTrigger>(this IFSM<TState, TTrigger> fsm)
+        public static bool ContainsTransitionRelatedTo<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId)
         {
-            List<IFSMTransition<TState, TTrigger>> transitions = null;
+            var transitions = fsm.GetTransitions();
 
-            fsm.ForeachTransition(
-                transition =>
-                {
-                    if (transitions == null)
-                    {
-                        transitions = new List<IFSMTransition<TState, TTrigger>>();
-                    }
-
-                    transitions.Add(transition);
-
-                    return false;
-                }
-                );
-
-            if (transitions == null)
+            foreach (var transition in transitions)
             {
-                return null;
+                if (transition.StateFrom.Equals(stateId) || transition.StateTo.Equals(stateId))
+                {
+                    return true;
+                }
             }
 
-            return transitions.ToArray();
+            return false;
         }
 
-        public static IFSM<TState, TTrigger> RemoveAllTransitions<TState, TTrigger>(this IFSM<TState, TTrigger> fsm)
+        public static void RemoveAllTransitions<TState, TTrigger>(this IFSM<TState, TTrigger> fsm)
         {
             IFSMTransition<TState, TTrigger>[] transitions = fsm.GetTransitions();
 
-            for(int i = 0; i < transitions.Length; i++)
+            foreach(var transition in transitions)
             {
-                fsm.RemoveTransitionWithValuesOf(transitions[i]);
+                fsm.RemoveTransitionWithValuesOf(transition);
             }
-
-            return fsm;
         }
 
-        public static IFSM<TState, TTrigger> RemoveAllTransitionsRelatedTo<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId)
+        public static void RemoveAllTransitionsRelatedTo<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId)
         {
             IFSMTransition<TState, TTrigger>[] transitions = fsm.GetTransitionsRelatedTo(stateId);
 
-            for (int i = 0; i < transitions.Length; i++)
+            foreach (var transition in transitions)
             {
-                fsm.RemoveTransitionWithValuesOf(transitions[i]);
+                fsm.RemoveTransitionWithValuesOf(transition);
             }
-
-            return fsm;
         }
-
-        */
     }
 }

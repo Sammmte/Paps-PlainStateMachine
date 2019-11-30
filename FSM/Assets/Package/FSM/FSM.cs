@@ -12,14 +12,14 @@ namespace Paps.FSM
         public bool IsStarted { get; private set; }
         public TState InitialState { get; private set; }
 
-        private Dictionary<TState, IFSMState<TState, TTrigger>> _states;
+        private Dictionary<TState, IFSMState> _states;
         private HashSet<IFSMTransition<TState, TTrigger>> _transitions;
         private FSMGuardConditionRepository<TState, TTrigger> _ANDguardConditionRepository;
         private FSMGuardConditionRepository<TState, TTrigger> _ORguardConditionRepository;
 
         private Queue<TransitionRequest> _transitionRequestQueue;
 
-        private IFSMState<TState, TTrigger> _currentState;
+        private IFSMState _currentState;
         private bool _isTransitioning;
 
         private Func<TState, TState, bool> _stateComparer;
@@ -38,7 +38,7 @@ namespace Paps.FSM
             _stateEqualityComparer = new FSMStateEqualityComparer(stateComparer);
             _transitionEqualityComparer = new FSMTransitionEqualityComparer(stateComparer, triggerComparer);
 
-            _states = new Dictionary<TState, IFSMState<TState, TTrigger>>(_stateEqualityComparer);
+            _states = new Dictionary<TState, IFSMState>(_stateEqualityComparer);
             _transitions = new HashSet<IFSMTransition<TState, TTrigger>>(_transitionEqualityComparer);
             _ANDguardConditionRepository = new FSMGuardConditionRepository<TState, TTrigger>(_transitionEqualityComparer);
             _ORguardConditionRepository = new FSMGuardConditionRepository<TState, TTrigger>(_transitionEqualityComparer);
@@ -103,13 +103,11 @@ namespace Paps.FSM
             _currentState.Exit();
         }
 
-        public IFSM<TState, TTrigger> SetInitialState(TState stateId)
+        public void SetInitialState(TState stateId)
         {
             ValidateCanSetInitialState(stateId);
 
             InternalSetInitialState(stateId);
-
-            return this;
         }
 
         private void ValidateCanSetInitialState(TState initialStateId)
@@ -142,21 +140,29 @@ namespace Paps.FSM
             }
         }
 
+        public IFSMState[] GetStates()
+        {
+            return _states.Values.ToArray();
+        }
+
+        public IFSMTransition<TState, TTrigger>[] GetTransitions()
+        {
+            return _transitions.ToArray();
+        }
+
         private void InternalSetInitialState(TState stateId)
         {
             InitialState = stateId;
         }
 
-        public IFSM<TState, TTrigger> AddState(TState stateId, IFSMState<TState, TTrigger> state)
+        public void AddState(TState stateId, IFSMState state)
         {
             ValidateCanAddState(stateId, state);
 
             InternalAddState(stateId, state);
-
-            return this;
         }
 
-        private void ValidateCanAddState(TState stateId, IFSMState<TState, TTrigger> state)
+        private void ValidateCanAddState(TState stateId, IFSMState state)
         {
             if (state == null)
             {
@@ -168,30 +174,17 @@ namespace Paps.FSM
             }
         }
 
-        private void InternalAddState(TState stateId, IFSMState<TState, TTrigger> state)
+        private void InternalAddState(TState stateId, IFSMState state)
         {
             _states.Add(stateId, state);
         }
 
-        public void ForeachState(ReturnTrueToFinishIteration<IFSMState<TState, TTrigger>> finishable)
-        {
-            foreach(IFSMState<TState, TTrigger> state in _states.Values)
-            {
-                if(finishable(state))
-                {
-                    break;
-                }
-            }
-        }
-
-        public IFSM<TState, TTrigger> RemoveState(TState stateId)
+        public void RemoveState(TState stateId)
         {
             if(_states.Remove(stateId))
             {
                 RemoveTransitionsRelatedTo(stateId);
             }
-
-            return this;
         }
 
         private void RemoveTransitionsRelatedTo(TState stateId)
@@ -208,9 +201,9 @@ namespace Paps.FSM
             }
         }
 
-        private IFSMState<TState, TTrigger> GetStateById(TState stateId)
+        private IFSMState GetStateById(TState stateId)
         {
-            foreach(IFSMState<TState, TTrigger> state in _states.Values)
+            foreach(IFSMState state in _states.Values)
             {
                 if(_stateComparer(GetIdOf(state), stateId))
                 {
@@ -221,7 +214,7 @@ namespace Paps.FSM
             throw new StateNotAddedException(stateId.ToString());
         }
 
-        private IFSMState<TState, TTrigger> TryGetStateById(TState stateId)
+        private IFSMState TryGetStateById(TState stateId)
         {
             try
             {
@@ -234,14 +227,12 @@ namespace Paps.FSM
             }
         }
 
-        public IFSM<TState, TTrigger> AddTransition(TState stateFrom, TTrigger trigger, TState stateTo)
+        public void AddTransition(TState stateFrom, TTrigger trigger, TState stateTo)
         {
             ValidateHasStateWithId(stateFrom);
             ValidateHasStateWithId(stateTo);
 
             InternalAddTransition(stateFrom, trigger, stateTo);
-
-            return this;
         }
 
         private void InternalAddTransition(TState stateFrom, TTrigger trigger, TState stateTo)
@@ -249,14 +240,12 @@ namespace Paps.FSM
             _transitions.Add(new FSMTransition<TState, TTrigger>(stateFrom, trigger, stateTo));
         }
 
-        public IFSM<TState, TTrigger> RemoveTransition(TState stateFrom, TTrigger trigger, TState stateTo)
+        public void RemoveTransition(TState stateFrom, TTrigger trigger, TState stateTo)
         {
             ValidateHasStateWithId(stateFrom);
             ValidateHasStateWithId(stateTo);
 
             InternalRemoveTransition(stateFrom, trigger, stateTo);
-
-            return this;
         }
 
         private void InternalRemoveTransition(TState stateFrom, TTrigger trigger, TState stateTo)
@@ -283,17 +272,6 @@ namespace Paps.FSM
             }
         }
 
-        public void ForeachTransition(ReturnTrueToFinishIteration<IFSMTransition<TState, TTrigger>> finishable)
-        {
-            foreach(IFSMTransition<TState, TTrigger> transition in _transitions)
-            {
-                if(finishable(transition))
-                {
-                    break;
-                }
-            }
-        }
-
         public bool IsInState(TState stateId)
         {
             return IsStarted && _stateComparer(GetIdOf(_currentState), stateId);
@@ -301,7 +279,7 @@ namespace Paps.FSM
 
         public bool ContainsState(TState stateId)
         {
-            foreach(IFSMState<TState, TTrigger> state in _states.Values)
+            foreach(IFSMState state in _states.Values)
             {
                 if(_stateComparer(GetIdOf(state), stateId))
                 {
@@ -372,7 +350,7 @@ namespace Paps.FSM
             return false;
         }
 
-        private IFSMState<TState, TTrigger> GetStateTo(TTrigger trigger)
+        private IFSMState GetStateTo(TTrigger trigger)
         {
             foreach(IFSMTransition<TState, TTrigger> transition in _transitions)
             {
@@ -387,7 +365,7 @@ namespace Paps.FSM
             return null;
         }
 
-        private void Transition(IFSMState<TState, TTrigger> stateFrom, TTrigger trigger, IFSMState<TState, TTrigger> stateTo)
+        private void Transition(IFSMState stateFrom, TTrigger trigger, IFSMState stateTo)
         {
             ExitCurrentState();
             
@@ -412,9 +390,9 @@ namespace Paps.FSM
             }
         }
 
-        public TState GetIdOf(IFSMState<TState, TTrigger> state)
+        public TState GetIdOf(IFSMState state)
         {
-            foreach(KeyValuePair<TState, IFSMState<TState, TTrigger>> entry in _states)
+            foreach(KeyValuePair<TState, IFSMState> entry in _states)
             {
                 if(entry.Value == state)
                 {
@@ -425,32 +403,24 @@ namespace Paps.FSM
             throw new StateNotAddedException();
         }
 
-        public IFSMWithGuardConditions<TState, TTrigger> AddANDGuardConditionTo(TState stateFrom, TTrigger trigger, TState stateTo, Func<TState, TTrigger, TState, bool> guardCondition)
+        public void AddANDGuardConditionTo(TState stateFrom, TTrigger trigger, TState stateTo, Func<TState, TTrigger, TState, bool> guardCondition)
         {
             AddGuardConditionTo(_ANDguardConditionRepository, stateFrom, trigger, stateTo, guardCondition);
-
-            return this;
         }
 
-        public IFSMWithGuardConditions<TState, TTrigger> RemoveANDGuardConditionFrom(TState stateFrom, TTrigger trigger, TState stateTo, Func<TState, TTrigger, TState, bool> guardCondition)
+        public void RemoveANDGuardConditionFrom(TState stateFrom, TTrigger trigger, TState stateTo, Func<TState, TTrigger, TState, bool> guardCondition)
         {
             RemoveGuardConditionFrom(_ANDguardConditionRepository, stateFrom, trigger, stateTo, guardCondition);
-
-            return this;
         }
 
-        public IFSMWithGuardConditions<TState, TTrigger> AddORGuardConditionTo(TState stateFrom, TTrigger trigger, TState stateTo, Func<TState, TTrigger, TState, bool> guardCondition)
+        public void AddORGuardConditionTo(TState stateFrom, TTrigger trigger, TState stateTo, Func<TState, TTrigger, TState, bool> guardCondition)
         {
             AddGuardConditionTo(_ORguardConditionRepository, stateFrom, trigger, stateTo, guardCondition);
-
-            return this;
         }
 
-        public IFSMWithGuardConditions<TState, TTrigger> RemoveORGuardConditionFrom(TState stateFrom, TTrigger trigger, TState stateTo, Func<TState, TTrigger, TState, bool> guardCondition)
+        public void RemoveORGuardConditionFrom(TState stateFrom, TTrigger trigger, TState stateTo, Func<TState, TTrigger, TState, bool> guardCondition)
         {
             RemoveGuardConditionFrom(_ORguardConditionRepository, stateFrom, trigger, stateTo, guardCondition);
-
-            return this;
         }
 
         private IFSMTransition<TState, TTrigger> GetTransition(TState stateFrom, TTrigger trigger, TState stateTo)
@@ -519,29 +489,6 @@ namespace Paps.FSM
             if(guardCondition == null)
             {
                 throw new ArgumentNullException("Guard condition was null");
-            }
-        }
-
-        public IFSM<TState, TTrigger> ReplaceState(TState stateId, IFSMState<TState, TTrigger> newState)
-        {
-            ValidateCanReplace(stateId);
-
-            _states[stateId] = newState;
-
-            return this;
-        }
-
-        private void ValidateCanReplace(TState stateId)
-        {
-            ValidateHasStateWithId(stateId);
-            ValidateReplaceOverCurrentState(stateId);
-        }
-
-        private void ValidateReplaceOverCurrentState(TState stateId)
-        {
-            if(IsInState(stateId))
-            {
-                throw new InvalidOperationException("Cannot replace running state");
             }
         }
  
