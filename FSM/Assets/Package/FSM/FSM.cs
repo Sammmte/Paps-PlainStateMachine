@@ -211,7 +211,7 @@ namespace Paps.FSM
                 }
             }
 
-            throw new StateNotAddedException(stateId.ToString());
+            throw new StateIdNotAddedException(stateId.ToString());
         }
 
         private IFSMState TryGetStateById(TState stateId)
@@ -221,7 +221,7 @@ namespace Paps.FSM
                 var state = GetStateById(stateId);
                 return state;
             }
-            catch(StateNotAddedException e)
+            catch(StateIdNotAddedException e)
             {
                 return null;
             }
@@ -268,7 +268,7 @@ namespace Paps.FSM
         {
             if(ContainsState(stateId) == false)
             {
-                throw new StateNotAddedException(stateId.ToString());
+                throw new StateIdNotAddedException(stateId.ToString());
             }
         }
 
@@ -400,7 +400,7 @@ namespace Paps.FSM
                 }
             }
 
-            throw new StateNotAddedException();
+            throw new StateIdNotAddedException();
         }
 
         public void AddANDGuardConditionTo(TState stateFrom, TTrigger trigger, TState stateTo, Func<TState, TTrigger, TState, bool> guardCondition)

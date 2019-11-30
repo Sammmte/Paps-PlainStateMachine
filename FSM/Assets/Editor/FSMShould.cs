@@ -130,9 +130,9 @@ namespace Tests
 
             var fsm = new FSM<int, int>();
 
-            Assert.Throws<StateNotAddedException>(() => fsm.AddTransitionWithValuesOf(transition1));
+            Assert.Throws<StateIdNotAddedException>(() => fsm.AddTransitionWithValuesOf(transition1));
 
-            Assert.Throws<StateNotAddedException>(() => fsm.RemoveTransitionWithValuesOf(transition1));
+            Assert.Throws<StateIdNotAddedException>(() => fsm.RemoveTransitionWithValuesOf(transition1));
         }
 
         [Test]
