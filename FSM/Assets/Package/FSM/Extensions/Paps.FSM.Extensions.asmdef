@@ -1,0 +1,14 @@
+{
+    "name": "Paps.FSM.Extensions",
+    "references": [
+        "GUID:178f65fed8970cb4b88211a864d0308f"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": []
+}

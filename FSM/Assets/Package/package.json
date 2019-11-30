@@ -1,0 +1,18 @@
+{
+  "name": "paps.fsm",
+  "version": "1.0.1-unity",
+  "displayName": "Paps FSM",
+  "unity": "2019.2",
+  "description": "A simple finite state machine made in c#. This package works in Unity3d",
+  "keywords": [
+	"c#",
+	"fsm",
+	"paps",
+	"unity"
+  ],
+  "author": {
+	"name": "Santiago Perez"
+  },
+  "license": "WTFPL",
+  "homepage": "https://github.com/Sammmte/FSM"
+}
