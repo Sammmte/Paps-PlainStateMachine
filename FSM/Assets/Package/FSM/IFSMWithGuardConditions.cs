@@ -8,14 +8,11 @@ namespace Paps.FSM
 {
     public interface IFSMWithGuardConditions<TState, TTrigger> : IFSM<TState, TTrigger>
     {
-        void AddANDGuardConditionTo(TState stateFrom, TTrigger trigger, TState stateTo, Func<TState, TTrigger, TState, bool> guardCondition);
-        void RemoveANDGuardConditionFrom(TState stateFrom, TTrigger trigger, TState stateTo, Func<TState, TTrigger, TState, bool> guardCondition);
+        void AddGuardConditionTo(TState stateFrom, TTrigger trigger, TState stateTo, IGuardCondition guardCondition);
+        void RemoveGuardConditionFrom(TState stateFrom, TTrigger trigger, TState stateTo, IGuardCondition guardCondition);
 
-        void AddORGuardConditionTo(TState stateFrom, TTrigger trigger, TState stateTo, Func<TState, TTrigger, TState, bool> guardCondition);
-        void RemoveORGuardConditionFrom(TState stateFrom, TTrigger trigger, TState stateTo, Func<TState, TTrigger, TState, bool> guardCondition);
+        bool ContainsGuardConditionOn(TState stateFrom, TTrigger trigger, TState stateTo, IGuardCondition guardCondition);
 
-        bool ContainsANDGuardConditionOn(TState stateFrom, TTrigger trigger, TState stateTo, Func<TState, TTrigger, TState, bool> guardCondition);
-        bool ContainsORGuardConditionOn(TState stateFrom, TTrigger trigger, TState stateTo, Func<TState, TTrigger, TState, bool> guardCondition);
-        
+        KeyValuePair<IFSMTransition<TState, TTrigger>, IGuardCondition[]>[] GetGuardConditions();
     }
 }

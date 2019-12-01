@@ -353,5 +353,23 @@ namespace Paps.FSM.Extensions
                 fsm.RemoveTransitionWithValuesOf(transition);
             }
         }
+
+        public static void AddGuardConditionTo<TState, TTrigger>(this IFSMWithGuardConditions<TState, TTrigger> fsm,
+            TState stateFrom, TTrigger trigger, TState stateTo, Func<bool> predicate)
+        {
+            fsm.AddGuardConditionTo(stateFrom, trigger, stateTo, new PredicateGuardCondition(predicate));
+        }
+
+        public static void RemoveGuardConditionFrom<TState, TTrigger>(this IFSMWithGuardConditions<TState, TTrigger> fsm,
+            TState stateFrom, TTrigger trigger, TState stateTo, Func<bool> predicate)
+        {
+            fsm.RemoveGuardConditionFrom(stateFrom, trigger, stateTo, new PredicateGuardCondition(predicate));
+        }
+
+        public static bool ContainsGuardConditionOn<TState, TTrigger>(this IFSMWithGuardConditions<TState, TTrigger> fsm,
+            TState stateFrom, TTrigger trigger, TState stateTo, Func<bool> predicate)
+        {
+            return fsm.ContainsGuardConditionOn(stateFrom, trigger, stateTo, new PredicateGuardCondition(predicate));
+        }
     }
 }

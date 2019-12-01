@@ -420,6 +420,7 @@ namespace Tests
             Assert.IsTrue(fsm.TransitionCount == 0);
         }
 
+        [Test]
         public void RemoveAllTransitionsRelatedToSpecificState()
         {
             var fsm = new FSM<int, int>();
@@ -436,6 +437,29 @@ namespace Tests
             Assert.IsFalse(fsm.ContainsTransitionRelatedTo(1));
             Assert.IsTrue(fsm.ContainsTransitionRelatedTo(2));
             Assert.IsTrue(fsm.ContainsTransitionRelatedTo(3));
+        }
+
+        [Test]
+        public void AddRemoveAndTellIfContainsPredicateGuardCondition()
+        {
+            var fsm = new FSM<int, int>();
+
+            fsm.AddEmpty(1);
+
+            fsm.AddTransition(1, 0, 1);
+
+            fsm.AddGuardConditionTo(1, 0, 1, TestPredicate);
+
+            Assert.IsTrue(fsm.ContainsGuardConditionOn(1, 0, 1, TestPredicate));
+
+            fsm.RemoveGuardConditionFrom(1, 0, 1, TestPredicate);
+
+            Assert.IsFalse(fsm.ContainsGuardConditionOn(1, 0, 1, TestPredicate));
+
+            bool TestPredicate()
+            {
+                return true;
+            }
         }
     }
 }

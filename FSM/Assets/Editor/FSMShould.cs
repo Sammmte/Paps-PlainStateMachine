@@ -466,21 +466,15 @@ namespace Tests
 
             fsm.AddTransition(1, 0, 2);
 
-            fsm.AddANDGuardConditionTo(1, 0, 2, TestGuardCondition);
+            fsm.AddGuardConditionTo(1, 0, 2, TestGuardCondition);
 
-            fsm.AddORGuardConditionTo(1, 0, 2, TestGuardCondition);
+            Assert.IsTrue(fsm.ContainsGuardConditionOn(1, 0, 2, TestGuardCondition));
 
-            Assert.IsTrue(fsm.ContainsANDGuardConditionOn(1, 0, 2, TestGuardCondition));
-            Assert.IsTrue(fsm.ContainsORGuardConditionOn(1, 0, 2, TestGuardCondition));
+            fsm.RemoveGuardConditionFrom(1, 0, 2, TestGuardCondition);
 
-            fsm.RemoveANDGuardConditionFrom(1, 0, 2, TestGuardCondition);
+            Assert.IsFalse(fsm.ContainsGuardConditionOn(1, 0, 2, TestGuardCondition));
 
-            fsm.RemoveORGuardConditionFrom(1, 0, 2, TestGuardCondition);
-
-            Assert.IsFalse(fsm.ContainsANDGuardConditionOn(1, 0, 2, TestGuardCondition));
-            Assert.IsFalse(fsm.ContainsORGuardConditionOn(1, 0, 2, TestGuardCondition));
-
-            bool TestGuardCondition(int stateFrom, int trigger, int stateTo)
+            bool TestGuardCondition()
             {
                 return true;
             }
@@ -499,13 +493,9 @@ namespace Tests
 
             fsm.AddTransition(1, 0, 2);
 
-            Assert.Throws<ArgumentNullException>(() => fsm.AddANDGuardConditionTo(1, 0, 2, null));
+            Assert.Throws<ArgumentNullException>(() => fsm.AddGuardConditionTo(1, 0, 2, null));
 
-            Assert.Throws<ArgumentNullException>(() => fsm.AddORGuardConditionTo(1, 0, 2, null));
-
-            Assert.Throws<ArgumentNullException>(() => fsm.RemoveANDGuardConditionFrom(1, 0, 2, null));
-
-            Assert.Throws<ArgumentNullException>(() => fsm.RemoveORGuardConditionFrom(1, 0, 2, null));
+            Assert.Throws<ArgumentNullException>(() => fsm.RemoveGuardConditionFrom(1, 0, 2, null));
 
         }
 
@@ -514,22 +504,18 @@ namespace Tests
         {
             var fsm = new FSM<int, int>();
 
-            Assert.Throws<TransitionNotAddedException>(() => fsm.AddANDGuardConditionTo(1, 2, 3, TestGuardCondition));
+            Assert.Throws<TransitionNotAddedException>(() => fsm.AddGuardConditionTo(1, 2, 3, TestGuardCondition));
 
-            Assert.Throws<TransitionNotAddedException>(() => fsm.AddORGuardConditionTo(1, 2, 3, TestGuardCondition));
+            Assert.Throws<TransitionNotAddedException>(() => fsm.RemoveGuardConditionFrom(1, 2, 3, TestGuardCondition));
 
-            Assert.Throws<TransitionNotAddedException>(() => fsm.RemoveANDGuardConditionFrom(1, 2, 3, TestGuardCondition));
-
-            Assert.Throws<TransitionNotAddedException>(() => fsm.RemoveORGuardConditionFrom(1, 2, 3, TestGuardCondition));
-
-            bool TestGuardCondition(int stateFrom, int trigger, int stateTo)
+            bool TestGuardCondition()
             {
                 return true;
             }
         }
 
         [Test]
-        public void TransitionateIfAllANDGuardConditionsReturnTrue()
+        public void TransitionIfAllGuardConditionsReturnTrue()
         {
             var state1 = Substitute.For<IFSMState>();
             var state2 = Substitute.For<IFSMState>();
@@ -541,15 +527,15 @@ namespace Tests
 
             fsm.AddTransition(1, 0, 2);
 
-            Func<int, int, int, bool> guardCondition1 = Substitute.For<Func<int, int, int, bool>>();
-            Func<int, int, int, bool> guardCondition2 = Substitute.For<Func<int, int, int, bool>>();
+            Func<bool> guardCondition1 = Substitute.For<Func<bool>>();
+            Func<bool> guardCondition2 = Substitute.For<Func<bool>>();
 
-            guardCondition1.Invoke(1, 0, 2).Returns(true);
-            guardCondition2.Invoke(1, 0, 2).Returns(true);
+            guardCondition1.Invoke().Returns(true);
+            guardCondition2.Invoke().Returns(true);
 
-            fsm.AddANDGuardConditionTo(1, 0, 2, guardCondition1);
+            fsm.AddGuardConditionTo(1, 0, 2, guardCondition1);
 
-            fsm.AddANDGuardConditionTo(1, 0, 2, guardCondition2);
+            fsm.AddGuardConditionTo(1, 0, 2, guardCondition2);
 
             fsm.SetInitialState(1);
 
@@ -557,15 +543,15 @@ namespace Tests
 
             fsm.Trigger(0);
 
-            guardCondition1.Received().Invoke(1, 0, 2);
-            guardCondition2.Received().Invoke(1, 0, 2);
+            guardCondition1.Received().Invoke();
+            guardCondition2.Received().Invoke();
 
             Assert.IsTrue(fsm.IsInState(2));
 
         }
 
         [Test]
-        public void NotTransitionateIfAnyANDGuardConditionReturnsFalse()
+        public void NotTransitionIfAnyANDGuardConditionReturnsFalse()
         {
             var state1 = Substitute.For<IFSMState>();
             var state2 = Substitute.For<IFSMState>();
@@ -577,58 +563,19 @@ namespace Tests
 
             fsm.AddTransition(1, 0, 2);
 
-            Func<int, int, int, bool> guardCondition1 = Substitute.For<Func<int, int, int, bool>>();
-            Func<int, int, int, bool> guardCondition2 = Substitute.For<Func<int, int, int, bool>>();
-            Func<int, int, int, bool> guardCondition3 = Substitute.For<Func<int, int, int, bool>>();
+            Func<bool> guardCondition1 = Substitute.For<Func<bool>>();
+            Func<bool> guardCondition2 = Substitute.For<Func<bool>>();
+            Func<bool> guardCondition3 = Substitute.For<Func<bool>>();
 
-            guardCondition1.Invoke(1, 0, 2).Returns(true);
-            guardCondition2.Invoke(1, 0, 2).Returns(false);
-            guardCondition3.Invoke(1, 0, 2).Returns(true);
+            guardCondition1.Invoke().Returns(true);
+            guardCondition2.Invoke().Returns(false);
+            guardCondition3.Invoke().Returns(true);
 
-            fsm.AddANDGuardConditionTo(1, 0, 2, guardCondition1);
+            fsm.AddGuardConditionTo(1, 0, 2, guardCondition1);
 
-            fsm.AddANDGuardConditionTo(1, 0, 2, guardCondition2);
+            fsm.AddGuardConditionTo(1, 0, 2, guardCondition2);
 
-            fsm.AddANDGuardConditionTo(1, 0, 2, guardCondition3);
-
-            fsm.SetInitialState(1);
-
-            fsm.Start();
-
-            fsm.Trigger(0);
-
-            guardCondition1.Received().Invoke(1, 0, 2);
-            guardCondition2.Received().Invoke(1, 0, 2);
-            guardCondition3.DidNotReceive().Invoke(1, 0, 2);
-
-            Assert.IsFalse(fsm.IsInState(2));
-        }
-
-        [Test]
-        public void TransitionateIfAnyORGuardConditionReturnsTrue()
-        {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
-
-            var fsm = new FSM<int, int>();
-
-            fsm.AddState(1, state1);
-            fsm.AddState(2, state2);
-
-            fsm.AddTransition(1, 0, 2);
-
-            Func<int, int, int, bool> guardCondition1 = Substitute.For<Func<int, int, int, bool>>();
-            Func<int, int, int, bool> guardCondition2 = Substitute.For<Func<int, int, int, bool>>();
-            Func<int, int, int, bool> guardCondition3 = Substitute.For<Func<int, int, int, bool>>();
-
-            guardCondition1.Invoke(1, 0, 2).Returns(false);
-            guardCondition2.Invoke(1, 0, 2).Returns(true);
-            guardCondition3.Invoke(1, 0, 2).Returns(false);
-            
-
-            fsm.AddORGuardConditionTo(1, 0, 2, guardCondition1);
-
-            fsm.AddORGuardConditionTo(1, 0, 2, guardCondition2);
+            fsm.AddGuardConditionTo(1, 0, 2, guardCondition3);
 
             fsm.SetInitialState(1);
 
@@ -636,44 +583,9 @@ namespace Tests
 
             fsm.Trigger(0);
 
-            guardCondition1.Received().Invoke(1, 0, 2);
-            guardCondition2.Received().Invoke(1, 0, 2);
-            guardCondition3.DidNotReceive().Invoke(1, 0, 2);
-
-            Assert.IsTrue(fsm.IsInState(2));
-        }
-
-        [Test]
-        public void NotTransitionateIfAllORGuardConditionsReturnFalse()
-        {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
-
-            var fsm = new FSM<int, int>();
-
-            fsm.AddState(1, state1);
-            fsm.AddState(2, state2);
-
-            fsm.AddTransition(1, 0, 2);
-
-            Func<int, int, int, bool> guardCondition1 = Substitute.For<Func<int, int, int, bool>>();
-            Func<int, int, int, bool> guardCondition2 = Substitute.For<Func<int, int, int, bool>>();
-
-            guardCondition1.Invoke(1, 0, 2).Returns(false);
-            guardCondition2.Invoke(1, 0, 2).Returns(false);
-
-            fsm.AddORGuardConditionTo(1, 0, 2, guardCondition1);
-
-            fsm.AddORGuardConditionTo(1, 0, 2, guardCondition2);
-
-            fsm.SetInitialState(1);
-
-            fsm.Start();
-
-            fsm.Trigger(0);
-
-            guardCondition1.Received().Invoke(1, 0, 2);
-            guardCondition2.Received().Invoke(1, 0, 2);
+            guardCondition1.Received().Invoke();
+            guardCondition2.Received().Invoke();
+            guardCondition3.DidNotReceive().Invoke();
 
             Assert.IsFalse(fsm.IsInState(2));
         }
@@ -732,15 +644,20 @@ namespace Tests
 
             fsm.AddTransition(1, 0, 2);
 
-            fsm.AddANDGuardConditionTo(1, 0, 2, TestGuardCondition);
-            fsm.AddORGuardConditionTo(1, 0, 2, TestGuardCondition);
+            fsm.AddGuardConditionTo(1, 0, 2, TestGuardCondition);
+            fsm.AddGuardConditionTo(1, 0, 2, TestGuardCondition2);
 
             fsm.RemoveState(1);
 
-            Assert.IsFalse(fsm.ContainsANDGuardConditionOn(1, 0, 2, TestGuardCondition));
-            Assert.IsFalse(fsm.ContainsORGuardConditionOn(1, 0, 2, TestGuardCondition));
+            Assert.IsFalse(fsm.ContainsGuardConditionOn(1, 0, 2, TestGuardCondition));
+            Assert.IsFalse(fsm.ContainsGuardConditionOn(1, 0, 2, TestGuardCondition2));
 
-            bool TestGuardCondition(int a, int b, int c)
+            bool TestGuardCondition()
+            {
+                return true;
+            }
+
+            bool TestGuardCondition2()
             {
                 return true;
             }
@@ -786,7 +703,30 @@ namespace Tests
             fsm.Trigger(transition1.Trigger);
 
             Assert.IsTrue(fsm.IsInState(5));
+        }
 
+        [Test]
+        public void TransitionToTheFirstStateWithValidGuardConditions()
+        {
+            var fsm = new FSM<int, int>();
+            
+            fsm.AddEmpty(1);
+            fsm.AddEmpty(2);
+            fsm.AddEmpty(3);
+
+            fsm.AddTransition(1, 0, 2);
+            fsm.AddTransition(1, 0, 3);
+
+            fsm.AddGuardConditionTo(1, 0, 2, () => true);
+            fsm.AddGuardConditionTo(1, 0, 3, () => true);
+
+            fsm.SetInitialState(1);
+
+            fsm.Start();
+
+            fsm.Trigger(0);
+
+            Assert.IsTrue(fsm.IsInState(2));
         }
     }
 }
