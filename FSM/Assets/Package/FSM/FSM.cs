@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Paps.FSM
 {
-    public class FSM<TState, TTrigger> : IFSMWithGuardConditions<TState, TTrigger>
+    public class FSM<TState, TTrigger> : IFSMWithGuardConditions<TState, TTrigger>, IFSMEventNotifier<TState, TTrigger>
     {
         public int StateCount => _states.Count;
         public int TransitionCount => _transitions.Count;
@@ -28,7 +28,8 @@ namespace Paps.FSM
         private FSMStateEqualityComparer _stateEqualityComparer;
         private FSMTransitionEqualityComparer _transitionEqualityComparer;
 
-        public event StateChanged<TState, TTrigger> OnStateChanged;
+        public event StateChange<TState, TTrigger> OnBeforeStateChanges;
+        public event StateChange<TState, TTrigger> OnStateChanged;
 
         public FSM(Func<TState, TState, bool> stateComparer, Func<TTrigger, TTrigger, bool> triggerComparer)
         {
@@ -367,11 +368,16 @@ namespace Paps.FSM
 
         private void Transition(IFSMState stateFrom, TTrigger trigger, IFSMState stateTo)
         {
+            TState stateFromId = GetIdOf(stateFrom);
+            TState stateToId = GetIdOf(stateTo);
+
+            CallOnBeforeStateChangesEvent(stateFromId, trigger, stateToId);
+
             ExitCurrentState();
             
             _currentState = stateTo;
 
-            CallOnStateChangedEvent(GetIdOf(stateFrom), trigger, GetIdOf(stateTo));
+            CallOnStateChangedEvent(stateFromId, trigger, stateToId);
 
             EnterCurrentState();
         }
@@ -384,10 +390,12 @@ namespace Paps.FSM
 
         private void CallOnStateChangedEvent(TState stateFrom, TTrigger trigger, TState stateTo)
         {
-            if(OnStateChanged != null)
-            {
-                OnStateChanged(stateFrom, trigger, stateTo);
-            }
+            OnStateChanged?.Invoke(stateFrom, trigger, stateTo);
+        }
+
+        private void CallOnBeforeStateChangesEvent(TState stateFrom, TTrigger trigger, TState stateTo)
+        {
+            OnBeforeStateChanges?.Invoke(stateFrom, trigger, stateTo);
         }
 
         public TState GetIdOf(IFSMState state)

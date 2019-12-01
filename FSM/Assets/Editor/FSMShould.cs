@@ -403,12 +403,39 @@ namespace Tests
             var state1 = Substitute.For<IFSMState>();
             var state2 = Substitute.For<IFSMState>();
 
-            var stateChangedEventHandler = Substitute.For<StateChanged<int, int>>();
+            var stateChangedEventHandler = Substitute.For<StateChange<int, int>>();
 
             var fsm = new FSM<int, int>();
 
             fsm.OnStateChanged += stateChangedEventHandler;
-            fsm.OnStateChanged += stateChangedEventHandler;
+
+            fsm.AddState(1, state1);
+            fsm.AddState(2, state2);
+
+            fsm.SetInitialState(fsm.GetIdOf(state1));
+
+            fsm.AddTransition(fsm.GetIdOf(state1), 0, fsm.GetIdOf(state2));
+
+            fsm.Start();
+
+            fsm.Trigger(0);
+
+            stateChangedEventHandler
+                .Received()
+                .Invoke(1, 0, 2);
+        }
+
+        [Test]
+        public void RaiseBeforeStateChangesEventWhenHasSuccessfullyTransitioned()
+        {
+            var state1 = Substitute.For<IFSMState>();
+            var state2 = Substitute.For<IFSMState>();
+
+            var stateChangedEventHandler = Substitute.For<StateChange<int, int>>();
+
+            var fsm = new FSM<int, int>();
+
+            fsm.OnBeforeStateChanges += stateChangedEventHandler;
 
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);

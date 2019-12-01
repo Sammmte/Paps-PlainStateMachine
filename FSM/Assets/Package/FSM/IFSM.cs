@@ -3,12 +3,8 @@ using System.Collections.Generic;
 
 namespace Paps.FSM
 {
-    public delegate void StateChanged<TState, TTrigger>(TState stateFrom, TTrigger trigger, TState stateTo);
-
     public interface IFSM<TState, TTrigger>
     {
-        event StateChanged<TState, TTrigger> OnStateChanged;
-
         int StateCount { get; }
         int TransitionCount { get; }
 
