@@ -706,7 +706,7 @@ namespace Tests
         }
 
         [Test]
-        public void TransitionToTheFirstStateWithValidGuardConditions()
+        public void ThrowAnExceptionWhenUserTriesToTransitionAndGuardConditionsAreNotMutuallyExclusive()
         {
             var fsm = new FSM<int, int>();
             
@@ -714,19 +714,23 @@ namespace Tests
             fsm.AddEmpty(2);
             fsm.AddEmpty(3);
 
+            fsm.AddTransition(1, 0, 1);
             fsm.AddTransition(1, 0, 2);
-            fsm.AddTransition(1, 0, 3);
+            fsm.AddTransition(1, 1, 2);
+            fsm.AddTransition(1, 1, 3);
 
-            fsm.AddGuardConditionTo(1, 0, 2, () => true);
-            fsm.AddGuardConditionTo(1, 0, 3, () => true);
+            fsm.AddGuardConditionTo(1, 0, 1, () => true);
+            fsm.AddGuardConditionTo(1, 0, 2, () => false);
+
+            fsm.AddGuardConditionTo(1, 1, 2, () => true);
+            fsm.AddGuardConditionTo(1, 1, 3, () => true);
 
             fsm.SetInitialState(1);
 
             fsm.Start();
 
-            fsm.Trigger(0);
-
-            Assert.IsTrue(fsm.IsInState(2));
+            Assert.DoesNotThrow(() => fsm.Trigger(0));
+            Assert.Throws<MultipleValidTransitionsFromSameStateException>(() => fsm.Trigger(1));
         }
     }
 }
