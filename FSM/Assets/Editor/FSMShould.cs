@@ -732,5 +732,24 @@ namespace Tests
             Assert.DoesNotThrow(() => fsm.Trigger(0));
             Assert.Throws<MultipleValidTransitionsFromSameStateException>(() => fsm.Trigger(1));
         }
+
+        [Test]
+        public void ThrowAnExceptionWhenUserTriesToTransitionAndMultipleTransitionsWithSameSourceAndTriggerHasNoGuardConditions()
+        {
+            var fsm = new FSM<int, int>();
+            
+            fsm.AddEmpty(1);
+            fsm.AddEmpty(2);
+            fsm.AddEmpty(3);
+
+            fsm.AddTransition(1, 0, 1);
+            fsm.AddTransition(1, 0, 2);
+
+            fsm.SetInitialState(1);
+
+            fsm.Start();
+
+            Assert.Throws<MultipleValidTransitionsFromSameStateException>(() => fsm.Trigger(0));
+        }
     }
 }
