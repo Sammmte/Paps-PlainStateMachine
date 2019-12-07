@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Paps.FSM
 {
-    public class FSM<TState, TTrigger> : IFSM<TState, TTrigger>, IFSMWithGuardConditions<TState, TTrigger>, IFSMEventNotifier<TState, TTrigger>
+    public class FSM<TState, TTrigger> : IFSM<TState, TTrigger>, IFSMWithGuardConditions<TState, TTrigger>
     {
         public int StateCount => _states.Count;
         public int TransitionCount => _transitions.Count;
@@ -298,17 +298,12 @@ namespace Paps.FSM
         {
             ValidateIsStarted();
 
-            TState currentStateId = GetIdOf(_currentState);
+            _transitionRequestQueue.Enqueue(new TransitionRequest() { trigger = trigger });
 
-            if (HasTransitionFromState(currentStateId, trigger))
+            if (_isTransitioning == false)
             {
-                _transitionRequestQueue.Enqueue(new TransitionRequest() { stateFrom = GetIdOf(_currentState), trigger = trigger });
-
-                if(_isTransitioning == false)
-                {
-                    _isTransitioning = true;
-                    TriggerQueued();
-                }
+                _isTransitioning = true;
+                TriggerQueued();
             }
         }
         
@@ -333,24 +328,11 @@ namespace Paps.FSM
 
                 if (stateTo != null)
                 {
-                    Transition(_currentState, transition.trigger, stateTo);
+                    Transition(stateTo);
                 }
             }
 
             _isTransitioning = false;
-        }
-
-        private bool HasTransitionFromState(TState stateFrom, TTrigger trigger)
-        {
-            foreach (ITransition<TState, TTrigger> transition in _transitions)
-            {
-                if (_stateComparer(transition.StateFrom, stateFrom) && _triggerComparer(transition.Trigger, trigger))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private IState GetStateTo(TTrigger trigger)
@@ -381,18 +363,15 @@ namespace Paps.FSM
             return stateTo;
         } 
 
-        private void Transition(IState stateFrom, TTrigger trigger, IState stateTo)
+        private void Transition(IState stateTo)
         {
-            TState stateFromId = GetIdOf(stateFrom);
-            TState stateToId = GetIdOf(stateTo);
-
-            CallOnBeforeStateChangesEvent(stateFromId, trigger, stateToId);
+            CallOnBeforeStateChangesEvent();
 
             ExitCurrentState();
             
             _currentState = stateTo;
 
-            CallOnStateChangedEvent(stateFromId, trigger, stateToId);
+            CallOnStateChangedEvent();
 
             EnterCurrentState();
         }
@@ -433,14 +412,14 @@ namespace Paps.FSM
             return true;
         }
 
-        private void CallOnStateChangedEvent(TState stateFrom, TTrigger trigger, TState stateTo)
+        private void CallOnStateChangedEvent()
         {
-            OnStateChanged?.Invoke(stateFrom, trigger, stateTo);
+            OnStateChanged?.Invoke(this);
         }
 
-        private void CallOnBeforeStateChangesEvent(TState stateFrom, TTrigger trigger, TState stateTo)
+        private void CallOnBeforeStateChangesEvent()
         {
-            OnBeforeStateChanges?.Invoke(stateFrom, trigger, stateTo);
+            OnBeforeStateChanges?.Invoke(this);
         }
 
         public TState GetIdOf(IState state)
@@ -554,7 +533,6 @@ namespace Paps.FSM
 
         private struct TransitionRequest
         {
-            public TState stateFrom;
             public TTrigger trigger;
         }
 

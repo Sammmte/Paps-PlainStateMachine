@@ -422,7 +422,7 @@ namespace Tests
 
             stateChangedEventHandler
                 .Received()
-                .Invoke(1, 0, 2);
+                .Invoke(fsm);
         }
 
         [Test]
@@ -450,7 +450,7 @@ namespace Tests
 
             stateChangedEventHandler
                 .Received()
-                .Invoke(1, 0, 2);
+                .Invoke(fsm);
         }
 
         [Test]

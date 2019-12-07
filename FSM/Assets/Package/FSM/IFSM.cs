@@ -3,10 +3,15 @@ using System.Collections.Generic;
 
 namespace Paps.FSM
 {
+    public delegate void StateChange<TState, TTrigger>(IFSM<TState, TTrigger> fsm);
+
     public interface IFSM<TState, TTrigger>
     {
         int StateCount { get; }
         int TransitionCount { get; }
+
+        event StateChange<TState, TTrigger> OnBeforeStateChanges;
+        event StateChange<TState, TTrigger> OnStateChanged;
 
         bool IsStarted { get; }
 
