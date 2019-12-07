@@ -59,9 +59,10 @@ namespace Paps.FSM
             ValidateCanStart();
 
             _currentState = GetStateById(InitialState);
-            EnterCurrentState();
 
             IsStarted = true;
+
+            EnterCurrentState();
         }
 
         private void ValidateCanStart()
@@ -89,12 +90,14 @@ namespace Paps.FSM
 
         public void Stop()
         {
-            if(IsStarted)
+            bool wasStarted = IsStarted;
+
+            IsStarted = false;
+
+            if (wasStarted)
             {
                 ExitCurrentState();
             }
-
-            IsStarted = false;
         }
 
         private void ExitCurrentState()

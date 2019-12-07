@@ -751,5 +751,95 @@ namespace Tests
 
             Assert.Throws<MultipleValidTransitionsFromSameStateException>(() => fsm.Trigger(0));
         }
+
+        [Test]
+        public void LetTransitionOnFirstEnter()
+        {
+            var fsm = new FSM<int, int>();
+
+            Action onEnter1 = () => fsm.Trigger(0);
+            Action onEnter2Substitute = Substitute.For<Action>();
+            Action onEnter2 = onEnter2Substitute + (() => fsm.Trigger(0));
+            Action onEnter3 = Substitute.For<Action>();
+
+            fsm.AddWithEvents(1, onEnter1);
+            fsm.AddWithEvents(2, onEnter2);
+            fsm.AddWithEvents(3, onEnter3);
+
+            fsm.AddTransition(1, 0, 2);
+            fsm.AddTransition(2, 0, 3);
+
+            fsm.SetInitialState(1);
+
+            fsm.Start();
+
+            onEnter2Substitute.Received();
+            onEnter3.Received();
+
+            Assert.IsTrue(fsm.IsInState(3));
+        }
+
+        [Test]
+        public void ThrowAnExceptionIfUserTriesToStartOnFirstEnter()
+        {
+            var fsm = new FSM<int, int>();
+
+            Action onEnter = () => fsm.Start();
+
+            fsm.AddWithEvents(1, onEnter);
+
+            fsm.SetInitialState(1);
+
+            Assert.Throws<FSMStartedException>(() => fsm.Start());
+        }
+
+        [Test]
+        public void LetUserStopItOnFirstEnter()
+        {
+            var fsm = new FSM<int, int>();
+
+            Action onEnter = () => fsm.Stop();
+            Action onExit = Substitute.For<Action>();
+
+            fsm.AddWithEvents(1, onEnter, onExit);
+
+            fsm.SetInitialState(1);
+
+            fsm.Start();
+
+            Assert.IsFalse(fsm.IsStarted);
+
+            onExit.Received();
+        }
+
+        [Test]
+        public void BeStoppedWhenCallingTheExitOfStateAfterUserRequestedToStop()
+        {
+            var fsm = new FSM<int, int>();
+
+            Action onEnter = () => fsm.Stop();
+            Action onExit = () => Assert.IsFalse(fsm.IsStarted);
+
+            fsm.AddWithEvents(1, onEnter, onExit);
+
+            fsm.SetInitialState(1);
+
+            fsm.Start();
+        }
+
+        [Test]
+        public void ThrowAnExceptionIfUserTriesToTransitionOnExitOfStateWhenStopped()
+        {
+            var fsm = new FSM<int, int>();
+
+            Action onEnter = () => fsm.Stop();
+            Action onExit = () => fsm.Trigger(0);
+
+            fsm.AddWithEvents(1, onEnter, onExit);
+
+            fsm.SetInitialState(1);
+
+            Assert.Throws<FSMNotStartedException>(() => fsm.Start());
+        }
     }
 }

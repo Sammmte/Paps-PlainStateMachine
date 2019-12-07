@@ -115,6 +115,18 @@ namespace Paps.FSM.Extensions
             fsm.AddState(stateId, new DelegateFSMState<TState, TTrigger>(fsm, onEnter, onUpdate, onExit));
         }
 
+        public static void AddWithEvents<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId,
+            Action onEnter)
+        {
+            fsm.AddState(stateId, new DelegateFSMState<TState, TTrigger>(fsm, onEnter, null, null));
+        }
+
+        public static void AddWithEvents<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId,
+            Action onEnter, Action onExit)
+        {
+            fsm.AddState(stateId, new DelegateFSMState<TState, TTrigger>(fsm, onEnter, null, onExit));
+        }
+
         public static void ForeachState<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, ReturnTrueToFinishIteration<IFSMState> finishable)
         {
             IFSMState[] states = fsm.GetStates();
