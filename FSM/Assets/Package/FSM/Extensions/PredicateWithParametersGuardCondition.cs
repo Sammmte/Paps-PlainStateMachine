@@ -2,18 +2,18 @@
 
 namespace Paps.FSM.Extensions
 {
-    public class PredicateGuardCondition<TState, TTrigger> : IGuardCondition<TState, TTrigger>
+    public class PredicateWithParametersGuardCondition<TState, TTrigger> : IGuardCondition<TState, TTrigger>
     {
-        private Func<bool> predicate;
+        private Func<TState, TTrigger, TState, bool> predicate;
 
-        public PredicateGuardCondition(Func<bool> predicate)
+        public PredicateWithParametersGuardCondition(Func<TState, TTrigger, TState, bool> predicate)
         {
             this.predicate = predicate;
         }
 
         public override bool Equals(object obj)
         {
-            if (obj is PredicateGuardCondition<TState, TTrigger> cast)
+            if(obj is PredicateWithParametersGuardCondition<TState, TTrigger> cast)
             {
                 return predicate == cast.predicate;
             }
@@ -28,9 +28,8 @@ namespace Paps.FSM.Extensions
 
         public bool IsValid(TState stateFrom, TTrigger trigger, TState stateTo)
         {
-            return predicate();
+            return predicate(stateFrom, trigger, stateTo);
         }
     }
+    
 }
-
-

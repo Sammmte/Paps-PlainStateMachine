@@ -4,9 +4,9 @@ using UnityEngine;
 
 namespace Paps.FSM
 {
-    public interface IGuardCondition
+    public interface IGuardCondition<TState, TTrigger>
     {
-        bool IsValid();
+        bool IsValid(TState stateFrom, TTrigger trigger, TState stateTo);
     }
 }
 

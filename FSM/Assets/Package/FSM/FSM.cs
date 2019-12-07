@@ -14,7 +14,7 @@ namespace Paps.FSM
 
         private Dictionary<TState, IFSMState> _states;
         private HashSet<IFSMTransition<TState, TTrigger>> _transitions;
-        private GuardConditionOrderedCollection<TState, TTrigger> guardConditions;
+        private Dictionary<IFSMTransition<TState, TTrigger>, List<IGuardCondition<TState, TTrigger>>> guardConditions;
 
         private Queue<TransitionRequest> _transitionRequestQueue;
 
@@ -40,7 +40,7 @@ namespace Paps.FSM
 
             _states = new Dictionary<TState, IFSMState>(_stateEqualityComparer);
             _transitions = new HashSet<IFSMTransition<TState, TTrigger>>();
-            guardConditions = new GuardConditionOrderedCollection<TState, TTrigger>(_transitionEqualityComparer);
+            guardConditions = new Dictionary<IFSMTransition<TState, TTrigger>, List<IGuardCondition<TState, TTrigger>>>(_transitionEqualityComparer);
             _transitionRequestQueue = new Queue<TransitionRequest>();
         }
 
@@ -376,7 +376,7 @@ namespace Paps.FSM
                 }
             }
 
-            return null;
+            return stateTo;
         } 
 
         private void Transition(IFSMState stateFrom, TTrigger trigger, IFSMState stateTo)
@@ -417,11 +417,11 @@ namespace Paps.FSM
         {
             if(guardConditions.ContainsKey(transition))
             {
-                var guardConditionsOfTransition = guardConditions.GetGuardConditionsOf(transition);
+                var guardConditionsOfTransition = guardConditions[transition];
 
                 foreach (var guardCondition in guardConditionsOfTransition)
                 {
-                    if (guardCondition.IsValid() == false)
+                    if (guardCondition.IsValid(transition.StateFrom, transition.Trigger, transition.StateTo) == false)
                     {
                         return false;
                     }
@@ -454,36 +454,64 @@ namespace Paps.FSM
             throw new StateIdNotAddedException();
         }
 
-        public void AddGuardConditionTo(TState stateFrom, TTrigger trigger, TState stateTo, IGuardCondition guardCondition)
+        public void AddGuardConditionTo(TState stateFrom, TTrigger trigger, TState stateTo, IGuardCondition<TState, TTrigger> guardCondition)
         {
             ValidateHasTransition(stateFrom, trigger, stateTo);
             ValidateGuardConditionIsNotNull(guardCondition);
 
             var transition = GetTransition(stateFrom, trigger, stateTo);
 
-            guardConditions.Add(transition, guardCondition);
+            if(guardConditions.ContainsKey(transition) == false)
+            {
+                guardConditions.Add(transition, new List<IGuardCondition<TState, TTrigger>>());
+            }
+
+            guardConditions[transition].Add(guardCondition);
         }
 
-        public void RemoveGuardConditionFrom(TState stateFrom, TTrigger trigger, TState stateTo, IGuardCondition guardCondition)
+        public void RemoveGuardConditionFrom(TState stateFrom, TTrigger trigger, TState stateTo, IGuardCondition<TState, TTrigger> guardCondition)
         {
             ValidateHasTransition(stateFrom, trigger, stateTo);
             ValidateGuardConditionIsNotNull(guardCondition);
 
             var transition = GetTransition(stateFrom, trigger, stateTo);
 
-            guardConditions.RemoveFrom(transition, guardCondition);
+            if(guardConditions.ContainsKey(transition))
+            {
+                guardConditions[transition].Remove(guardCondition);
+
+                if(guardConditions[transition].Count == 0)
+                {
+                    guardConditions.Remove(transition);
+                }
+            }
         }
 
-        public bool ContainsGuardConditionOn(TState stateFrom, TTrigger trigger, TState stateTo, IGuardCondition guardCondition)
+        public bool ContainsGuardConditionOn(TState stateFrom, TTrigger trigger, TState stateTo, IGuardCondition<TState, TTrigger> guardCondition)
         {
             var transition = GetTransition(stateFrom, trigger, stateTo);
+            
+            if(transition != null && guardConditions.ContainsKey(transition))
+            {
+                return guardConditions[transition].Contains(guardCondition);
+            }
 
-            return guardConditions.ContainsGuardConditionOn(transition, guardCondition);
+            return false;
         }
 
-        public KeyValuePair<IFSMTransition<TState, TTrigger>, IGuardCondition[]>[] GetGuardConditions()
+        public KeyValuePair<IFSMTransition<TState, TTrigger>, IGuardCondition<TState, TTrigger>[]>[] GetGuardConditions()
         {
-            return guardConditions.GetGuardConditions();
+            var keyValues = new KeyValuePair<IFSMTransition<TState, TTrigger>, IGuardCondition<TState, TTrigger>[]>[guardConditions.Count];
+
+            int index = 0;
+
+            foreach(var keyValue in guardConditions)
+            {
+                keyValues[index] = new KeyValuePair<IFSMTransition<TState, TTrigger>, IGuardCondition<TState, TTrigger>[]>(keyValue.Key, keyValue.Value.ToArray());
+                index++;
+            }
+
+            return keyValues;
         }
 
         private void ValidateHasTransition(TState stateFrom, TTrigger trigger, TState stateTo)
