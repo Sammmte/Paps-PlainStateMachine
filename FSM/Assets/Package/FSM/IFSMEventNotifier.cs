@@ -1,8 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-public delegate void StateChange<TState, TTrigger>(TState stateFrom, TTrigger trigger, TState stateTo);
+﻿public delegate void StateChange<TState, TTrigger>(TState stateFrom, TTrigger trigger, TState stateTo);
 
 public interface IFSMEventNotifier<TState, TTrigger>
 {

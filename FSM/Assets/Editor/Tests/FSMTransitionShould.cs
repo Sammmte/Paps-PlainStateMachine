@@ -1,7 +1,5 @@
-﻿using System;
+﻿using NUnit.Framework;
 using Paps.FSM;
-using NSubstitute;
-using NUnit.Framework;
 
 namespace Tests
 {

@@ -1,10 +1,10 @@
 ﻿using NSubstitute;
+using NUnit.Framework;
 using Paps.FSM;
 using Paps.FSM.Extensions;
 using System;
 using System.Linq;
 using System.Threading;
-using NUnit.Framework;
 
 namespace Tests
 {

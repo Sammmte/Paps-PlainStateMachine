@@ -1,8 +1,8 @@
-﻿using System;
-using Paps.FSM;
-using NSubstitute;
-using Paps.FSM.Extensions;
+﻿using NSubstitute;
 using NUnit.Framework;
+using Paps.FSM;
+using Paps.FSM.Extensions;
+using System;
 
 namespace Tests
 {
