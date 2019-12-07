@@ -4,20 +4,23 @@ using System.Linq;
 
 namespace Paps.FSM
 {
-    public class FSM<TState, TTrigger> : IFSMWithGuardConditions<TState, TTrigger>, IFSMEventNotifier<TState, TTrigger>
+    public class FSM<TState, TTrigger> : IFSM<TState, TTrigger>, IFSMWithGuardConditions<TState, TTrigger>, IFSMEventNotifier<TState, TTrigger>
     {
         public int StateCount => _states.Count;
         public int TransitionCount => _transitions.Count;
         public bool IsStarted { get; private set; }
         public TState InitialState { get; private set; }
 
-        private Dictionary<TState, IFSMState> _states;
-        private HashSet<IFSMTransition<TState, TTrigger>> _transitions;
-        private Dictionary<IFSMTransition<TState, TTrigger>, List<IGuardCondition<TState, TTrigger>>> guardConditions;
+        public event StateChange<TState, TTrigger> OnBeforeStateChanges;
+        public event StateChange<TState, TTrigger> OnStateChanged;
+
+        private Dictionary<TState, IState> _states;
+        private HashSet<ITransition<TState, TTrigger>> _transitions;
+        private Dictionary<ITransition<TState, TTrigger>, List<IGuardCondition<TState, TTrigger>>> guardConditions;
 
         private Queue<TransitionRequest> _transitionRequestQueue;
 
-        private IFSMState _currentState;
+        private IState _currentState;
         private bool _isTransitioning;
 
         private Func<TState, TState, bool> _stateComparer;
@@ -25,9 +28,6 @@ namespace Paps.FSM
 
         private FSMStateEqualityComparer _stateEqualityComparer;
         private FSMTransitionEqualityComparer _transitionEqualityComparer;
-
-        public event StateChange<TState, TTrigger> OnBeforeStateChanges;
-        public event StateChange<TState, TTrigger> OnStateChanged;
 
         public FSM(Func<TState, TState, bool> stateComparer, Func<TTrigger, TTrigger, bool> triggerComparer)
         {
@@ -37,9 +37,9 @@ namespace Paps.FSM
             _stateEqualityComparer = new FSMStateEqualityComparer(stateComparer);
             _transitionEqualityComparer = new FSMTransitionEqualityComparer(stateComparer, triggerComparer);
 
-            _states = new Dictionary<TState, IFSMState>(_stateEqualityComparer);
-            _transitions = new HashSet<IFSMTransition<TState, TTrigger>>();
-            guardConditions = new Dictionary<IFSMTransition<TState, TTrigger>, List<IGuardCondition<TState, TTrigger>>>(_transitionEqualityComparer);
+            _states = new Dictionary<TState, IState>(_stateEqualityComparer);
+            _transitions = new HashSet<ITransition<TState, TTrigger>>();
+            guardConditions = new Dictionary<ITransition<TState, TTrigger>, List<IGuardCondition<TState, TTrigger>>>(_transitionEqualityComparer);
             _transitionRequestQueue = new Queue<TransitionRequest>();
         }
 
@@ -141,12 +141,12 @@ namespace Paps.FSM
             }
         }
 
-        public IFSMState[] GetStates()
+        public IState[] GetStates()
         {
             return _states.Values.ToArray();
         }
 
-        public IFSMTransition<TState, TTrigger>[] GetTransitions()
+        public ITransition<TState, TTrigger>[] GetTransitions()
         {
             return _transitions.ToArray();
         }
@@ -156,14 +156,14 @@ namespace Paps.FSM
             InitialState = stateId;
         }
 
-        public void AddState(TState stateId, IFSMState state)
+        public void AddState(TState stateId, IState state)
         {
             ValidateCanAddState(stateId, state);
 
             InternalAddState(stateId, state);
         }
 
-        private void ValidateCanAddState(TState stateId, IFSMState state)
+        private void ValidateCanAddState(TState stateId, IState state)
         {
             if (state == null)
             {
@@ -175,7 +175,7 @@ namespace Paps.FSM
             }
         }
 
-        private void InternalAddState(TState stateId, IFSMState state)
+        private void InternalAddState(TState stateId, IState state)
         {
             _states.Add(stateId, state);
         }
@@ -190,7 +190,7 @@ namespace Paps.FSM
 
         private void RemoveTransitionsRelatedTo(TState stateId)
         {
-            IFSMTransition<TState, TTrigger>[] transitions = GetTransitionsRelatedTo(stateId);
+            ITransition<TState, TTrigger>[] transitions = GetTransitionsRelatedTo(stateId);
 
             for(int i = 0; i < transitions.Length; i++)
             {
@@ -200,16 +200,16 @@ namespace Paps.FSM
             }
         }
 
-        private IFSMTransition<TState, TTrigger>[] GetTransitionsRelatedTo(TState stateId)
+        private ITransition<TState, TTrigger>[] GetTransitionsRelatedTo(TState stateId)
         {
             return _transitions.Where(
                 (transition) => _stateComparer(transition.StateFrom, stateId) || _stateComparer(transition.StateTo, stateId)
                 ).ToArray();
         }
 
-        private IFSMState GetStateById(TState stateId)
+        private IState GetStateById(TState stateId)
         {
-            foreach(IFSMState state in _states.Values)
+            foreach(IState state in _states.Values)
             {
                 if(_stateComparer(GetIdOf(state), stateId))
                 {
@@ -230,7 +230,7 @@ namespace Paps.FSM
 
         private void InternalAddTransition(TState stateFrom, TTrigger trigger, TState stateTo)
         {
-            _transitions.Add(new FSMTransition<TState, TTrigger>(stateFrom, trigger, stateTo));
+            _transitions.Add(new Transition<TState, TTrigger>(stateFrom, trigger, stateTo));
         }
 
         public void RemoveTransition(TState stateFrom, TTrigger trigger, TState stateTo)
@@ -251,7 +251,7 @@ namespace Paps.FSM
             }
         }
 
-        private void RemoveAllGuardConditionsRelatedTo(IFSMTransition<TState, TTrigger> transition)
+        private void RemoveAllGuardConditionsRelatedTo(ITransition<TState, TTrigger> transition)
         {
             guardConditions.Remove(transition);
         }
@@ -271,7 +271,7 @@ namespace Paps.FSM
 
         public bool ContainsState(TState stateId)
         {
-            foreach(IFSMState state in _states.Values)
+            foreach(IState state in _states.Values)
             {
                 if(_stateComparer(GetIdOf(state), stateId))
                 {
@@ -318,7 +318,7 @@ namespace Paps.FSM
             {
                 TransitionRequest transition = _transitionRequestQueue.Dequeue();
 
-                IFSMState stateTo = null;
+                IState stateTo = null;
 
                 try
                 {
@@ -342,7 +342,7 @@ namespace Paps.FSM
 
         private bool HasTransitionFromState(TState stateFrom, TTrigger trigger)
         {
-            foreach (IFSMTransition<TState, TTrigger> transition in _transitions)
+            foreach (ITransition<TState, TTrigger> transition in _transitions)
             {
                 if (_stateComparer(transition.StateFrom, stateFrom) && _triggerComparer(transition.Trigger, trigger))
                 {
@@ -353,15 +353,15 @@ namespace Paps.FSM
             return false;
         }
 
-        private IFSMState GetStateTo(TTrigger trigger)
+        private IState GetStateTo(TTrigger trigger)
         {
             TState currentStateId = GetIdOf(_currentState);
 
-            IFSMState stateTo = null;
+            IState stateTo = null;
 
             bool multipleValidGuardsFlag = false;
 
-            foreach (IFSMTransition<TState, TTrigger> transition in _transitions)
+            foreach (ITransition<TState, TTrigger> transition in _transitions)
             {
                 if(_stateComparer(transition.StateFrom, currentStateId) 
                     && _triggerComparer(transition.Trigger, trigger)
@@ -381,7 +381,7 @@ namespace Paps.FSM
             return stateTo;
         } 
 
-        private void Transition(IFSMState stateFrom, TTrigger trigger, IFSMState stateTo)
+        private void Transition(IState stateFrom, TTrigger trigger, IState stateTo)
         {
             TState stateFromId = GetIdOf(stateFrom);
             TState stateToId = GetIdOf(stateTo);
@@ -397,9 +397,9 @@ namespace Paps.FSM
             EnterCurrentState();
         }
 
-        private IFSMTransition<TState, TTrigger> GetTransition(TState stateFrom, TTrigger trigger, TState stateTo)
+        private ITransition<TState, TTrigger> GetTransition(TState stateFrom, TTrigger trigger, TState stateTo)
         {
-            foreach (IFSMTransition<TState, TTrigger> transition in _transitions)
+            foreach (ITransition<TState, TTrigger> transition in _transitions)
             {
                 if (_transitionEqualityComparer.Equals(transition, stateFrom, trigger, stateTo))
                 {
@@ -410,12 +410,12 @@ namespace Paps.FSM
             return null;
         }
 
-        private bool IsValidTransition(IFSMTransition<TState, TTrigger> transition)
+        private bool IsValidTransition(ITransition<TState, TTrigger> transition)
         {
             return AllGuardConditionsTrueOrHasNone(transition);
         }
 
-        private bool AllGuardConditionsTrueOrHasNone(IFSMTransition<TState, TTrigger> transition)
+        private bool AllGuardConditionsTrueOrHasNone(ITransition<TState, TTrigger> transition)
         {
             if(guardConditions.ContainsKey(transition))
             {
@@ -443,9 +443,9 @@ namespace Paps.FSM
             OnBeforeStateChanges?.Invoke(stateFrom, trigger, stateTo);
         }
 
-        public TState GetIdOf(IFSMState state)
+        public TState GetIdOf(IState state)
         {
-            foreach(KeyValuePair<TState, IFSMState> entry in _states)
+            foreach(KeyValuePair<TState, IState> entry in _states)
             {
                 if(entry.Value == state)
                 {
@@ -501,15 +501,15 @@ namespace Paps.FSM
             return false;
         }
 
-        public KeyValuePair<IFSMTransition<TState, TTrigger>, IGuardCondition<TState, TTrigger>[]>[] GetGuardConditions()
+        public KeyValuePair<ITransition<TState, TTrigger>, IGuardCondition<TState, TTrigger>[]>[] GetGuardConditions()
         {
-            var keyValues = new KeyValuePair<IFSMTransition<TState, TTrigger>, IGuardCondition<TState, TTrigger>[]>[guardConditions.Count];
+            var keyValues = new KeyValuePair<ITransition<TState, TTrigger>, IGuardCondition<TState, TTrigger>[]>[guardConditions.Count];
 
             int index = 0;
 
             foreach(var keyValue in guardConditions)
             {
-                keyValues[index] = new KeyValuePair<IFSMTransition<TState, TTrigger>, IGuardCondition<TState, TTrigger>[]>(keyValue.Key, keyValue.Value.ToArray());
+                keyValues[index] = new KeyValuePair<ITransition<TState, TTrigger>, IGuardCondition<TState, TTrigger>[]>(keyValue.Key, keyValue.Value.ToArray());
                 index++;
             }
 
@@ -558,7 +558,7 @@ namespace Paps.FSM
             public TTrigger trigger;
         }
 
-        private class FSMTransitionEqualityComparer : IEqualityComparer<IFSMTransition<TState, TTrigger>>
+        private class FSMTransitionEqualityComparer : IEqualityComparer<ITransition<TState, TTrigger>>
         {
             private Func<TState, TState, bool> _stateComparer;
             private Func<TTrigger, TTrigger, bool> _triggerComparer;
@@ -569,17 +569,17 @@ namespace Paps.FSM
                 _triggerComparer = triggerComparer;
             }
 
-            public bool Equals(IFSMTransition<TState, TTrigger> x, IFSMTransition<TState, TTrigger> y)
+            public bool Equals(ITransition<TState, TTrigger> x, ITransition<TState, TTrigger> y)
             {
                 return _stateComparer(x.StateFrom, y.StateFrom) && _triggerComparer(x.Trigger, y.Trigger) && _stateComparer(x.StateTo, y.StateTo);
             }
 
-            public int GetHashCode(IFSMTransition<TState, TTrigger> obj)
+            public int GetHashCode(ITransition<TState, TTrigger> obj)
             {
                 return (obj.StateFrom, obj.Trigger, obj.StateTo).GetHashCode();
             }
 
-            public bool Equals(IFSMTransition<TState, TTrigger> transition, TState stateFrom, TTrigger trigger, TState stateTo)
+            public bool Equals(ITransition<TState, TTrigger> transition, TState stateFrom, TTrigger trigger, TState stateTo)
             {
                 return _stateComparer(transition.StateFrom, stateFrom) && _triggerComparer(transition.Trigger, trigger) && _stateComparer(transition.StateTo, stateTo);
             }

@@ -1,6 +1,6 @@
 ﻿namespace Paps.FSM
 {
-    public interface IFSMTransition<TState, TTrigger>
+    public interface ITransition<TState, TTrigger>
     {
         TState StateFrom { get; }
         TTrigger Trigger { get; }

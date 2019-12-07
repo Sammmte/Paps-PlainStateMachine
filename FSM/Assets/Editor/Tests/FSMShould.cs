@@ -11,7 +11,7 @@ namespace Tests
         [Test]
         public void AddAndRemoveStates()
         {
-            var state1 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
 
             FSM<int, int> fsm = new FSM<int, int>();
 
@@ -27,8 +27,8 @@ namespace Tests
         [Test]
         public void ThrowAnExceptionIfUserAddsStateWithExistingId()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
 
             FSM<int, int> fsm = new FSM<int, int>();
 
@@ -51,11 +51,11 @@ namespace Tests
         [Test]
         public void IterateOverStates()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
 
-            IFSMState item1 = null;
-            IFSMState item2 = null;
+            IState item1 = null;
+            IState item2 = null;
 
             FSM<int, int> fsm = new FSM<int, int>();
 
@@ -88,7 +88,7 @@ namespace Tests
         [Test]
         public void RemoveStates()
         {
-            var state = Substitute.For<IFSMState>();
+            var state = Substitute.For<IState>();
 
             FSM<int, int> fsm = new FSM<int, int>();
 
@@ -104,10 +104,10 @@ namespace Tests
         [Test]
         public void AddAndRemoveTransitions()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
 
-            var transition = new FSMTransition<int, int>(1, 0, 2);
+            var transition = new Transition<int, int>(1, 0, 2);
 
             FSM<int, int> fsm = new FSM<int, int>();
 
@@ -126,7 +126,7 @@ namespace Tests
         [Test]
         public void ThrowAnExceptionIfUserTriesToAddOrRemoveTransitionWithNoAddedStates()
         {
-            var transition1 = new FSMTransition<int, int>(1, 2, 3);
+            var transition1 = new Transition<int, int>(1, 2, 3);
 
             var fsm = new FSM<int, int>();
 
@@ -138,13 +138,13 @@ namespace Tests
         [Test]
         public void IterateOverTransitions()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
-            var state3 = Substitute.For<IFSMState>();
-            var state4 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
+            var state3 = Substitute.For<IState>();
+            var state4 = Substitute.For<IState>();
 
-            var transition1 = new FSMTransition<int, int>(1, 2, 3);
-            var transition2 = new FSMTransition<int, int>(4, 5, 6);
+            var transition1 = new Transition<int, int>(1, 2, 3);
+            var transition2 = new Transition<int, int>(4, 5, 6);
 
             FSM<int, int> fsm = new FSM<int, int>();
 
@@ -157,8 +157,8 @@ namespace Tests
             fsm.AddTransition(transition1.StateFrom, transition1.Trigger, transition1.StateTo);
             fsm.AddTransition(transition2.StateFrom, transition2.Trigger, transition2.StateTo);
 
-            IFSMTransition<int, int> item1 = default;
-            IFSMTransition<int, int> item2 = default;
+            ITransition<int, int> item1 = default;
+            ITransition<int, int> item2 = default;
 
             int cont = 1;
 
@@ -186,10 +186,10 @@ namespace Tests
         [Test]
         public void RemoveTransitions()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
 
-            var transition = new FSMTransition<int, int>(1, 2, 3);
+            var transition = new Transition<int, int>(1, 2, 3);
 
             FSM<int, int> fsm = new FSM<int, int>();
 
@@ -216,7 +216,7 @@ namespace Tests
         [Test]
         public void ThrowAnExceptionIfUserTriesToStartAndItsAlreadyStarted()
         {
-            var state1 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -232,7 +232,7 @@ namespace Tests
         [Test]
         public void ShowCorrespondingValueWhenAskedIfIsStarted()
         {
-            var state1 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -250,7 +250,7 @@ namespace Tests
         [Test]
         public void EnterInitialStartWhenStarted()
         {
-            var state1 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -266,7 +266,7 @@ namespace Tests
         [Test]
         public void ReturnsCorrespondingValueWhenAskedIsInState()
         {
-            var state1 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -282,8 +282,8 @@ namespace Tests
         [Test]
         public void ChangeStateWhenTriggeringAnExistingTransition()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -314,8 +314,8 @@ namespace Tests
         [Test]
         public void ReturnCorrespondingValueWhenAskedIfContainsTransition()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -331,7 +331,7 @@ namespace Tests
         [Test]
         public void ReturnCorrespondingValueWhenAskedIfContainsState()
         {
-            var state1 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -344,8 +344,8 @@ namespace Tests
         [Test]
         public void ExitCurrentStateWhenStopped()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -368,7 +368,7 @@ namespace Tests
         [Test]
         public void ThrowAnExceptionIfUserTriesToUpdateAndItIsNotStarted()
         {
-            var state1 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -382,7 +382,7 @@ namespace Tests
         [Test]
         public void UpdateCurrentState()
         {
-            var state1 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -400,8 +400,8 @@ namespace Tests
         [Test]
         public void RaiseStateChangedEventWhenHasSuccessfullyTransitioned()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
 
             var stateChangedEventHandler = Substitute.For<StateChange<int, int>>();
 
@@ -428,8 +428,8 @@ namespace Tests
         [Test]
         public void RaiseBeforeStateChangesEventWhenHasSuccessfullyTransitioned()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
 
             var stateChangedEventHandler = Substitute.For<StateChange<int, int>>();
 
@@ -456,8 +456,8 @@ namespace Tests
         [Test]
         public void AddAndRemoveGuardConditions()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -483,8 +483,8 @@ namespace Tests
         [Test]
         public void ThrowAnExceptionIfUserTriesToAddOrRemoveANullGuardCondition()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -517,8 +517,8 @@ namespace Tests
         [Test]
         public void TransitionIfAllGuardConditionsReturnTrue()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -553,8 +553,8 @@ namespace Tests
         [Test]
         public void NotTransitionIfAnyANDGuardConditionReturnsFalse()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -593,7 +593,7 @@ namespace Tests
         [Test]
         public void ReenterStateWhenStateToIsEqualToStateFrom()
         {
-            var state1 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -614,8 +614,8 @@ namespace Tests
         [Test]
         public void RemoveTransitionsRelatedToAStateIdWhenItIsRemoved()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -634,8 +634,8 @@ namespace Tests
         [Test]
         public void RemoveGuardConditionsRelatedToATransitionWhenItIsRemoved()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -668,15 +668,15 @@ namespace Tests
         {
             var fsm = new FSM<int, int>();
 
-            var transition1 = new FSMTransition<int, int>(1, 0, 2);
-            var transition2 = new FSMTransition<int, int>(2, 0, 3);
-            var transition3 = new FSMTransition<int, int>(3, 0, 4);
-            var transition4 = new FSMTransition<int, int>(4, 0, 5);
+            var transition1 = new Transition<int, int>(1, 0, 2);
+            var transition2 = new Transition<int, int>(2, 0, 3);
+            var transition3 = new Transition<int, int>(3, 0, 4);
+            var transition4 = new Transition<int, int>(4, 0, 5);
 
-            var state1 = Substitute.For<IFSMState>();
-            var state3 = Substitute.For<IFSMState>();
-            var state4 = Substitute.For<IFSMState>();
-            var state5 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state3 = Substitute.For<IState>();
+            var state4 = Substitute.For<IState>();
+            var state5 = Substitute.For<IState>();
             var state2 = new DelegateFSMState<int, int>
                 (fsm, 
                 () =>

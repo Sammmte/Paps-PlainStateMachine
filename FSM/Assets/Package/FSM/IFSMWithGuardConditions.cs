@@ -9,6 +9,6 @@ namespace Paps.FSM
 
         bool ContainsGuardConditionOn(TState stateFrom, TTrigger trigger, TState stateTo, IGuardCondition<TState, TTrigger> guardCondition);
 
-        KeyValuePair<IFSMTransition<TState, TTrigger>, IGuardCondition<TState, TTrigger>[]>[] GetGuardConditions();
+        KeyValuePair<ITransition<TState, TTrigger>, IGuardCondition<TState, TTrigger>[]>[] GetGuardConditions();
     }
 }

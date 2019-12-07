@@ -2,7 +2,7 @@
 
 namespace Paps.FSM.Extensions
 {
-    public class DelegateFSMState<TState, TTrigger> : FSMState<TState, TTrigger>
+    public class DelegateFSMState<TState, TTrigger> : State<TState, TTrigger>
     {
         protected Action onEnter;
         protected Action onUpdate;

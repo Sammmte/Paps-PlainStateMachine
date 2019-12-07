@@ -1,6 +1,6 @@
 ﻿namespace Paps.FSM
 {
-    public interface IFSMState
+    public interface IState
     {
         void Enter();
         void Update();

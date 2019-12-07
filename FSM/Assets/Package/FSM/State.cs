@@ -2,11 +2,11 @@
 
 namespace Paps.FSM
 {
-    public class FSMState<TState, TTrigger> : IFSMState
+    public class State<TState, TTrigger> : IState
     {
         public IFSM<TState, TTrigger> StateMachine { get; private set; }
 
-        public FSMState(IFSM<TState, TTrigger> stateMachine)
+        public State(IFSM<TState, TTrigger> stateMachine)
         {
             if (stateMachine == null) throw new ArgumentNullException(nameof(stateMachine));
 

@@ -13,13 +13,13 @@ namespace Tests
         [Test]
         public void GetState()
         {
-            var state1 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
             fsm.AddState(1, state1);
 
-            var shouldBeState1 = fsm.GetState<IFSMState, int, int>();
+            var shouldBeState1 = fsm.GetState<IState, int, int>();
 
             Assert.AreEqual(state1, shouldBeState1);
         }
@@ -27,15 +27,15 @@ namespace Tests
         [Test]
         public void GetStates()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
 
-            var states = fsm.GetStates<IFSMState, int, int>();
+            var states = fsm.GetStates<IState, int, int>();
 
             Assert.IsTrue(states.Contains(state1) && states.Contains(state2));
         }
@@ -43,8 +43,8 @@ namespace Tests
         [Test]
         public void ReturnCorrespondingValueWhenAskedIfContainsByReference()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -57,27 +57,27 @@ namespace Tests
         [Test]
         public void ReturnStateById()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
 
-            Assert.AreEqual(fsm.GetStateById<IFSMState, int, int>(1), state1);
+            Assert.AreEqual(fsm.GetStateById<IState, int, int>(1), state1);
         }
 
         [Test]
         public void AddTimerState()
         {
-            var stateAfter = Substitute.For<IFSMState>();
+            var stateAfter = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
             fsm.AddState(2, stateAfter);
             fsm.AddTimerState(1, 1000, stateId => fsm.Trigger(0));
-            fsm.AddTransitionWithValuesOf(new FSMTransition<int, int>(1, 0, 2));
+            fsm.AddTransitionWithValuesOf(new Transition<int, int>(1, 0, 2));
 
             fsm.SetInitialState(1);
 
@@ -93,13 +93,13 @@ namespace Tests
         [Test]
         public void AddEmpty()
         {
-            var stateAfter = Substitute.For<IFSMState>();
+            var stateAfter = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
             fsm.AddState(2, stateAfter);
             fsm.AddEmpty(1);
-            fsm.AddTransitionWithValuesOf(new FSMTransition<int, int>(1, 0, 2));
+            fsm.AddTransitionWithValuesOf(new Transition<int, int>(1, 0, 2));
 
             fsm.SetInitialState(1);
 
@@ -113,7 +113,7 @@ namespace Tests
         [Test]
         public void AddWithEvents()
         {
-            var stateAfter = Substitute.For<IFSMState>();
+            var stateAfter = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -123,7 +123,7 @@ namespace Tests
 
             fsm.AddState(2, stateAfter);
             fsm.AddWithEvents(1, enterEvent, updateEvent, exitEvent);
-            fsm.AddTransitionWithValuesOf(new FSMTransition<int, int>(1, 0, 2));
+            fsm.AddTransitionWithValuesOf(new Transition<int, int>(1, 0, 2));
 
             fsm.SetInitialState(1);
 
@@ -145,11 +145,11 @@ namespace Tests
         [Test]
         public void AddTransitionFromAnyState()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
-            var state3 = Substitute.For<IFSMState>();
-            var state4 = Substitute.For<IFSMState>();
-            var stateTarget = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
+            var state3 = Substitute.For<IState>();
+            var state4 = Substitute.For<IState>();
+            var stateTarget = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -172,11 +172,11 @@ namespace Tests
         [Test]
         public void AddTransitionFromAnyStateExceptTarget()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
-            var state3 = Substitute.For<IFSMState>();
-            var state4 = Substitute.For<IFSMState>();
-            var stateTarget = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
+            var state3 = Substitute.For<IState>();
+            var state4 = Substitute.For<IState>();
+            var stateTarget = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -200,9 +200,9 @@ namespace Tests
         [Test]
         public void ReturnTransitionsWithSpecificTrigger()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
-            var stateTarget = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
+            var stateTarget = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -217,7 +217,7 @@ namespace Tests
             Assert.IsTrue(HasAnyWithTrigger(transitions, 0));
             Assert.IsFalse(HasAnyWithTrigger(transitions, 1));
 
-            bool HasAnyWithTrigger<TState, TTrigger>(IFSMTransition<TState, TTrigger>[] transitionArray, TTrigger trigger)
+            bool HasAnyWithTrigger<TState, TTrigger>(ITransition<TState, TTrigger>[] transitionArray, TTrigger trigger)
             {
                 foreach (var transition in transitionArray)
                 {
@@ -234,8 +234,8 @@ namespace Tests
         [Test]
         public void ReturnTransitionsWithSpecificStateFrom()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -250,7 +250,7 @@ namespace Tests
             Assert.IsTrue(HasAnyWithStateFrom(transitions, 1));
             Assert.IsFalse(HasAnyWithStateFrom(transitions, 2));
 
-            bool HasAnyWithStateFrom<TState, TTrigger>(IFSMTransition<TState, TTrigger>[] transitionArray, TState stateFrom)
+            bool HasAnyWithStateFrom<TState, TTrigger>(ITransition<TState, TTrigger>[] transitionArray, TState stateFrom)
             {
                 foreach (var transition in transitionArray)
                 {
@@ -267,8 +267,8 @@ namespace Tests
         [Test]
         public void ReturnTransitionsWithSpecificStateTo()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -283,7 +283,7 @@ namespace Tests
             Assert.IsTrue(HasAnyWithStateTo(transitions, 1));
             Assert.IsFalse(HasAnyWithStateTo(transitions, 2));
 
-            bool HasAnyWithStateTo<TState, TTrigger>(IFSMTransition<TState, TTrigger>[] transitionArray, TState stateTo)
+            bool HasAnyWithStateTo<TState, TTrigger>(ITransition<TState, TTrigger>[] transitionArray, TState stateTo)
             {
                 foreach (var transition in transitionArray)
                 {
@@ -300,8 +300,8 @@ namespace Tests
         [Test]
         public void ReturnTransitionWithRelatedState()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -316,7 +316,7 @@ namespace Tests
             Assert.IsTrue(HasAnyWithState(transitions, 1));
             Assert.IsFalse(HasAnyWithState(transitions, 2));
 
-            bool HasAnyWithState<TState, TTrigger>(IFSMTransition<TState, TTrigger>[] transitionArray, TState stateId)
+            bool HasAnyWithState<TState, TTrigger>(ITransition<TState, TTrigger>[] transitionArray, TState stateId)
             {
                 foreach (var transition in transitionArray)
                 {
@@ -333,8 +333,8 @@ namespace Tests
         [Test]
         public void ReturnIfHasTransitionWithSpecificStateFrom()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -351,8 +351,8 @@ namespace Tests
         [Test]
         public void ReturnIfHasTransitionWithSpecificStateTo()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -369,8 +369,8 @@ namespace Tests
         [Test]
         public void ReturnIfHasTransitionWithSpecificTrigger()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 
@@ -387,8 +387,8 @@ namespace Tests
         [Test]
         public void ReturnIfHasTransitionRelatedToSpecificState()
         {
-            var state1 = Substitute.For<IFSMState>();
-            var state2 = Substitute.For<IFSMState>();
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
 
             var fsm = new FSM<int, int>();
 

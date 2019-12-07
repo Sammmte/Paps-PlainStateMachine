@@ -3,7 +3,7 @@ using System.Timers;
 
 namespace Paps.FSM.Extensions
 {
-    public class TimerState<TState, TTrigger> : FSMState<TState, TTrigger>
+    public class TimerState<TState, TTrigger> : State<TState, TTrigger>
     {
         private Timer _timer;
 

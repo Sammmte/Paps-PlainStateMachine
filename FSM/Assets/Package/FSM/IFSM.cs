@@ -12,25 +12,25 @@ namespace Paps.FSM
 
         TState InitialState { get; }
 
-        void AddState(TState stateId, IFSMState state);
+        void AddState(TState stateId, IState state);
         void RemoveState(TState stateId);
 
         bool ContainsState(TState stateId);
 
-        IFSMState[] GetStates();
+        IState[] GetStates();
 
         void AddTransition(TState stateFrom, TTrigger trigger, TState stateTo);
         void RemoveTransition(TState stateFrom, TTrigger trigger, TState stateTo);
 
         bool ContainsTransition(TState stateFrom, TTrigger trigger, TState stateTo);
 
-        IFSMTransition<TState, TTrigger>[] GetTransitions();
+        ITransition<TState, TTrigger>[] GetTransitions();
 
         void SetInitialState(TState stateId);
 
         bool IsInState(TState stateId);
 
-        TState GetIdOf(IFSMState state);
+        TState GetIdOf(IState state);
 
         void Start();
         void Update();

@@ -2,7 +2,7 @@
 
 namespace Paps.FSM
 {
-    public class FSMTransition<TState, TTrigger> : IEquatable<FSMTransition<TState, TTrigger>>, IFSMTransition<TState, TTrigger>
+    public class Transition<TState, TTrigger> : IEquatable<Transition<TState, TTrigger>>, ITransition<TState, TTrigger>
     {
         public TState StateFrom { get; private set; }
         public TTrigger Trigger { get; private set; }
@@ -11,7 +11,7 @@ namespace Paps.FSM
         private readonly Func<TState, TState, bool> _stateComparer;
         private readonly Func<TTrigger, TTrigger, bool> _triggerComparer;
 
-        public FSMTransition(TState stateFrom, TTrigger trigger, TState stateTo, 
+        public Transition(TState stateFrom, TTrigger trigger, TState stateTo, 
             Func<TState, TState, bool> stateComparer = null, Func<TTrigger, TTrigger, bool> triggerComparer = null)
         {
             StateFrom = stateFrom;
@@ -29,7 +29,7 @@ namespace Paps.FSM
 
         public override bool Equals(object obj)
         {
-            if(obj is FSMTransition<TState, TTrigger> cast)
+            if(obj is Transition<TState, TTrigger> cast)
             {
                 return Equals(cast);
             }
@@ -37,7 +37,7 @@ namespace Paps.FSM
             return false;
         }
 
-        public bool Equals(FSMTransition<TState, TTrigger> other)
+        public bool Equals(Transition<TState, TTrigger> other)
         {
             return _stateComparer(StateFrom, other.StateFrom) && _triggerComparer(Trigger, other.Trigger) && _stateComparer(StateTo, other.StateTo);
         }
@@ -47,12 +47,12 @@ namespace Paps.FSM
             return (StateFrom, Trigger, StateTo).GetHashCode();
         }
 
-        public static bool operator ==(FSMTransition<TState, TTrigger> transition1, FSMTransition<TState, TTrigger> transition2)
+        public static bool operator ==(Transition<TState, TTrigger> transition1, Transition<TState, TTrigger> transition2)
         {
             return transition1.Equals(transition2);
         }
 
-        public static bool operator !=(FSMTransition<TState, TTrigger> transition1, FSMTransition<TState, TTrigger> transition2)
+        public static bool operator !=(Transition<TState, TTrigger> transition1, Transition<TState, TTrigger> transition2)
         {
             return transition1.Equals(transition2) == false;
         }
