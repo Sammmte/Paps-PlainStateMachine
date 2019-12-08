@@ -1,8 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-namespace Paps.FSM.Extensions
+﻿namespace Paps.FSM.Extensions
 {
     public class EmptyState : IState
     {
