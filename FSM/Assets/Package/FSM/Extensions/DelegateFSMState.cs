@@ -2,20 +2,20 @@
 
 namespace Paps.FSM.Extensions
 {
-    public class DelegateFSMState<TState, TTrigger> : State<TState, TTrigger>
+    public class DelegateFSMState<TState, TTrigger> : IState
     {
         protected Action onEnter;
         protected Action onUpdate;
         protected Action onExit;
 
-        public DelegateFSMState(IFSM<TState, TTrigger> fsm, Action onEnter, Action onUpdate, Action onExit) : base(fsm)
+        public DelegateFSMState(IFSM<TState, TTrigger> fsm, Action onEnter, Action onUpdate, Action onExit)
         {
             this.onEnter = onEnter;
             this.onUpdate = onUpdate;
             this.onExit = onExit;
         }
 
-        protected override void OnEnter()
+        public void Enter()
         {
             if(onEnter != null)
             {
@@ -23,7 +23,7 @@ namespace Paps.FSM.Extensions
             }
         }
 
-        protected override void OnUpdate()
+        public void Update()
         {
             if(onUpdate != null)
             {
@@ -31,7 +31,7 @@ namespace Paps.FSM.Extensions
             }
         }
 
-        protected override void OnExit()
+        public void Exit()
         {
             if(onExit != null)
             {

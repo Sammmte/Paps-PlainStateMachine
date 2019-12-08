@@ -103,7 +103,7 @@ namespace Paps.FSM.Extensions
 
         public static void AddEmpty<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId)
         {
-            fsm.AddState(stateId, new State<TState, TTrigger>(fsm));
+            fsm.AddState(stateId, new EmptyState());
         }
         
         public static void AddWithEvents<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId,

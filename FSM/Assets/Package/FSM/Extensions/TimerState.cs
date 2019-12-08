@@ -3,14 +3,18 @@ using System.Timers;
 
 namespace Paps.FSM.Extensions
 {
-    public class TimerState<TState, TTrigger> : State<TState, TTrigger>
+    public class TimerState<TState, TTrigger> : IState
     {
         private Timer _timer;
 
         private Action<TState> _onTimerElapsed;
 
-        public TimerState(IFSM<TState, TTrigger> fsm, double milliseconds, Action<TState> onTimerElapsed) : base(fsm)
+        private IFSM<TState, TTrigger> _stateMachine;
+
+        public TimerState(IFSM<TState, TTrigger> fsm, double milliseconds, Action<TState> onTimerElapsed)
         {
+            _stateMachine = fsm;
+
             _onTimerElapsed = onTimerElapsed;
 
             _timer = new Timer();
@@ -18,21 +22,21 @@ namespace Paps.FSM.Extensions
             _timer.Interval = milliseconds;
         }
 
-        protected override void OnEnter()
+        public void Enter()
         {
             _timer.Start();
         }
 
-        protected override void OnExit()
+        public void Exit()
         {
             _timer.Stop();
         }
 
-        protected override void OnUpdate()
+        public void Update()
         {
             if (_timer.Enabled == false)
             {
-                _onTimerElapsed(StateMachine.GetIdOf(this));
+                _onTimerElapsed(_stateMachine.GetIdOf(this));
             }
         }
     }

@@ -8,6 +8,7 @@
 [Ll]ogs/
 Assets/AssetStoreTools*
 AssetBundles*
+node_modules/
 
 # Visual Studio 2015 cache directory
 .vs/
