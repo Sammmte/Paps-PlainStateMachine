@@ -3,7 +3,7 @@ using Paps.FSM;
 
 namespace Tests
 {
-    public class FSMTransitionShould
+    public class TransitionShould
     {
         [Test]
         public void HasSameHashCodeThatOtherWithSameValues()
@@ -16,7 +16,7 @@ namespace Tests
         }
 
         [Test]
-        public void ReturnTrueWhenCallingEqualsWithOther()
+        public void ReturnTrueWhenCallingEqualsWithOtherWithSameValues()
         {
             var transition1 = new Transition<int, int>(1, 2, 3);
             var transition2 = new Transition<int, int>(1, 2, 3);
