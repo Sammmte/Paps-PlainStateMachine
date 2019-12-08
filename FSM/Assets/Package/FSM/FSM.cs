@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Paps.FSM
 {
-    public class FSM<TState, TTrigger> : IFSM<TState, TTrigger>, IFSMWithGuardConditions<TState, TTrigger>
+    public class FSM<TState, TTrigger> : IFSM<TState, TTrigger>, IFSMWithGuardConditions<TState, TTrigger>, IFSMEventSender<TState, TTrigger>
     {
         public int StateCount => _states.Count;
         public int TransitionCount => _transitions.Count;
@@ -510,7 +510,19 @@ namespace Paps.FSM
                 throw new ArgumentNullException("Guard condition was null");
             }
         }
- 
+
+        public bool SendEvent<TEvent>(TEvent messageEvent)
+        {
+            ValidateIsStarted();
+
+            if(_currentState is IStateEventReceiver<TEvent> cast)
+            {
+                return cast.HandleEvent(messageEvent);
+            }
+
+            return false;
+        }
+
         private class FSMStateEqualityComparer : IEqualityComparer<TState>
         {
             public Func<TState, TState, bool> _stateComparer;

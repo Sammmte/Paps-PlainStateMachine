@@ -841,5 +841,41 @@ namespace Tests
 
             Assert.Throws<FSMNotStartedException>(() => fsm.Start());
         }
+
+        [Test]
+        public void SendEventToEventReceivers()
+        {
+            var fsm = new FSM<int, int>();
+
+            IStateEventReceiver<int> state1 = Substitute.For<IStateEventReceiver<int>>();
+            IState state2 = Substitute.For<IState>();
+
+            state1.HandleEvent(10).Returns(true);
+
+            fsm.AddState(1, state1);
+            fsm.AddState(2, state2);
+
+            fsm.AddTransition(1, 0, 2);
+
+            fsm.SetInitialState(1);
+
+            fsm.Start();
+
+            Assert.IsTrue(fsm.SendEvent(10));
+
+            state1.Received().HandleEvent(10);
+
+            fsm.Trigger(0);
+
+            Assert.IsFalse(fsm.SendEvent(10));
+        }
+
+        [Test]
+        public void ThrowAnExceptionIfUserTriesToSendAnEventAndStateMachineIsNotStarted()
+        {
+            var fsm = new FSM<int, int>();
+
+            Assert.Throws<FSMNotStartedException>(() => fsm.SendEvent(1));
+        }
     }
 }
