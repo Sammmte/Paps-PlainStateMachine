@@ -2,13 +2,13 @@
 
 namespace Paps.FSM.Extensions
 {
-    public class DelegateFSMState<TState, TTrigger> : IState
+    public class DelegateState<TState, TTrigger> : IState
     {
         protected Action onEnter;
         protected Action onUpdate;
         protected Action onExit;
 
-        public DelegateFSMState(IFSM<TState, TTrigger> fsm, Action onEnter, Action onUpdate, Action onExit)
+        public DelegateState(Action onEnter, Action onUpdate, Action onExit)
         {
             this.onEnter = onEnter;
             this.onUpdate = onUpdate;

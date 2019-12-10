@@ -677,15 +677,16 @@ namespace Tests
             var state3 = Substitute.For<IState>();
             var state4 = Substitute.For<IState>();
             var state5 = Substitute.For<IState>();
-            var state2 = new DelegateFSMState<int, int>
-                (fsm, 
-                () =>
-                {
-                    fsm.Trigger(transition2.Trigger);
-                    fsm.Trigger(transition3.Trigger);
-                    fsm.Trigger(transition4.Trigger);
-                    state3.DidNotReceive().Enter();
-                }, null, null);
+            var state2 = new DelegateState<int, int>
+                (
+                    () =>
+                    {
+                        fsm.Trigger(transition2.Trigger);
+                        fsm.Trigger(transition3.Trigger);
+                        fsm.Trigger(transition4.Trigger);
+                        state3.DidNotReceive().Enter();
+                    }, 
+                    null, null);
 
 
             fsm.AddState(1, state1);
