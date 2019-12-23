@@ -42,5 +42,7 @@ namespace Paps.FSM
         void Stop();
 
         void Trigger(TTrigger trigger);
+
+        bool SendEvent(IEvent messageEvent);
     }
 }

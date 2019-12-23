@@ -38,5 +38,10 @@ namespace Paps.FSM.Extensions
                 onExit();
             }
         }
+
+        public bool HandleEvent(IEvent messageEvent)
+        {
+            return false;
+        }
     }
 }

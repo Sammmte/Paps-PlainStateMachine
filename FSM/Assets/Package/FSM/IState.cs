@@ -5,5 +5,7 @@
         void Enter();
         void Update();
         void Exit();
+
+        bool HandleEvent(IEvent messageEvent);
     }
 }

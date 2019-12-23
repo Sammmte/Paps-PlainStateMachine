@@ -32,6 +32,11 @@ namespace Paps.FSM.Extensions
             _timer.Stop();
         }
 
+        public bool HandleEvent(IEvent messageEvent)
+        {
+            return false;
+        }
+
         public void Update()
         {
             if (_timer.Enabled == false)

@@ -848,10 +848,14 @@ namespace Tests
         {
             var fsm = new FSM<int, int>();
 
-            IStateEventReceiver<int> state1 = Substitute.For<IStateEventReceiver<int>>();
+            IState state1 = Substitute.For<IState>();
             IState state2 = Substitute.For<IState>();
 
-            state1.HandleEvent(10).Returns(true);
+            IEvent stateEvent = Substitute.For<IEvent>();
+
+            stateEvent.GetEventData().Returns(10);
+
+            state1.HandleEvent(stateEvent).Returns(true);
 
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
@@ -862,13 +866,15 @@ namespace Tests
 
             fsm.Start();
 
-            Assert.IsTrue(fsm.SendEvent(10));
+            Assert.IsTrue(fsm.SendEvent(stateEvent));
 
-            state1.Received().HandleEvent(10);
+            state1.Received().HandleEvent(stateEvent);
 
             fsm.Trigger(0);
 
-            Assert.IsFalse(fsm.SendEvent(10));
+            Assert.IsFalse(fsm.SendEvent(stateEvent));
+
+            state2.Received().HandleEvent(stateEvent);
         }
 
         [Test]
@@ -876,7 +882,7 @@ namespace Tests
         {
             var fsm = new FSM<int, int>();
 
-            Assert.Throws<FSMNotStartedException>(() => fsm.SendEvent(1));
+            Assert.Throws<FSMNotStartedException>(() => fsm.SendEvent(Substitute.For<IEvent>()));
         }
     }
 }
