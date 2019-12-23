@@ -160,7 +160,7 @@ Open the "Packages" folder inside your project folder. Open the manifest.json, y
 ```json
 {
    "dependencies": {
-        "com.unity.some-package" : "1.0.0"
+        "com.unity.some-package" : "1.0.0",
         "com.unity.some-other-package" : "1.0.0"
         //other packages...
     }
@@ -194,7 +194,7 @@ Finally you must add this package dependency to your project in the "dependencie
 ```json
 {
     "dependencies": {
-        "com.unity.some-package" : "1.0.0"
+        "com.unity.some-package" : "1.0.0",
         "com.unity.some-other-package" : "1.0.0"
         "paps.fsm" : "1.0.3-unity"
       }
