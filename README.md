@@ -195,7 +195,7 @@ Finally you must add this package dependency to your project in the "dependencie
 {
     "dependencies": {
         "com.unity.some-package" : "1.0.0",
-        "com.unity.some-other-package" : "1.0.0"
+        "com.unity.some-other-package" : "1.0.0",
         "paps.fsm" : "1.0.3-unity"
       }
 }
