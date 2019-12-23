@@ -92,15 +92,16 @@ guardEnemyFSM.AddGuardConditionTo(
 
 ### Event Dispatching
 
-The FSM class implements the IFSMEventSender. You can send events to state objects that implement IStateEventReceiver interface.
-The type of event you send must match the type of IStateEventReceiver generic.
+You can send events to state objects.
 
 ```csharp
-IStateEventReceiver<string> patrolState = new PatrolState();
+IState patrolState = new PatrolState();
 
 guardEnemyFSM.AddState(State.Patrol, patrolState);
 
-guardEnemyFSM.SendEvent<string>("MyEvent");
+IEvent myEvent = new Event<string>("MyEvent");
+
+guardEnemyFSM.SendEvent(myEvent);
 ```
 
 ### Useful Extensions
