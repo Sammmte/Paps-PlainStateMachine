@@ -1,6 +1,6 @@
 {
   "name": "paps.fsm",
-  "version": "1.0.3-unity",
+  "version": "1.0.4-unity",
   "displayName": "Paps FSM",
   "unity": "2019.2",
   "description": "A simple finite state machine made in c#",

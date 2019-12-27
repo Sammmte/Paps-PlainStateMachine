@@ -3,6 +3,8 @@ using NUnit.Framework;
 using Paps.FSM;
 using Paps.FSM.Extensions;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Tests
 {
@@ -883,6 +885,47 @@ namespace Tests
             var fsm = new FSM<int, int>();
 
             Assert.Throws<FSMNotStartedException>(() => fsm.SendEvent(Substitute.For<IEvent>()));
+        }
+
+        [Test]
+        public void ThrowAnExceptionIfUserTriesToComparerIsNull()
+        {
+            FSM<int, int> fsm = null;
+
+            IEqualityComparer<int> comparer = null;
+
+            Assert.Throws<ArgumentNullException>(() => new FSM<int, int>(comparer, comparer));
+
+            fsm = new FSM<int, int>();
+
+            Assert.Throws<ArgumentNullException>(() => fsm.SetStateComparer(comparer));
+            Assert.Throws<ArgumentNullException>(() => fsm.SetTriggerComparer(comparer));
+        }
+
+        [Test]
+        public void UseCustomEqualityComparer()
+        {
+            IEqualityComparer<int> comparer = Substitute.For<IEqualityComparer<int>>();
+
+            comparer.Equals(1, 1).Returns(true);
+            comparer.Equals(2, 2).Returns(true);
+            comparer.Equals(1, 2).Returns(false);
+            comparer.Equals(2, 1).Returns(false);
+
+            var fsm = new FSM<int, int>(comparer, comparer);
+
+            fsm.AddEmpty(1);
+            fsm.AddEmpty(2);
+
+            fsm.SetInitialState(1);
+
+            fsm.AddTransition(1, 0, 2);
+
+            fsm.Start();
+
+            fsm.Trigger(0);
+
+            comparer.Received().Equals(Arg.Any<int>(), Arg.Any<int>());
         }
     }
 }

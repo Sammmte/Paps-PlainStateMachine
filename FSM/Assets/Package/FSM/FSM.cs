@@ -23,29 +23,49 @@ namespace Paps.FSM
         private IState _currentState;
         private bool _isTransitioning;
 
-        private Func<TState, TState, bool> _stateComparer;
-        private Func<TTrigger, TTrigger, bool> _triggerComparer;
-
-        private FSMStateEqualityComparer _stateEqualityComparer;
+        private IEqualityComparer<TState> _stateComparer;
+        private IEqualityComparer<TTrigger> _triggerComparer;
+        
         private FSMTransitionEqualityComparer _transitionEqualityComparer;
-
-        public FSM(Func<TState, TState, bool> stateComparer, Func<TTrigger, TTrigger, bool> triggerComparer)
+        
+        public FSM(IEqualityComparer<TState> stateComparer, IEqualityComparer<TTrigger> triggerComparer)
         {
+            if (stateComparer == null) throw new ArgumentNullException(nameof(stateComparer));
+            if (triggerComparer == null) throw new ArgumentNullException(nameof(triggerComparer));
+
             _stateComparer = stateComparer;
             _triggerComparer = triggerComparer;
 
-            _stateEqualityComparer = new FSMStateEqualityComparer(stateComparer);
             _transitionEqualityComparer = new FSMTransitionEqualityComparer(stateComparer, triggerComparer);
 
-            _states = new Dictionary<TState, IState>(_stateEqualityComparer);
+            _states = new Dictionary<TState, IState>(_stateComparer);
             _transitions = new HashSet<ITransition<TState, TTrigger>>();
             guardConditions = new Dictionary<ITransition<TState, TTrigger>, List<IGuardCondition<TState, TTrigger>>>(_transitionEqualityComparer);
             _transitionRequestQueue = new Queue<TransitionRequest>();
         }
+        
+        public FSM(Func<TState, TState, bool> stateComparer, Func<TTrigger, TTrigger, bool> triggerComparer) : this(new Comparer<TState>(stateComparer), new Comparer<TTrigger>(triggerComparer))
+        {
 
-        public FSM() : this(DefaultComparer, DefaultComparer)
+        }
+
+        public FSM() : this(EqualityComparer<TState>.Default, EqualityComparer<TTrigger>.Default)
         {
             
+        }
+
+        public void SetStateComparer(IEqualityComparer<TState> stateComparer)
+        {
+            if (stateComparer == null) throw new ArgumentNullException(nameof(stateComparer));
+
+            _stateComparer = stateComparer;
+        }
+
+        public void SetTriggerComparer(IEqualityComparer<TTrigger> triggerComparer)
+        {
+            if (triggerComparer == null) throw new ArgumentNullException(nameof(triggerComparer));
+
+            _triggerComparer = triggerComparer;
         }
 
         private static bool DefaultComparer<T>(T first, T second)
@@ -203,7 +223,7 @@ namespace Paps.FSM
         private ITransition<TState, TTrigger>[] GetTransitionsRelatedTo(TState stateId)
         {
             return _transitions.Where(
-                (transition) => _stateComparer(transition.StateFrom, stateId) || _stateComparer(transition.StateTo, stateId)
+                (transition) => _stateComparer.Equals(transition.StateFrom, stateId) || _stateComparer.Equals(transition.StateTo, stateId)
                 ).ToArray();
         }
 
@@ -211,7 +231,7 @@ namespace Paps.FSM
         {
             foreach(IState state in _states.Values)
             {
-                if(_stateComparer(GetIdOf(state), stateId))
+                if(_stateComparer.Equals(GetIdOf(state), stateId))
                 {
                     return state;
                 }
@@ -266,14 +286,14 @@ namespace Paps.FSM
 
         public bool IsInState(TState stateId)
         {
-            return IsStarted && _stateComparer(GetIdOf(_currentState), stateId);
+            return IsStarted && _stateComparer.Equals(GetIdOf(_currentState), stateId);
         }
 
         public bool ContainsState(TState stateId)
         {
             foreach(IState state in _states.Values)
             {
-                if(_stateComparer(GetIdOf(state), stateId))
+                if(_stateComparer.Equals(GetIdOf(state), stateId))
                 {
                     return true;
                 }
@@ -345,8 +365,8 @@ namespace Paps.FSM
 
             foreach (ITransition<TState, TTrigger> transition in _transitions)
             {
-                if(_stateComparer(transition.StateFrom, currentStateId) 
-                    && _triggerComparer(transition.Trigger, trigger)
+                if(_stateComparer.Equals(transition.StateFrom, currentStateId) 
+                    && _triggerComparer.Equals(transition.Trigger, trigger)
                     && IsValidTransition(transition))
                 {
                     if(multipleValidGuardsFlag)
@@ -518,26 +538,6 @@ namespace Paps.FSM
             return _currentState.HandleEvent(messageEvent);
         }
 
-        private class FSMStateEqualityComparer : IEqualityComparer<TState>
-        {
-            public Func<TState, TState, bool> _stateComparer;
-
-            public FSMStateEqualityComparer(Func<TState, TState, bool> stateComparer)
-            {
-                _stateComparer = stateComparer;
-            }
-
-            public bool Equals(TState x, TState y)
-            {
-                return _stateComparer(x, y);
-            }
-
-            public int GetHashCode(TState obj)
-            {
-                return obj.GetHashCode();
-            }
-        }
-
         private struct TransitionRequest
         {
             public TTrigger trigger;
@@ -545,10 +545,10 @@ namespace Paps.FSM
 
         private class FSMTransitionEqualityComparer : IEqualityComparer<ITransition<TState, TTrigger>>
         {
-            private Func<TState, TState, bool> _stateComparer;
-            private Func<TTrigger, TTrigger, bool> _triggerComparer;
+            private IEqualityComparer<TState> _stateComparer;
+            private IEqualityComparer<TTrigger> _triggerComparer;
 
-            public FSMTransitionEqualityComparer(Func<TState, TState, bool> stateComparer, Func<TTrigger, TTrigger, bool> triggerComparer)
+            public FSMTransitionEqualityComparer(IEqualityComparer<TState> stateComparer, IEqualityComparer<TTrigger> triggerComparer)
             {
                 _stateComparer = stateComparer;
                 _triggerComparer = triggerComparer;
@@ -556,7 +556,7 @@ namespace Paps.FSM
 
             public bool Equals(ITransition<TState, TTrigger> x, ITransition<TState, TTrigger> y)
             {
-                return _stateComparer(x.StateFrom, y.StateFrom) && _triggerComparer(x.Trigger, y.Trigger) && _stateComparer(x.StateTo, y.StateTo);
+                return _stateComparer.Equals(x.StateFrom, y.StateFrom) && _triggerComparer.Equals(x.Trigger, y.Trigger) && _stateComparer.Equals(x.StateTo, y.StateTo);
             }
 
             public int GetHashCode(ITransition<TState, TTrigger> obj)
@@ -566,7 +566,27 @@ namespace Paps.FSM
 
             public bool Equals(ITransition<TState, TTrigger> transition, TState stateFrom, TTrigger trigger, TState stateTo)
             {
-                return _stateComparer(transition.StateFrom, stateFrom) && _triggerComparer(transition.Trigger, trigger) && _stateComparer(transition.StateTo, stateTo);
+                return _stateComparer.Equals(transition.StateFrom, stateFrom) && _triggerComparer.Equals(transition.Trigger, trigger) && _stateComparer.Equals(transition.StateTo, stateTo);
+            }
+        }
+
+        private class Comparer<T> : IEqualityComparer<T>
+        {
+            Func<T, T, bool> _comparer;
+
+            public Comparer(Func<T, T, bool> comparer)
+            {
+                _comparer = comparer ?? ((param1, param2) => param1.Equals(param2));
+            }
+
+            public bool Equals(T x, T y)
+            {
+                return _comparer(x, y);
+            }
+
+            public int GetHashCode(T obj)
+            {
+                return obj.GetHashCode();
             }
         }
     }
