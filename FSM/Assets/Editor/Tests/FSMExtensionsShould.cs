@@ -65,7 +65,7 @@ namespace Tests
 
             fsm.AddState(2, stateAfter);
             fsm.AddTimerState(1, 1000, stateId => fsm.Trigger(0));
-            fsm.AddTransitionWithValuesOf(new Transition<int, int>(1, 0, 2));
+            fsm.AddTransition(new Transition<int, int>(1, 0, 2));
 
             fsm.SetInitialState(1);
 
@@ -87,7 +87,7 @@ namespace Tests
 
             fsm.AddState(2, stateAfter);
             fsm.AddEmpty(1);
-            fsm.AddTransitionWithValuesOf(new Transition<int, int>(1, 0, 2));
+            fsm.AddTransition(new Transition<int, int>(1, 0, 2));
 
             fsm.SetInitialState(1);
 
@@ -111,7 +111,7 @@ namespace Tests
 
             fsm.AddState(2, stateAfter);
             fsm.AddWithEvents(1, enterEvent, updateEvent, exitEvent);
-            fsm.AddTransitionWithValuesOf(new Transition<int, int>(1, 0, 2));
+            fsm.AddTransition(new Transition<int, int>(1, 0, 2));
 
             fsm.SetInitialState(1);
 
@@ -149,11 +149,11 @@ namespace Tests
             fsm.FromAny(0, 5);
 
             Assert.IsTrue(
-                fsm.ContainsTransition(1, 0, 5) &&
-                fsm.ContainsTransition(2, 0, 5) &&
-                fsm.ContainsTransition(3, 0, 5) &&
-                fsm.ContainsTransition(4, 0, 5) &&
-                fsm.ContainsTransition(5, 0, 5)
+                fsm.ContainsTransition(new Transition<int, int>(1, 0, 5)) &&
+                fsm.ContainsTransition(new Transition<int, int>(2, 0, 5)) &&
+                fsm.ContainsTransition(new Transition<int, int>(3, 0, 5)) &&
+                fsm.ContainsTransition(new Transition<int, int>(4, 0, 5)) &&
+                fsm.ContainsTransition(new Transition<int, int>(5, 0, 5))
                         );
         }
 
@@ -176,13 +176,12 @@ namespace Tests
             fsm.FromAnyExceptTarget(0, 5);
 
             Assert.IsTrue(
-                fsm.ContainsTransition(1, 0, 5) &&
-                fsm.ContainsTransition(2, 0, 5) &&
-                fsm.ContainsTransition(3, 0, 5) &&
-                fsm.ContainsTransition(4, 0, 5)
-                        );
+                fsm.ContainsTransition(new Transition<int, int>(1, 0, 5)) &&
+                fsm.ContainsTransition(new Transition<int, int>(2, 0, 5)) &&
+                fsm.ContainsTransition(new Transition<int, int>(3, 0, 5)) &&
+                fsm.ContainsTransition(new Transition<int, int>(4, 0, 5)));
 
-            Assert.IsFalse(fsm.ContainsTransition(5, 0, 5));
+            Assert.IsFalse(fsm.ContainsTransition(new Transition<int, int>(5, 0, 5)));
         }
 
         [Test]
@@ -198,14 +197,14 @@ namespace Tests
             fsm.AddState(2, state2);
             fsm.AddState(3, stateTarget);
             fsm.FromAny(0, 3);
-            fsm.AddTransition(1, 1, 1);
+            fsm.AddTransition(new Transition<int, int>(1, 1, 1));
 
             var transitions = fsm.GetTransitionsWithTrigger(0);
 
             Assert.IsTrue(HasAnyWithTrigger(transitions, 0));
             Assert.IsFalse(HasAnyWithTrigger(transitions, 1));
 
-            bool HasAnyWithTrigger<TState, TTrigger>(ITransition<TState, TTrigger>[] transitionArray, TTrigger trigger)
+            bool HasAnyWithTrigger<TState, TTrigger>(Transition<TState, TTrigger>[] transitionArray, TTrigger trigger)
             {
                 foreach (var transition in transitionArray)
                 {
@@ -229,16 +228,16 @@ namespace Tests
 
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
-            fsm.AddTransition(1, 0, 1);
-            fsm.AddTransition(1, 1, 1);
-            fsm.AddTransition(2, 1, 1);
+            fsm.AddTransition(new Transition<int, int>(1, 0, 1));
+            fsm.AddTransition(new Transition<int, int>(1, 1, 1));
+            fsm.AddTransition(new Transition<int, int>(2, 1, 1));
 
             var transitions = fsm.GetTransitionsWithStateFrom(1);
 
             Assert.IsTrue(HasAnyWithStateFrom(transitions, 1));
             Assert.IsFalse(HasAnyWithStateFrom(transitions, 2));
 
-            bool HasAnyWithStateFrom<TState, TTrigger>(ITransition<TState, TTrigger>[] transitionArray, TState stateFrom)
+            bool HasAnyWithStateFrom<TState, TTrigger>(Transition<TState, TTrigger>[] transitionArray, TState stateFrom)
             {
                 foreach (var transition in transitionArray)
                 {
@@ -262,16 +261,16 @@ namespace Tests
 
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
-            fsm.AddTransition(1, 0, 1);
-            fsm.AddTransition(1, 1, 1);
-            fsm.AddTransition(1, 1, 2);
+            fsm.AddTransition(new Transition<int, int>(1, 0, 1));
+            fsm.AddTransition(new Transition<int, int>(1, 1, 1));
+            fsm.AddTransition(new Transition<int, int>(1, 1, 2));
 
             var transitions = fsm.GetTransitionsWithStateTo(1);
 
             Assert.IsTrue(HasAnyWithStateTo(transitions, 1));
             Assert.IsFalse(HasAnyWithStateTo(transitions, 2));
 
-            bool HasAnyWithStateTo<TState, TTrigger>(ITransition<TState, TTrigger>[] transitionArray, TState stateTo)
+            bool HasAnyWithStateTo<TState, TTrigger>(Transition<TState, TTrigger>[] transitionArray, TState stateTo)
             {
                 foreach (var transition in transitionArray)
                 {
@@ -295,16 +294,16 @@ namespace Tests
 
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
-            fsm.AddTransition(1, 0, 1);
-            fsm.AddTransition(1, 1, 1);
-            fsm.AddTransition(2, 0, 2);
+            fsm.AddTransition(new Transition<int, int>(1, 0, 1));
+            fsm.AddTransition(new Transition<int, int>(1, 1, 1));
+            fsm.AddTransition(new Transition<int, int>(2, 0, 2));
 
             var transitions = fsm.GetTransitionsRelatedTo(1);
 
             Assert.IsTrue(HasAnyWithState(transitions, 1));
             Assert.IsFalse(HasAnyWithState(transitions, 2));
 
-            bool HasAnyWithState<TState, TTrigger>(ITransition<TState, TTrigger>[] transitionArray, TState stateId)
+            bool HasAnyWithState<TState, TTrigger>(Transition<TState, TTrigger>[] transitionArray, TState stateId)
             {
                 foreach (var transition in transitionArray)
                 {
@@ -328,9 +327,9 @@ namespace Tests
 
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
-            fsm.AddTransition(1, 0, 1);
-            fsm.AddTransition(1, 1, 1);
-            fsm.AddTransition(2, 1, 1);
+            fsm.AddTransition(new Transition<int, int>(1, 0, 1));
+            fsm.AddTransition(new Transition<int, int>(1, 1, 1));
+            fsm.AddTransition(new Transition<int, int>(2, 1, 1));
 
             Assert.IsTrue(fsm.ContainsTransitionWithStateFrom(1));
             Assert.IsFalse(fsm.ContainsTransitionWithStateFrom(3));
@@ -346,9 +345,9 @@ namespace Tests
 
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
-            fsm.AddTransition(1, 0, 1);
-            fsm.AddTransition(1, 1, 1);
-            fsm.AddTransition(1, 1, 2);
+            fsm.AddTransition(new Transition<int, int>(1, 0, 1));
+            fsm.AddTransition(new Transition<int, int>(1, 1, 1));
+            fsm.AddTransition(new Transition<int, int>(1, 1, 2));
 
             Assert.IsTrue(fsm.ContainsTransitionWithStateTo(1));
             Assert.IsFalse(fsm.ContainsTransitionWithStateTo(3));
@@ -364,9 +363,9 @@ namespace Tests
 
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
-            fsm.AddTransition(1, 0, 1);
-            fsm.AddTransition(1, 1, 1);
-            fsm.AddTransition(1, 1, 2);
+            fsm.AddTransition(new Transition<int, int>(1, 0, 1));
+            fsm.AddTransition(new Transition<int, int>(1, 1, 1));
+            fsm.AddTransition(new Transition<int, int>(1, 1, 2));
 
             Assert.IsTrue(fsm.ContainsTransitionWithTrigger(1));
             Assert.IsFalse(fsm.ContainsTransitionWithTrigger(2));
@@ -382,9 +381,9 @@ namespace Tests
 
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
-            fsm.AddTransition(1, 0, 1);
-            fsm.AddTransition(1, 1, 1);
-            fsm.AddTransition(1, 1, 2);
+            fsm.AddTransition(new Transition<int, int>(1, 0, 1));
+            fsm.AddTransition(new Transition<int, int>(1, 1, 1));
+            fsm.AddTransition(new Transition<int, int>(1, 1, 2));
 
             Assert.IsTrue(fsm.ContainsTransitionRelatedTo(1));
             Assert.IsTrue(fsm.ContainsTransitionRelatedTo(2));

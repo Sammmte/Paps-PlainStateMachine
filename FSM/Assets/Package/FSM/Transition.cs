@@ -2,7 +2,7 @@
 
 namespace Paps.FSM
 {
-    public class Transition<TState, TTrigger> : IEquatable<Transition<TState, TTrigger>>, ITransition<TState, TTrigger>
+    public struct Transition<TState, TTrigger> : IEquatable<Transition<TState, TTrigger>>
     {
         public TState StateFrom { get; private set; }
         public TTrigger Trigger { get; private set; }

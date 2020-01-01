@@ -13,15 +13,17 @@ namespace Tests
 
             fsm.AddEmpty(1);
 
-            fsm.AddTransition(1, 0, 1);
+            var transition = new Transition<int, int>(1, 0, 1);
 
-            fsm.AddGuardConditionTo(1, 0, 1, TestPredicate);
+            fsm.AddTransition(transition);
 
-            Assert.IsTrue(fsm.ContainsGuardConditionOn(1, 0, 1, TestPredicate));
+            fsm.AddGuardConditionTo(transition, TestPredicate);
 
-            fsm.RemoveGuardConditionFrom(1, 0, 1, TestPredicate);
+            Assert.IsTrue(fsm.ContainsGuardConditionOn(transition, TestPredicate));
 
-            Assert.IsFalse(fsm.ContainsGuardConditionOn(1, 0, 1, TestPredicate));
+            fsm.RemoveGuardConditionFrom(transition, TestPredicate);
+
+            Assert.IsFalse(fsm.ContainsGuardConditionOn(transition, TestPredicate));
 
             bool TestPredicate()
             {
@@ -36,15 +38,17 @@ namespace Tests
 
             fsm.AddEmpty(1);
 
-            fsm.AddTransition(1, 0, 1);
+            var transition = new Transition<int, int>(1, 0, 1);
 
-            fsm.AddGuardConditionTo(1, 0, 1, TestPredicate);
+            fsm.AddTransition(transition);
 
-            Assert.IsTrue(fsm.ContainsGuardConditionOn(1, 0, 1, TestPredicate));
+            fsm.AddGuardConditionTo(transition, TestPredicate);
 
-            fsm.RemoveGuardConditionFrom(1, 0, 1, TestPredicate);
+            Assert.IsTrue(fsm.ContainsGuardConditionOn(transition, TestPredicate));
 
-            Assert.IsFalse(fsm.ContainsGuardConditionOn(1, 0, 1, TestPredicate));
+            fsm.RemoveGuardConditionFrom(transition, TestPredicate);
+
+            Assert.IsFalse(fsm.ContainsGuardConditionOn(transition, TestPredicate));
 
             bool TestPredicate(int stateFrom, int trigger, int stateTo)
             {

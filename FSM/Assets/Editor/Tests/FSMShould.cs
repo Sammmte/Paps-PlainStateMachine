@@ -116,13 +116,13 @@ namespace Tests
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
 
-            fsm.AddTransitionWithValuesOf(transition);
+            fsm.AddTransition(transition);
 
-            Assert.IsTrue(fsm.TransitionCount == 1 && fsm.ContainsTransition(1, 0, 2));
+            Assert.IsTrue(fsm.TransitionCount == 1 && fsm.ContainsTransition(transition));
 
-            fsm.RemoveTransitionWithValuesOf(transition);
+            fsm.RemoveTransition(transition);
 
-            Assert.IsTrue(fsm.TransitionCount == 0 && fsm.ContainsTransition(1, 0, 2) == false);
+            Assert.IsTrue(fsm.TransitionCount == 0 && fsm.ContainsTransition(transition) == false);
         }
 
         [Test]
@@ -132,9 +132,9 @@ namespace Tests
 
             var fsm = new FSM<int, int>();
 
-            Assert.Throws<StateIdNotAddedException>(() => fsm.AddTransitionWithValuesOf(transition1));
+            Assert.Throws<StateIdNotAddedException>(() => fsm.AddTransition(transition1));
 
-            Assert.Throws<StateIdNotAddedException>(() => fsm.RemoveTransitionWithValuesOf(transition1));
+            Assert.Throws<StateIdNotAddedException>(() => fsm.RemoveTransition(transition1));
         }
 
         [Test]
@@ -156,11 +156,11 @@ namespace Tests
             fsm.AddState(4, state3);
             fsm.AddState(6, state4);
 
-            fsm.AddTransition(transition1.StateFrom, transition1.Trigger, transition1.StateTo);
-            fsm.AddTransition(transition2.StateFrom, transition2.Trigger, transition2.StateTo);
+            fsm.AddTransition(transition1);
+            fsm.AddTransition(transition2);
 
-            ITransition<int, int> item1 = default;
-            ITransition<int, int> item2 = default;
+            Transition<int, int> item1 = default;
+            Transition<int, int> item2 = default;
 
             int cont = 1;
 
@@ -198,11 +198,11 @@ namespace Tests
             fsm.AddState(1, state1);
             fsm.AddState(3, state2);
 
-            fsm.AddTransition(transition.StateFrom, transition.Trigger, transition.StateTo);
+            fsm.AddTransition(transition);
 
             Assert.IsTrue(fsm.TransitionCount == 1);
 
-            fsm.RemoveTransition(transition.StateFrom, transition.Trigger, transition.StateTo);
+            fsm.RemoveTransition(transition);
 
             Assert.IsTrue(fsm.TransitionCount == 0);
         }
@@ -294,7 +294,7 @@ namespace Tests
 
             fsm.SetInitialState(1);
 
-            fsm.AddTransition(1, 0, 2);
+            fsm.AddTransition(new Transition<int, int>(1, 0, 2));
 
             fsm.Start();
 
@@ -324,10 +324,13 @@ namespace Tests
             fsm.AddState(1, state1);
             fsm.AddState(3, state2);
 
-            fsm.AddTransition(1, 2, 3);
+            var transition1 = new Transition<int, int>(1, 2, 3);
+            var transition2 = new Transition<int, int>(4, 5, 6);
 
-            Assert.IsTrue(fsm.ContainsTransition(1, 2, 3));
-            Assert.IsFalse(fsm.ContainsTransition(4, 5, 6));
+            fsm.AddTransition(transition1);
+
+            Assert.IsTrue(fsm.ContainsTransition(transition1));
+            Assert.IsFalse(fsm.ContainsTransition(transition2));
         }
 
         [Test]
@@ -356,7 +359,7 @@ namespace Tests
 
             fsm.SetInitialState(1);
 
-            fsm.AddTransition(1, 0, 2);
+            fsm.AddTransition(new Transition<int, int>(1, 0, 2));
 
             fsm.Start();
 
@@ -416,7 +419,7 @@ namespace Tests
 
             fsm.SetInitialState(1);
 
-            fsm.AddTransition(1, 0, 2);
+            fsm.AddTransition(new Transition<int, int>(1, 0, 2));
 
             fsm.Start();
 
@@ -444,7 +447,7 @@ namespace Tests
 
             fsm.SetInitialState(1);
 
-            fsm.AddTransition(1, 0, 2);
+            fsm.AddTransition(new Transition<int, int>(1, 0, 2));
 
             fsm.Start();
 
@@ -466,15 +469,17 @@ namespace Tests
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
 
-            fsm.AddTransition(1, 0, 2);
+            var transition = new Transition<int, int>(1, 0, 2);
 
-            fsm.AddGuardConditionTo(1, 0, 2, TestGuardCondition);
+            fsm.AddTransition(transition);
 
-            Assert.IsTrue(fsm.ContainsGuardConditionOn(1, 0, 2, TestGuardCondition));
+            fsm.AddGuardConditionTo(transition, TestGuardCondition);
 
-            fsm.RemoveGuardConditionFrom(1, 0, 2, TestGuardCondition);
+            Assert.IsTrue(fsm.ContainsGuardConditionOn(transition, TestGuardCondition));
 
-            Assert.IsFalse(fsm.ContainsGuardConditionOn(1, 0, 2, TestGuardCondition));
+            fsm.RemoveGuardConditionFrom(transition, TestGuardCondition);
+
+            Assert.IsFalse(fsm.ContainsGuardConditionOn(transition, TestGuardCondition));
 
             bool TestGuardCondition()
             {
@@ -493,11 +498,13 @@ namespace Tests
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
 
-            fsm.AddTransition(1, 0, 2);
+            var transition = new Transition<int, int>(1, 0, 2);
 
-            Assert.Throws<ArgumentNullException>(() => fsm.AddGuardConditionTo(1, 0, 2, null));
+            fsm.AddTransition(transition);
 
-            Assert.Throws<ArgumentNullException>(() => fsm.RemoveGuardConditionFrom(1, 0, 2, null));
+            Assert.Throws<ArgumentNullException>(() => fsm.AddGuardConditionTo(transition, null));
+
+            Assert.Throws<ArgumentNullException>(() => fsm.RemoveGuardConditionFrom(transition, null));
 
         }
 
@@ -506,9 +513,11 @@ namespace Tests
         {
             var fsm = new FSM<int, int>();
 
-            Assert.Throws<TransitionNotAddedException>(() => fsm.AddGuardConditionTo(1, 2, 3, TestGuardCondition));
+            var transition = new Transition<int, int>(1, 2, 3);
 
-            Assert.Throws<TransitionNotAddedException>(() => fsm.RemoveGuardConditionFrom(1, 2, 3, TestGuardCondition));
+            Assert.Throws<TransitionNotAddedException>(() => fsm.AddGuardConditionTo(transition, TestGuardCondition));
+
+            Assert.Throws<TransitionNotAddedException>(() => fsm.RemoveGuardConditionFrom(transition, TestGuardCondition));
 
             bool TestGuardCondition()
             {
@@ -527,7 +536,9 @@ namespace Tests
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
 
-            fsm.AddTransition(1, 0, 2);
+            var transition = new Transition<int, int>(1, 0, 2);
+
+            fsm.AddTransition(transition);
 
             Func<bool> guardCondition1 = Substitute.For<Func<bool>>();
             Func<bool> guardCondition2 = Substitute.For<Func<bool>>();
@@ -535,9 +546,9 @@ namespace Tests
             guardCondition1.Invoke().Returns(true);
             guardCondition2.Invoke().Returns(true);
 
-            fsm.AddGuardConditionTo(1, 0, 2, guardCondition1);
+            fsm.AddGuardConditionTo(transition, guardCondition1);
 
-            fsm.AddGuardConditionTo(1, 0, 2, guardCondition2);
+            fsm.AddGuardConditionTo(transition, guardCondition2);
 
             fsm.SetInitialState(1);
 
@@ -563,7 +574,9 @@ namespace Tests
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
 
-            fsm.AddTransition(1, 0, 2);
+            var transition = new Transition<int, int>(1, 0, 2);
+
+            fsm.AddTransition(transition);
 
             Func<bool> guardCondition1 = Substitute.For<Func<bool>>();
             Func<bool> guardCondition2 = Substitute.For<Func<bool>>();
@@ -573,11 +586,11 @@ namespace Tests
             guardCondition2.Invoke().Returns(false);
             guardCondition3.Invoke().Returns(true);
 
-            fsm.AddGuardConditionTo(1, 0, 2, guardCondition1);
+            fsm.AddGuardConditionTo(transition, guardCondition1);
 
-            fsm.AddGuardConditionTo(1, 0, 2, guardCondition2);
+            fsm.AddGuardConditionTo(transition, guardCondition2);
 
-            fsm.AddGuardConditionTo(1, 0, 2, guardCondition3);
+            fsm.AddGuardConditionTo(transition, guardCondition3);
 
             fsm.SetInitialState(1);
 
@@ -601,7 +614,7 @@ namespace Tests
 
             fsm.AddState(1, state1);
 
-            fsm.AddTransition(1, 0, 1);
+            fsm.AddTransition(new Transition<int, int>(1, 0, 1));
 
             fsm.SetInitialState(1);
 
@@ -624,13 +637,18 @@ namespace Tests
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
 
-            fsm.AddTransition(1, 0, 1);
-            fsm.AddTransition(1, 0, 2);
-            fsm.AddTransition(2, 0, 1);
+            var transition1 = new Transition<int, int>(1, 0, 1);
+            var transition2 = new Transition<int, int>(1, 0, 2);
+            var transition3 = new Transition<int, int>(2, 0, 1);
+
+            fsm.AddTransition(transition1);
+            fsm.AddTransition(transition2);
+            fsm.AddTransition(transition3);
 
             fsm.RemoveState(2);
 
-            Assert.IsFalse(fsm.ContainsTransition(1, 0, 2) && fsm.ContainsTransition(2, 0, 1));
+            Assert.IsFalse(fsm.ContainsTransition(transition2) && fsm.ContainsTransition(transition3));
+            Assert.IsTrue(fsm.ContainsTransition(transition1));
         }
 
         [Test]
@@ -644,15 +662,17 @@ namespace Tests
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
 
-            fsm.AddTransition(1, 0, 2);
+            var transition = new Transition<int, int>(1, 0, 2);
 
-            fsm.AddGuardConditionTo(1, 0, 2, TestGuardCondition);
-            fsm.AddGuardConditionTo(1, 0, 2, TestGuardCondition2);
+            fsm.AddTransition(transition);
+
+            fsm.AddGuardConditionTo(transition, TestGuardCondition);
+            fsm.AddGuardConditionTo(transition, TestGuardCondition2);
 
             fsm.RemoveState(1);
 
-            Assert.IsFalse(fsm.ContainsGuardConditionOn(1, 0, 2, TestGuardCondition));
-            Assert.IsFalse(fsm.ContainsGuardConditionOn(1, 0, 2, TestGuardCondition2));
+            Assert.IsFalse(fsm.ContainsGuardConditionOn(transition, TestGuardCondition));
+            Assert.IsFalse(fsm.ContainsGuardConditionOn(transition, TestGuardCondition2));
 
             bool TestGuardCondition()
             {
@@ -696,10 +716,10 @@ namespace Tests
             fsm.AddState(3, state3);
             fsm.AddState(4, state4);
             fsm.AddState(5, state5);
-            fsm.AddTransitionWithValuesOf(transition1);
-            fsm.AddTransitionWithValuesOf(transition2);
-            fsm.AddTransitionWithValuesOf(transition3);
-            fsm.AddTransitionWithValuesOf(transition4);
+            fsm.AddTransition(transition1);
+            fsm.AddTransition(transition2);
+            fsm.AddTransition(transition3);
+            fsm.AddTransition(transition4);
             fsm.SetInitialState(1);
             fsm.Start();
 
@@ -717,16 +737,20 @@ namespace Tests
             fsm.AddEmpty(2);
             fsm.AddEmpty(3);
 
-            fsm.AddTransition(1, 0, 1);
-            fsm.AddTransition(1, 0, 2);
-            fsm.AddTransition(1, 1, 2);
-            fsm.AddTransition(1, 1, 3);
+            var transition1 = new Transition<int, int>(1, 0, 1);
+            var transition2 = new Transition<int, int>(1, 0, 2);
+            var transition3 = new Transition<int, int>(1, 1, 2);
+            var transition4 = new Transition<int, int>(1, 1, 3);
 
-            fsm.AddGuardConditionTo(1, 0, 1, () => true);
-            fsm.AddGuardConditionTo(1, 0, 2, () => false);
+            fsm.AddTransition(transition1);
+            fsm.AddTransition(transition2);
+            fsm.AddTransition(transition3);
+            fsm.AddTransition(transition4);
 
-            fsm.AddGuardConditionTo(1, 1, 2, () => true);
-            fsm.AddGuardConditionTo(1, 1, 3, () => true);
+            fsm.AddGuardConditionTo(transition1, () => true);
+            fsm.AddGuardConditionTo(transition2, () => false);
+            fsm.AddGuardConditionTo(transition3, () => true);
+            fsm.AddGuardConditionTo(transition4, () => true);
 
             fsm.SetInitialState(1);
 
@@ -745,8 +769,11 @@ namespace Tests
             fsm.AddEmpty(2);
             fsm.AddEmpty(3);
 
-            fsm.AddTransition(1, 0, 1);
-            fsm.AddTransition(1, 0, 2);
+            var transition1 = new Transition<int, int>(1, 0, 1);
+            var transition2 = new Transition<int, int>(1, 0, 2);
+
+            fsm.AddTransition(transition1);
+            fsm.AddTransition(transition2);
 
             fsm.SetInitialState(1);
 
@@ -769,8 +796,11 @@ namespace Tests
             fsm.AddWithEvents(2, onEnter2);
             fsm.AddWithEvents(3, onEnter3);
 
-            fsm.AddTransition(1, 0, 2);
-            fsm.AddTransition(2, 0, 3);
+            var transition1 = new Transition<int, int>(1, 0, 2);
+            var transition2 = new Transition<int, int>(2, 0, 3);
+
+            fsm.AddTransition(transition1);
+            fsm.AddTransition(transition2);
 
             fsm.SetInitialState(1);
 
@@ -862,7 +892,7 @@ namespace Tests
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
 
-            fsm.AddTransition(1, 0, 2);
+            fsm.AddTransition(new Transition<int, int>(1, 0, 2));
 
             fsm.SetInitialState(1);
 
@@ -924,7 +954,7 @@ namespace Tests
 
             fsm.SetInitialState(1);
 
-            fsm.AddTransition(1, 0, 2);
+            fsm.AddTransition(new Transition<int, int>(1, 0, 2));
 
             fsm.Start();
 

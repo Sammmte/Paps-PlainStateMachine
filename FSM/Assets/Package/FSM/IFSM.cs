@@ -24,12 +24,12 @@ namespace Paps.FSM
 
         TState[] GetStates();
 
-        void AddTransition(TState stateFrom, TTrigger trigger, TState stateTo);
-        void RemoveTransition(TState stateFrom, TTrigger trigger, TState stateTo);
+        void AddTransition(Transition<TState, TTrigger> transition);
+        void RemoveTransition(Transition<TState, TTrigger> transition);
 
-        bool ContainsTransition(TState stateFrom, TTrigger trigger, TState stateTo);
+        bool ContainsTransition(Transition<TState, TTrigger> transition);
 
-        ITransition<TState, TTrigger>[] GetTransitions();
+        Transition<TState, TTrigger>[] GetTransitions();
 
         void SetInitialState(TState stateId);
 

@@ -7,16 +7,6 @@ namespace Paps.FSM.Extensions
 
     public static class IFSMExtensions
     {
-        public static void AddTransitionWithValuesOf<TTransition, TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TTransition transition) where TTransition : ITransition<TState, TTrigger>
-        {
-            fsm.AddTransition(transition.StateFrom, transition.Trigger, transition.StateTo);
-        }
-
-        public static void RemoveTransitionWithValuesOf<TTransition, TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TTransition transition) where TTransition : ITransition<TState, TTrigger>
-        {
-            fsm.RemoveTransition(transition.StateFrom, transition.Trigger, transition.StateTo);
-        }
-
         public static bool ContainsStateByReference<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, IState stateRef)
         {
             TState[] states = fsm.GetStates();
@@ -119,11 +109,11 @@ namespace Paps.FSM.Extensions
             }
         }
 
-        public static void ForeachTransition<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, ReturnTrueToFinishIteration<ITransition<TState, TTrigger>> finishable)
+        public static void ForeachTransition<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, ReturnTrueToFinishIteration<Transition<TState, TTrigger>> finishable)
         {
-            ITransition<TState, TTrigger>[] transitions = fsm.GetTransitions();
+            Transition<TState, TTrigger>[] transitions = fsm.GetTransitions();
 
-            foreach (ITransition<TState, TTrigger> transition in transitions)
+            foreach (Transition<TState, TTrigger> transition in transitions)
             {
                 if (finishable(transition))
                 {
@@ -138,7 +128,7 @@ namespace Paps.FSM.Extensions
 
             foreach(TState state in states)
             {
-                fsm.AddTransition(state, trigger, stateTo);
+                fsm.AddTransition(new Transition<TState, TTrigger>(state, trigger, stateTo));
             }
         }
 
@@ -150,16 +140,16 @@ namespace Paps.FSM.Extensions
             {
                 if (stateId.Equals(stateTo) == false)
                 {
-                    fsm.AddTransition(stateId, trigger, stateTo);
+                    fsm.AddTransition(new Transition<TState, TTrigger>(stateId, trigger, stateTo));
                 }
             }
         }
 
-        public static ITransition<TState, TTrigger>[] GetTransitionsWithTrigger<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TTrigger trigger)
+        public static Transition<TState, TTrigger>[] GetTransitionsWithTrigger<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TTrigger trigger)
         {
-            List<ITransition<TState, TTrigger>> transitionsList = null;
+            List<Transition<TState, TTrigger>> transitionsList = null;
 
-            ITransition<TState, TTrigger>[] transitions = fsm.GetTransitions();
+            Transition<TState, TTrigger>[] transitions = fsm.GetTransitions();
 
             foreach(var transition in transitions)
             {
@@ -167,7 +157,7 @@ namespace Paps.FSM.Extensions
                 {
                     if (transitionsList == null)
                     {
-                        transitionsList = new List<ITransition<TState, TTrigger>>();
+                        transitionsList = new List<Transition<TState, TTrigger>>();
                     }
 
                     transitionsList.Add(transition);
@@ -182,11 +172,11 @@ namespace Paps.FSM.Extensions
             return transitionsList.ToArray();
         }
 
-        public static ITransition<TState, TTrigger>[] GetTransitionsWithStateFrom<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateFrom)
+        public static Transition<TState, TTrigger>[] GetTransitionsWithStateFrom<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateFrom)
         {
-            List<ITransition<TState, TTrigger>> transitionsList = null;
+            List<Transition<TState, TTrigger>> transitionsList = null;
 
-            ITransition<TState, TTrigger>[] transitions = fsm.GetTransitions();
+            Transition<TState, TTrigger>[] transitions = fsm.GetTransitions();
 
             foreach (var transition in transitions)
             {
@@ -194,7 +184,7 @@ namespace Paps.FSM.Extensions
                 {
                     if (transitionsList == null)
                     {
-                        transitionsList = new List<ITransition<TState, TTrigger>>();
+                        transitionsList = new List<Transition<TState, TTrigger>>();
                     }
 
                     transitionsList.Add(transition);
@@ -209,11 +199,11 @@ namespace Paps.FSM.Extensions
             return transitionsList.ToArray();
         }
 
-        public static ITransition<TState, TTrigger>[] GetTransitionsWithStateTo<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateTo)
+        public static Transition<TState, TTrigger>[] GetTransitionsWithStateTo<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateTo)
         {
-            List<ITransition<TState, TTrigger>> transitionsList = null;
+            List<Transition<TState, TTrigger>> transitionsList = null;
 
-            ITransition<TState, TTrigger>[] transitions = fsm.GetTransitions();
+            Transition<TState, TTrigger>[] transitions = fsm.GetTransitions();
 
             foreach (var transition in transitions)
             {
@@ -221,7 +211,7 @@ namespace Paps.FSM.Extensions
                 {
                     if (transitionsList == null)
                     {
-                        transitionsList = new List<ITransition<TState, TTrigger>>();
+                        transitionsList = new List<Transition<TState, TTrigger>>();
                     }
 
                     transitionsList.Add(transition);
@@ -238,7 +228,7 @@ namespace Paps.FSM.Extensions
 
         public static bool ContainsTransitionWithStateTo<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateTo)
         {
-            ITransition<TState, TTrigger>[] transitions = fsm.GetTransitions();
+            Transition<TState, TTrigger>[] transitions = fsm.GetTransitions();
             
             foreach(var transition in transitions)
             {
@@ -253,7 +243,7 @@ namespace Paps.FSM.Extensions
 
         public static bool ContainsTransitionWithStateFrom<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateFrom)
         {
-            ITransition<TState, TTrigger>[] transitions = fsm.GetTransitions();
+            Transition<TState, TTrigger>[] transitions = fsm.GetTransitions();
 
             foreach (var transition in transitions)
             {
@@ -268,7 +258,7 @@ namespace Paps.FSM.Extensions
 
         public static bool ContainsTransitionWithTrigger<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TTrigger trigger)
         {
-            ITransition<TState, TTrigger>[] transitions = fsm.GetTransitions();
+            Transition<TState, TTrigger>[] transitions = fsm.GetTransitions();
 
             foreach (var transition in transitions)
             {
@@ -281,11 +271,11 @@ namespace Paps.FSM.Extensions
             return false;
         }
 
-        public static ITransition<TState, TTrigger>[] GetTransitionsRelatedTo<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId)
+        public static Transition<TState, TTrigger>[] GetTransitionsRelatedTo<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId)
         {
-            List<ITransition<TState, TTrigger>> transitionsList = null;
+            List<Transition<TState, TTrigger>> transitionsList = null;
 
-            ITransition<TState, TTrigger>[] transitions = fsm.GetTransitions();
+            Transition<TState, TTrigger>[] transitions = fsm.GetTransitions();
 
             foreach(var transition in transitions)
             {
@@ -293,7 +283,7 @@ namespace Paps.FSM.Extensions
                 {
                     if (transitionsList == null)
                     {
-                        transitionsList = new List<ITransition<TState, TTrigger>>();
+                        transitionsList = new List<Transition<TState, TTrigger>>();
                     }
 
                     transitionsList.Add(transition);
@@ -325,21 +315,21 @@ namespace Paps.FSM.Extensions
 
         public static void RemoveAllTransitions<TState, TTrigger>(this IFSM<TState, TTrigger> fsm)
         {
-            ITransition<TState, TTrigger>[] transitions = fsm.GetTransitions();
+            Transition<TState, TTrigger>[] transitions = fsm.GetTransitions();
 
             foreach(var transition in transitions)
             {
-                fsm.RemoveTransitionWithValuesOf(transition);
+                fsm.RemoveTransition(transition);
             }
         }
 
         public static void RemoveAllTransitionsRelatedTo<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId)
         {
-            ITransition<TState, TTrigger>[] transitions = fsm.GetTransitionsRelatedTo(stateId);
+            Transition<TState, TTrigger>[] transitions = fsm.GetTransitionsRelatedTo(stateId);
 
             foreach (var transition in transitions)
             {
-                fsm.RemoveTransitionWithValuesOf(transition);
+                fsm.RemoveTransition(transition);
             }
         }
 
