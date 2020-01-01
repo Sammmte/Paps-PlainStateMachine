@@ -977,5 +977,39 @@ namespace Tests
             Assert.AreEqual(fsm.GetStateById(1), state1);
             Assert.AreEqual(fsm.GetStateById(2), state2);
         }
+
+        [Test]
+        public void ChangeEqualityComparerAfterConstruction()
+        {
+            IEqualityComparer<int> comparer = Substitute.For<IEqualityComparer<int>>();
+
+            comparer.Equals(1, 1).Returns(true);
+            comparer.Equals(2, 2).Returns(true);
+            comparer.Equals(1, 2).Returns(false);
+            comparer.Equals(2, 1).Returns(false);
+            comparer.Equals(0, 0).Returns(true);
+            comparer.Equals(1, 0).Returns(false);
+            comparer.Equals(2, 0).Returns(false);
+            comparer.Equals(0, 1).Returns(false);
+            comparer.Equals(0, 2).Returns(false);
+
+            var fsm = new FSM<int, int>();
+
+            fsm.SetStateComparer(comparer);
+            fsm.SetTriggerComparer(comparer);
+
+            fsm.AddEmpty(1);
+            fsm.AddEmpty(2);
+
+            fsm.SetInitialState(1);
+
+            fsm.AddTransition(new Transition<int, int>(1, 0, 2));
+
+            fsm.Start();
+
+            fsm.Trigger(0);
+
+            comparer.Received().Equals(Arg.Any<int>(), Arg.Any<int>());
+        }
     }
 }

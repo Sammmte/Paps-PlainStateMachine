@@ -24,30 +24,25 @@ namespace Paps.FSM
         private IState _currentStateObject;
         private bool _isTransitioning;
 
-        private IEqualityComparer<TState> _stateComparer;
-        private IEqualityComparer<TTrigger> _triggerComparer;
+        private StateEqualityComparer _stateComparer;
+        private TriggerEqualityComparer _triggerComparer;
         
-        private FSMTransitionEqualityComparer _transitionEqualityComparer;
+        private TransitionEqualityComparer _transitionEqualityComparer;
         
         public FSM(IEqualityComparer<TState> stateComparer, IEqualityComparer<TTrigger> triggerComparer)
         {
             if (stateComparer == null) throw new ArgumentNullException(nameof(stateComparer));
             if (triggerComparer == null) throw new ArgumentNullException(nameof(triggerComparer));
 
-            _stateComparer = stateComparer;
-            _triggerComparer = triggerComparer;
+            _stateComparer = new StateEqualityComparer(stateComparer);
+            _triggerComparer = new TriggerEqualityComparer(triggerComparer);
 
-            _transitionEqualityComparer = new FSMTransitionEqualityComparer(stateComparer, triggerComparer);
+            _transitionEqualityComparer = new TransitionEqualityComparer(stateComparer, triggerComparer);
 
             _states = new Dictionary<TState, IState>(_stateComparer);
             _transitions = new HashSet<Transition<TState, TTrigger>>(_transitionEqualityComparer);
             guardConditions = new Dictionary<Transition<TState, TTrigger>, List<IGuardCondition<TState, TTrigger>>>(_transitionEqualityComparer);
             _transitionRequestQueue = new Queue<TransitionRequest>();
-        }
-        
-        public FSM(Func<TState, TState, bool> stateComparer, Func<TTrigger, TTrigger, bool> triggerComparer) : this(new Comparer<TState>(stateComparer), new Comparer<TTrigger>(triggerComparer))
-        {
-
         }
 
         public FSM() : this(EqualityComparer<TState>.Default, EqualityComparer<TTrigger>.Default)
@@ -59,14 +54,14 @@ namespace Paps.FSM
         {
             if (stateComparer == null) throw new ArgumentNullException(nameof(stateComparer));
 
-            _stateComparer = stateComparer;
+            _stateComparer.SetEqualityComparer(stateComparer);
         }
 
         public void SetTriggerComparer(IEqualityComparer<TTrigger> triggerComparer)
         {
             if (triggerComparer == null) throw new ArgumentNullException(nameof(triggerComparer));
 
-            _triggerComparer = triggerComparer;
+            _triggerComparer.SetEqualityComparer(triggerComparer);
         }
 
         private static bool DefaultComparer<T>(T first, T second)
@@ -504,12 +499,12 @@ namespace Paps.FSM
             public TTrigger trigger;
         }
 
-        private class FSMTransitionEqualityComparer : IEqualityComparer<Transition<TState, TTrigger>>
+        private class TransitionEqualityComparer : IEqualityComparer<Transition<TState, TTrigger>>
         {
             private IEqualityComparer<TState> _stateComparer;
             private IEqualityComparer<TTrigger> _triggerComparer;
 
-            public FSMTransitionEqualityComparer(IEqualityComparer<TState> stateComparer, IEqualityComparer<TTrigger> triggerComparer)
+            public TransitionEqualityComparer(IEqualityComparer<TState> stateComparer, IEqualityComparer<TTrigger> triggerComparer)
             {
                 _stateComparer = stateComparer;
                 _triggerComparer = triggerComparer;
@@ -531,23 +526,53 @@ namespace Paps.FSM
             }
         }
 
-        private class Comparer<T> : IEqualityComparer<T>
+        private class StateEqualityComparer : IEqualityComparer<TState>
         {
-            Func<T, T, bool> _comparer;
+            private IEqualityComparer<TState> _equalityComparer;
 
-            public Comparer(Func<T, T, bool> comparer)
+            public StateEqualityComparer(IEqualityComparer<TState> equalityComparer)
             {
-                _comparer = comparer ?? ((param1, param2) => param1.Equals(param2));
+                SetEqualityComparer(equalityComparer);
             }
 
-            public bool Equals(T x, T y)
+            public bool Equals(TState x, TState y)
             {
-                return _comparer(x, y);
+                return _equalityComparer.Equals(x, y);
             }
 
-            public int GetHashCode(T obj)
+            public int GetHashCode(TState obj)
             {
-                return obj.GetHashCode();
+                return _equalityComparer.GetHashCode(obj);
+            }
+
+            public void SetEqualityComparer(IEqualityComparer<TState> equalityComparer)
+            {
+                _equalityComparer = equalityComparer ?? EqualityComparer<TState>.Default;
+            }
+        }
+
+        private class TriggerEqualityComparer : IEqualityComparer<TTrigger>
+        {
+            private IEqualityComparer<TTrigger> _equalityComparer;
+
+            public TriggerEqualityComparer(IEqualityComparer<TTrigger> equalityComparer)
+            {
+                SetEqualityComparer(equalityComparer);
+            }
+
+            public bool Equals(TTrigger x, TTrigger y)
+            {
+                return _equalityComparer.Equals(x, y);
+            }
+
+            public int GetHashCode(TTrigger obj)
+            {
+                return _equalityComparer.GetHashCode(obj);
+            }
+
+            public void SetEqualityComparer(IEqualityComparer<TTrigger> equalityComparer)
+            {
+                _equalityComparer = equalityComparer ?? EqualityComparer<TTrigger>.Default;
             }
         }
     }
