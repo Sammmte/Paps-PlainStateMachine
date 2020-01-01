@@ -22,7 +22,7 @@ namespace Paps.FSM
 
         bool ContainsState(TState stateId);
 
-        IState[] GetStates();
+        TState[] GetStates();
 
         void AddTransition(TState stateFrom, TTrigger trigger, TState stateTo);
         void RemoveTransition(TState stateFrom, TTrigger trigger, TState stateTo);
@@ -35,7 +35,7 @@ namespace Paps.FSM
 
         bool IsInState(TState stateId);
 
-        TState GetIdOf(IState state);
+        IState GetStateById(TState stateId);
 
         void Start();
         void Update();

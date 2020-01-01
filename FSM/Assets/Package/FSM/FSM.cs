@@ -20,7 +20,8 @@ namespace Paps.FSM
 
         private Queue<TransitionRequest> _transitionRequestQueue;
 
-        private IState _currentState;
+        private TState _currentState;
+        private IState _currentStateObject;
         private bool _isTransitioning;
 
         private IEqualityComparer<TState> _stateComparer;
@@ -77,7 +78,8 @@ namespace Paps.FSM
         {
             ValidateCanStart();
 
-            _currentState = GetStateById(InitialState);
+            _currentState = InitialState;
+            _currentStateObject = GetStateById(_currentState);
 
             IsStarted = true;
 
@@ -92,7 +94,7 @@ namespace Paps.FSM
         
         private void EnterCurrentState()
         {
-            _currentState.Enter();
+            _currentStateObject.Enter();
         }
 
         public void Update()
@@ -104,7 +106,7 @@ namespace Paps.FSM
         {
             ValidateIsStarted();
 
-            _currentState.Update();
+            _currentStateObject.Update();
         }
 
         public void Stop()
@@ -121,7 +123,7 @@ namespace Paps.FSM
 
         private void ExitCurrentState()
         {
-            _currentState.Exit();
+            _currentStateObject.Exit();
         }
 
         public void SetInitialState(TState stateId)
@@ -161,9 +163,9 @@ namespace Paps.FSM
             }
         }
 
-        public IState[] GetStates()
+        public TState[] GetStates()
         {
-            return _states.Values.ToArray();
+            return _states.Keys.ToArray();
         }
 
         public ITransition<TState, TTrigger>[] GetTransitions()
@@ -227,14 +229,11 @@ namespace Paps.FSM
                 ).ToArray();
         }
 
-        private IState GetStateById(TState stateId)
+        public IState GetStateById(TState stateId)
         {
-            foreach(IState state in _states.Values)
+            if(_states.ContainsKey(stateId))
             {
-                if(_stateComparer.Equals(GetIdOf(state), stateId))
-                {
-                    return state;
-                }
+                return _states[stateId];
             }
 
             throw new StateIdNotAddedException(stateId.ToString());
@@ -286,20 +285,12 @@ namespace Paps.FSM
 
         public bool IsInState(TState stateId)
         {
-            return IsStarted && _stateComparer.Equals(GetIdOf(_currentState), stateId);
+            return IsStarted && _stateComparer.Equals(_currentState, stateId);
         }
 
         public bool ContainsState(TState stateId)
         {
-            foreach(IState state in _states.Values)
-            {
-                if(_stateComparer.Equals(GetIdOf(state), stateId))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return _states.ContainsKey(stateId);
         }
 
         public bool ContainsTransition(TState stateFrom, TTrigger trigger, TState stateTo)
@@ -333,11 +324,14 @@ namespace Paps.FSM
             {
                 TransitionRequest transition = _transitionRequestQueue.Dequeue();
 
-                IState stateTo = null;
+                TState stateTo = default;
 
                 try
                 {
-                    stateTo = GetStateTo(transition.trigger);
+                    if(TryGetStateTo(transition.trigger, out stateTo))
+                    {
+                        Transition(stateTo);
+                    }
                 }
                 catch(MultipleValidTransitionsFromSameStateException e)
                 {
@@ -345,51 +339,51 @@ namespace Paps.FSM
                     _isTransitioning = false;
                     throw;
                 }
-
-                if (stateTo != null)
+                catch
                 {
-                    Transition(stateTo);
+                    throw;
                 }
             }
 
             _isTransitioning = false;
         }
 
-        private IState GetStateTo(TTrigger trigger)
+        private bool TryGetStateTo(TTrigger trigger, out TState stateTo)
         {
-            TState currentStateId = GetIdOf(_currentState);
+            stateTo = default;
 
-            IState stateTo = null;
-
+            bool modifiedFlag = false;
             bool multipleValidGuardsFlag = false;
 
             foreach (ITransition<TState, TTrigger> transition in _transitions)
             {
-                if(_stateComparer.Equals(transition.StateFrom, currentStateId) 
+                if (_stateComparer.Equals(transition.StateFrom, _currentState) 
                     && _triggerComparer.Equals(transition.Trigger, trigger)
                     && IsValidTransition(transition))
                 {
                     if(multipleValidGuardsFlag)
                     {
-                        throw new MultipleValidTransitionsFromSameStateException(currentStateId.ToString(), trigger.ToString());
+                        throw new MultipleValidTransitionsFromSameStateException(_currentState.ToString(), trigger.ToString());
                     }
+                    
+                    stateTo = transition.StateTo;
 
-                    stateTo = GetStateById(transition.StateTo);
-
+                    modifiedFlag = true;
                     multipleValidGuardsFlag = true;
                 }
             }
 
-            return stateTo;
+            return modifiedFlag;
         } 
 
-        private void Transition(IState stateTo)
+        private void Transition(TState stateTo)
         {
             CallOnBeforeStateChangesEvent();
 
             ExitCurrentState();
             
             _currentState = stateTo;
+            _currentStateObject = GetStateById(_currentState);
 
             CallOnStateChangedEvent();
 
@@ -440,19 +434,6 @@ namespace Paps.FSM
         private void CallOnBeforeStateChangesEvent()
         {
             OnBeforeStateChanges?.Invoke(this);
-        }
-
-        public TState GetIdOf(IState state)
-        {
-            foreach(KeyValuePair<TState, IState> entry in _states)
-            {
-                if(entry.Value == state)
-                {
-                    return entry.Key;
-                }
-            }
-
-            throw new StateIdNotAddedException();
         }
 
         public void AddGuardConditionTo(TState stateFrom, TTrigger trigger, TState stateTo, IGuardCondition<TState, TTrigger> guardCondition)
@@ -535,7 +516,7 @@ namespace Paps.FSM
         {
             ValidateIsStarted();
 
-            return _currentState.HandleEvent(messageEvent);
+            return _currentStateObject.HandleEvent(messageEvent);
         }
 
         private struct TransitionRequest

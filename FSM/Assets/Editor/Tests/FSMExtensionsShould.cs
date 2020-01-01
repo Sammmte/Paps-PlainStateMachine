@@ -54,19 +54,7 @@ namespace Tests
             Assert.IsTrue(fsm.ContainsStateByReference(state1));
         }
 
-        [Test]
-        public void ReturnStateById()
-        {
-            var state1 = Substitute.For<IState>();
-            var state2 = Substitute.For<IState>();
-
-            var fsm = new FSM<int, int>();
-
-            fsm.AddState(1, state1);
-            fsm.AddState(2, state2);
-
-            Assert.AreEqual(fsm.GetStateById<IState, int, int>(1), state1);
-        }
+        
 
         [Test]
         public void AddTimerState()

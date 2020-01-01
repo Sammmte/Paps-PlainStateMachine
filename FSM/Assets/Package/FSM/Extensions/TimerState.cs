@@ -11,9 +11,12 @@ namespace Paps.FSM.Extensions
 
         private IFSM<TState, TTrigger> _stateMachine;
 
-        public TimerState(IFSM<TState, TTrigger> fsm, double milliseconds, Action<TState> onTimerElapsed)
+        private TState _stateId;
+
+        public TimerState(IFSM<TState, TTrigger> fsm, TState stateId, double milliseconds, Action<TState> onTimerElapsed)
         {
             _stateMachine = fsm;
+            _stateId = stateId;
 
             _onTimerElapsed = onTimerElapsed;
 
@@ -41,7 +44,7 @@ namespace Paps.FSM.Extensions
         {
             if (_timer.Enabled == false)
             {
-                _onTimerElapsed(_stateMachine.GetIdOf(this));
+                _onTimerElapsed(_stateId);
             }
         }
     }

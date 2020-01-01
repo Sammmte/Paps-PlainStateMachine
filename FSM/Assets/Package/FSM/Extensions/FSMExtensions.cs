@@ -19,11 +19,11 @@ namespace Paps.FSM.Extensions
 
         public static bool ContainsStateByReference<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, IState stateRef)
         {
-            IState[] states = fsm.GetStates();
+            TState[] states = fsm.GetStates();
 
-            foreach(IState state in states)
+            foreach(TState state in states)
             {
-                if (state == stateRef)
+                if (fsm.GetStateById(state) == stateRef)
                 {
                     return true;
                 }
@@ -36,11 +36,11 @@ namespace Paps.FSM.Extensions
         {
             T candidate = default;
 
-            IState[] states = fsm.GetStates();
+            TState[] states = fsm.GetStates();
 
-            foreach(IState state in states)
+            foreach(TState state in states)
             {
-                if (state is T cast)
+                if (fsm.GetStateById(state) is T cast)
                 {
                     candidate = cast;
                     break;
@@ -54,11 +54,11 @@ namespace Paps.FSM.Extensions
         {
             List<T> statesList = null;
 
-            IState[] states = fsm.GetStates();
+            TState[] states = fsm.GetStates();
 
-            foreach(IState state in states)
+            foreach(TState state in states)
             {
-                if (state is T cast)
+                if (fsm.GetStateById(state) is T cast)
                 {
                     if (statesList == null)
                     {
@@ -77,28 +77,10 @@ namespace Paps.FSM.Extensions
             return null;
         }
 
-        public static T GetStateById<T, TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId)
-        {
-            T candidate = default;
-
-            IState[] states = fsm.GetStates();
-
-            foreach(IState state in states)
-            {
-                if (state is T cast)
-                {
-                    candidate = cast;
-                    break;
-                }
-            }
-
-            return candidate;
-        }
-
         public static void AddTimerState<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId, 
             double milliseconds, Action<TState> onTimerElapsed)
         {
-            fsm.AddState(stateId, new TimerState<TState, TTrigger>(fsm, milliseconds, onTimerElapsed));
+            fsm.AddState(stateId, new TimerState<TState, TTrigger>(fsm, stateId, milliseconds, onTimerElapsed));
         }
 
         public static void AddEmpty<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId)
@@ -126,11 +108,11 @@ namespace Paps.FSM.Extensions
 
         public static void ForeachState<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, ReturnTrueToFinishIteration<IState> finishable)
         {
-            IState[] states = fsm.GetStates();
+            TState[] states = fsm.GetStates();
 
-            foreach(IState state in states)
+            foreach(TState state in states)
             {
-                if(finishable(state))
+                if(finishable(fsm.GetStateById(state)))
                 {
                     return;
                 }
@@ -152,25 +134,23 @@ namespace Paps.FSM.Extensions
 
         public static void FromAny<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TTrigger trigger, TState stateTo)
         {
-            IState[] states = fsm.GetStates();
+            TState[] states = fsm.GetStates();
 
-            foreach(IState state in states)
+            foreach(TState state in states)
             {
-                fsm.AddTransition(fsm.GetIdOf(state), trigger, stateTo);
+                fsm.AddTransition(state, trigger, stateTo);
             }
         }
 
         public static void FromAnyExceptTarget<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TTrigger trigger, TState stateTo)
         {
-            IState[] states = fsm.GetStates();
+            TState[] states = fsm.GetStates();
 
-            foreach (IState state in states)
+            foreach (TState stateId in states)
             {
-                TState stateId = fsm.GetIdOf(state);
-
                 if (stateId.Equals(stateTo) == false)
                 {
-                    fsm.AddTransition(fsm.GetIdOf(state), trigger, stateTo);
+                    fsm.AddTransition(stateId, trigger, stateTo);
                 }
             }
         }

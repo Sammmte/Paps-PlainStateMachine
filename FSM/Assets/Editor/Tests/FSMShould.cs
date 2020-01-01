@@ -19,7 +19,7 @@ namespace Tests
 
             fsm.AddState(1, state1);
 
-            Assert.IsTrue(fsm.StateCount == 1 && fsm.ContainsState(1) && fsm.GetIdOf(state1) == 1);
+            Assert.IsTrue(fsm.StateCount == 1 && fsm.ContainsState(1) && fsm.GetStateById(1) == state1);
 
             fsm.RemoveState(1);
 
@@ -84,7 +84,7 @@ namespace Tests
                 }
                 );
 
-            Assert.IsTrue(fsm.GetIdOf(item1) == 1 && fsm.GetIdOf(item2) == 2);
+            Assert.IsTrue(fsm.GetStateById(1) == item1 && fsm.GetStateById(2) == item2);
         }
 
         [Test]
@@ -98,7 +98,7 @@ namespace Tests
 
             Assert.IsTrue(fsm.StateCount == 1);
 
-            fsm.RemoveState(fsm.GetIdOf(state));
+            fsm.RemoveState(1);
 
             Assert.IsTrue(fsm.StateCount == 0);
         }
@@ -224,7 +224,7 @@ namespace Tests
 
             fsm.AddState(1, state1);
 
-            fsm.SetInitialState(fsm.GetIdOf(state1));
+            fsm.SetInitialState(1);
 
             fsm.Start();
 
@@ -240,7 +240,7 @@ namespace Tests
 
             fsm.AddState(1, state1);
 
-            fsm.SetInitialState(fsm.GetIdOf(state1));
+            fsm.SetInitialState(1);
 
             Assert.IsFalse(fsm.IsStarted);
 
@@ -258,7 +258,7 @@ namespace Tests
 
             fsm.AddState(1, state1);
 
-            fsm.SetInitialState(fsm.GetIdOf(state1));
+            fsm.SetInitialState(1);
 
             fsm.Start();
 
@@ -274,11 +274,11 @@ namespace Tests
 
             fsm.AddState(1, state1);
 
-            fsm.SetInitialState(fsm.GetIdOf(state1));
+            fsm.SetInitialState(1);
 
             fsm.Start();
 
-            Assert.IsTrue(fsm.IsInState(fsm.GetIdOf(state1)));
+            Assert.IsTrue(fsm.IsInState(1));
         }
 
         [Test]
@@ -292,17 +292,17 @@ namespace Tests
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
 
-            fsm.SetInitialState(fsm.GetIdOf(state1));
+            fsm.SetInitialState(1);
 
-            fsm.AddTransition(fsm.GetIdOf(state1), 0, fsm.GetIdOf(state2));
+            fsm.AddTransition(1, 0, 2);
 
             fsm.Start();
 
-            Assert.IsTrue(fsm.IsInState(fsm.GetIdOf(state1)));
+            Assert.IsTrue(fsm.IsInState(1));
 
             fsm.Trigger(0);
 
-            Assert.IsTrue(fsm.IsInState(fsm.GetIdOf(state2)));
+            Assert.IsTrue(fsm.IsInState(2));
         }
 
         [Test]
@@ -339,7 +339,7 @@ namespace Tests
 
             fsm.AddState(1, state1);
 
-            Assert.IsTrue(fsm.ContainsState(fsm.GetIdOf(state1)));
+            Assert.IsTrue(fsm.ContainsState(1));
             Assert.IsFalse(fsm.ContainsState(2));
         }
 
@@ -354,9 +354,9 @@ namespace Tests
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
 
-            fsm.SetInitialState(fsm.GetIdOf(state1));
+            fsm.SetInitialState(1);
 
-            fsm.AddTransition(fsm.GetIdOf(state1), 0, fsm.GetIdOf(state2));
+            fsm.AddTransition(1, 0, 2);
 
             fsm.Start();
 
@@ -376,7 +376,7 @@ namespace Tests
 
             fsm.AddState(1, state1);
 
-            fsm.SetInitialState(fsm.GetIdOf(state1));
+            fsm.SetInitialState(1);
 
             Assert.Throws<FSMNotStartedException>(fsm.Update);
         }
@@ -390,7 +390,7 @@ namespace Tests
 
             fsm.AddState(1, state1);
 
-            fsm.SetInitialState(fsm.GetIdOf(state1));
+            fsm.SetInitialState(1);
 
             fsm.Start();
 
@@ -414,9 +414,9 @@ namespace Tests
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
 
-            fsm.SetInitialState(fsm.GetIdOf(state1));
+            fsm.SetInitialState(1);
 
-            fsm.AddTransition(fsm.GetIdOf(state1), 0, fsm.GetIdOf(state2));
+            fsm.AddTransition(1, 0, 2);
 
             fsm.Start();
 
@@ -442,9 +442,9 @@ namespace Tests
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
 
-            fsm.SetInitialState(fsm.GetIdOf(state1));
+            fsm.SetInitialState(1);
 
-            fsm.AddTransition(fsm.GetIdOf(state1), 0, fsm.GetIdOf(state2));
+            fsm.AddTransition(1, 0, 2);
 
             fsm.Start();
 
@@ -553,7 +553,7 @@ namespace Tests
         }
 
         [Test]
-        public void NotTransitionIfAnyANDGuardConditionReturnsFalse()
+        public void NotTransitionIfAnyGuardConditionReturnsFalse()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -911,6 +911,11 @@ namespace Tests
             comparer.Equals(2, 2).Returns(true);
             comparer.Equals(1, 2).Returns(false);
             comparer.Equals(2, 1).Returns(false);
+            comparer.Equals(0, 0).Returns(true);
+            comparer.Equals(1, 0).Returns(false);
+            comparer.Equals(2, 0).Returns(false);
+            comparer.Equals(0, 1).Returns(false);
+            comparer.Equals(0, 2).Returns(false);
 
             var fsm = new FSM<int, int>(comparer, comparer);
 
@@ -926,6 +931,21 @@ namespace Tests
             fsm.Trigger(0);
 
             comparer.Received().Equals(Arg.Any<int>(), Arg.Any<int>());
+        }
+
+        [Test]
+        public void ReturnStateById()
+        {
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
+
+            var fsm = new FSM<int, int>();
+
+            fsm.AddState(1, state1);
+            fsm.AddState(2, state2);
+
+            Assert.AreEqual(fsm.GetStateById(1), state1);
+            Assert.AreEqual(fsm.GetStateById(2), state2);
         }
     }
 }
