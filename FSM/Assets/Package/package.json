@@ -1,6 +1,6 @@
 {
   "name": "paps.fsm",
-  "version": "2.0.1-unity",
+  "version": "3.0.0-unity",
   "displayName": "Paps FSM",
   "unity": "2019.2",
   "description": "A simple finite state machine made in c#",
@@ -13,6 +13,5 @@
   "author": {
 	"name": "Santiago Perez"
   },
-  "license": "WTFPL",
   "homepage": "https://github.com/Sammmte/FSM"
 }

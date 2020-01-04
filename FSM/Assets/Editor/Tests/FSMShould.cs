@@ -278,7 +278,7 @@ namespace Tests
 
             fsm.Start();
 
-            Assert.IsTrue(fsm.IsInState(1));
+            Assert.IsTrue(fsm.CurrentState == 1);
         }
 
         [Test]
@@ -298,11 +298,11 @@ namespace Tests
 
             fsm.Start();
 
-            Assert.IsTrue(fsm.IsInState(1));
+            Assert.IsTrue(fsm.CurrentState == 1);
 
             fsm.Trigger(0);
 
-            Assert.IsTrue(fsm.IsInState(2));
+            Assert.IsTrue(fsm.CurrentState == 2);
         }
 
         [Test]
@@ -559,7 +559,7 @@ namespace Tests
             guardCondition1.Received().Invoke();
             guardCondition2.Received().Invoke();
 
-            Assert.IsTrue(fsm.IsInState(2));
+            Assert.IsTrue(fsm.CurrentState == 2);
 
         }
 
@@ -602,7 +602,7 @@ namespace Tests
             guardCondition2.Received().Invoke();
             guardCondition3.DidNotReceive().Invoke();
 
-            Assert.IsFalse(fsm.IsInState(2));
+            Assert.IsFalse(fsm.CurrentState == 2);
         }
 
         [Test]
@@ -725,7 +725,7 @@ namespace Tests
 
             fsm.Trigger(transition1.Trigger);
 
-            Assert.IsTrue(fsm.IsInState(5));
+            Assert.IsTrue(fsm.CurrentState == 5);
         }
 
         [Test]
@@ -809,7 +809,7 @@ namespace Tests
             onEnter2Substitute.Received();
             onEnter3.Received();
 
-            Assert.IsTrue(fsm.IsInState(3));
+            Assert.IsTrue(fsm.CurrentState == 3);
         }
 
         [Test]

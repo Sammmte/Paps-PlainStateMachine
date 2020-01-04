@@ -39,11 +39,11 @@ guardEnemyFSM.AddTransition(transition2);
 
 guardEnemyFSM.Start();
 
-guardEnemyFSM.IsInState(State.Patrol); //True
+//guardEnemyFSM.CurrentState == State.Patrol
 
 guardEnemyFSM.Trigger(Trigger.PatrolFinished);
 
-guardEnemyFSM.IsInState(State.SearchTarget); //True
+//guardEnemyFSM.CurrentState == State.SearchTarget
 ```
 
 This project, as well as the example above, as well as this clarification and README, was inspired by [Stateless](https://github.com/dotnet-state-machine/stateless).

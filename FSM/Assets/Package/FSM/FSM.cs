@@ -20,7 +20,7 @@ namespace Paps.FSM
 
         private Queue<TransitionRequest> _transitionRequestQueue;
 
-        private TState _currentState;
+        public TState CurrentState { get; private set; }
         private IState _currentStateObject;
         private bool _isTransitioning;
 
@@ -73,8 +73,8 @@ namespace Paps.FSM
         {
             ValidateCanStart();
 
-            _currentState = InitialState;
-            _currentStateObject = GetStateById(_currentState);
+            CurrentState = InitialState;
+            _currentStateObject = GetStateById(CurrentState);
 
             IsStarted = true;
 
@@ -271,11 +271,6 @@ namespace Paps.FSM
             }
         }
 
-        public bool IsInState(TState stateId)
-        {
-            return IsStarted && _stateComparer.Equals(_currentState, stateId);
-        }
-
         public bool ContainsState(TState stateId)
         {
             return _states.ContainsKey(stateId);
@@ -338,13 +333,13 @@ namespace Paps.FSM
 
             foreach (Transition<TState, TTrigger> transition in _transitions)
             {
-                if (_stateComparer.Equals(transition.StateFrom, _currentState) 
+                if (_stateComparer.Equals(transition.StateFrom, CurrentState) 
                     && _triggerComparer.Equals(transition.Trigger, trigger)
                     && IsValidTransition(transition))
                 {
                     if(multipleValidGuardsFlag)
                     {
-                        throw new MultipleValidTransitionsFromSameStateException(_currentState.ToString(), trigger.ToString());
+                        throw new MultipleValidTransitionsFromSameStateException(CurrentState.ToString(), trigger.ToString());
                     }
                     
                     stateTo = transition.StateTo;
@@ -363,8 +358,8 @@ namespace Paps.FSM
 
             ExitCurrentState();
             
-            _currentState = stateTo;
-            _currentStateObject = GetStateById(_currentState);
+            CurrentState = stateTo;
+            _currentStateObject = GetStateById(CurrentState);
 
             CallOnStateChangedEvent();
 

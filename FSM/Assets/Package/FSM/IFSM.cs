@@ -16,6 +16,7 @@ namespace Paps.FSM
         bool IsStarted { get; }
 
         TState InitialState { get; }
+        TState CurrentState { get; }
 
         void AddState(TState stateId, IState state);
         void RemoveState(TState stateId);
@@ -32,8 +33,6 @@ namespace Paps.FSM
         Transition<TState, TTrigger>[] GetTransitions();
 
         void SetInitialState(TState stateId);
-
-        bool IsInState(TState stateId);
 
         IState GetStateById(TState stateId);
 
