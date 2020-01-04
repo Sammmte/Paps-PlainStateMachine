@@ -213,7 +213,7 @@ Your manifest.json file should look like this:
   "dependencies": {
     "com.unity.some-package" : "1.0.0",
     "com.unity.some-other-package" : "1.0.0",
-    "paps.fsm": "2.0.0-unity"
+    "paps.fsm": "3.0.1-unity"
   }
 }
 ```
