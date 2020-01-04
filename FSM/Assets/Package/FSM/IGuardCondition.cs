@@ -1,8 +1,8 @@
 ﻿namespace Paps.FSM
 {
-    public interface IGuardCondition<TState, TTrigger>
+    public interface IGuardCondition
     {
-        bool IsValid(TState stateFrom, TTrigger trigger, TState stateTo);
+        bool IsValid();
     }
 }
 

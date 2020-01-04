@@ -21,23 +21,5 @@ namespace Paps.FSM.Extensions
         {
             return fsm.ContainsGuardConditionOn(transition, new PredicateGuardCondition<TState, TTrigger>(predicate));
         }
-
-        public static void AddGuardConditionTo<TState, TTrigger>(this IFSMWithGuardConditions<TState, TTrigger> fsm,
-            Transition<TState, TTrigger> transition, Func<TState, TTrigger, TState, bool> predicate)
-        {
-            fsm.AddGuardConditionTo(transition, new PredicateWithParametersGuardCondition<TState, TTrigger>(predicate));
-        }
-
-        public static void RemoveGuardConditionFrom<TState, TTrigger>(this IFSMWithGuardConditions<TState, TTrigger> fsm,
-            Transition<TState, TTrigger> transition, Func<TState, TTrigger, TState, bool> predicate)
-        {
-            fsm.RemoveGuardConditionFrom(transition, new PredicateWithParametersGuardCondition<TState, TTrigger>(predicate));
-        }
-
-        public static bool ContainsGuardConditionOn<TState, TTrigger>(this IFSMWithGuardConditions<TState, TTrigger> fsm,
-            Transition<TState, TTrigger> transition, Func<TState, TTrigger, TState, bool> predicate)
-        {
-            return fsm.ContainsGuardConditionOn(transition, new PredicateWithParametersGuardCondition<TState, TTrigger>(predicate));
-        }
     }
 }

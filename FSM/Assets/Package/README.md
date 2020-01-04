@@ -71,8 +71,8 @@ Add guard conditions to your transitions to wisely choose the next state. e.g.:
 
 ```csharp
 //You can create your custom guard condition classes implementing 
-//the IGuardCondition<TState, TTrigger> interface
-IGuardCondition<State, Trigger> startPatrolGuard = new MyCustomGuardCondition();
+//the IGuardCondition interface
+IGuardCondition startPatrolGuard = new MyCustomGuardCondition();
 
 guardEnemyFSM.AddGuardConditionTo(transition, startPatrolGuard);
 ```

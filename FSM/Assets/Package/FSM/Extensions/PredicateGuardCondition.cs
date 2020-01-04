@@ -2,7 +2,7 @@
 
 namespace Paps.FSM.Extensions
 {
-    public class PredicateGuardCondition<TState, TTrigger> : IGuardCondition<TState, TTrigger>
+    public class PredicateGuardCondition<TState, TTrigger> : IGuardCondition
     {
         private Func<bool> predicate;
 
@@ -26,7 +26,7 @@ namespace Paps.FSM.Extensions
             return predicate.GetHashCode();
         }
 
-        public bool IsValid(TState stateFrom, TTrigger trigger, TState stateTo)
+        public bool IsValid()
         {
             return predicate();
         }

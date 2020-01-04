@@ -228,7 +228,7 @@ namespace Tests
 
             fsm.Start();
 
-            Assert.Throws<FSMStartedException>(() => fsm.Start());
+            Assert.Throws<StateMachineStartedException>(() => fsm.Start());
         }
 
         [Test]
@@ -310,7 +310,7 @@ namespace Tests
         {
             var fsm = new FSM<int, int>();
 
-            Assert.Throws<FSMNotStartedException>(() => fsm.Trigger(0));
+            Assert.Throws<StateMachineNotStartedException>(() => fsm.Trigger(0));
         }
 
         [Test]
@@ -381,7 +381,7 @@ namespace Tests
 
             fsm.SetInitialState(1);
 
-            Assert.Throws<FSMNotStartedException>(fsm.Update);
+            Assert.Throws<StateMachineNotStartedException>(fsm.Update);
         }
 
         [Test]
@@ -823,7 +823,7 @@ namespace Tests
 
             fsm.SetInitialState(1);
 
-            Assert.Throws<FSMStartedException>(() => fsm.Start());
+            Assert.Throws<StateMachineStartedException>(() => fsm.Start());
         }
 
         [Test]
@@ -872,7 +872,7 @@ namespace Tests
 
             fsm.SetInitialState(1);
 
-            Assert.Throws<FSMNotStartedException>(() => fsm.Start());
+            Assert.Throws<StateMachineNotStartedException>(() => fsm.Start());
         }
 
         [Test]
@@ -914,7 +914,7 @@ namespace Tests
         {
             var fsm = new FSM<int, int>();
 
-            Assert.Throws<FSMNotStartedException>(() => fsm.SendEvent(Substitute.For<IEvent>()));
+            Assert.Throws<StateMachineNotStartedException>(() => fsm.SendEvent(Substitute.For<IEvent>()));
         }
 
         [Test]

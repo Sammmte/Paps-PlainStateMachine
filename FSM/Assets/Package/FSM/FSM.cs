@@ -16,7 +16,7 @@ namespace Paps.FSM
 
         private Dictionary<TState, IState> _states;
         private HashSet<Transition<TState, TTrigger>> _transitions;
-        private Dictionary<Transition<TState, TTrigger>, List<IGuardCondition<TState, TTrigger>>> guardConditions;
+        private Dictionary<Transition<TState, TTrigger>, List<IGuardCondition>> guardConditions;
 
         private Queue<TransitionRequest> _transitionRequestQueue;
 
@@ -41,7 +41,7 @@ namespace Paps.FSM
 
             _states = new Dictionary<TState, IState>(_stateComparer);
             _transitions = new HashSet<Transition<TState, TTrigger>>(_transitionEqualityComparer);
-            guardConditions = new Dictionary<Transition<TState, TTrigger>, List<IGuardCondition<TState, TTrigger>>>(_transitionEqualityComparer);
+            guardConditions = new Dictionary<Transition<TState, TTrigger>, List<IGuardCondition>>(_transitionEqualityComparer);
             _transitionRequestQueue = new Queue<TransitionRequest>();
         }
 
@@ -146,7 +146,7 @@ namespace Paps.FSM
         {
             if (IsStarted == false)
             {
-                throw new FSMNotStartedException();
+                throw new StateMachineNotStartedException();
             }
         }
 
@@ -154,7 +154,7 @@ namespace Paps.FSM
         {
             if (IsStarted)
             {
-                throw new FSMStartedException();
+                throw new StateMachineStartedException();
             }
         }
 
@@ -392,7 +392,7 @@ namespace Paps.FSM
 
                 foreach (var guardCondition in guardConditionsOfTransition)
                 {
-                    if (guardCondition.IsValid(transition.StateFrom, transition.Trigger, transition.StateTo) == false)
+                    if (guardCondition.IsValid() == false)
                     {
                         return false;
                     }
@@ -412,20 +412,20 @@ namespace Paps.FSM
             OnBeforeStateChanges?.Invoke(this);
         }
 
-        public void AddGuardConditionTo(Transition<TState, TTrigger> transition, IGuardCondition<TState, TTrigger> guardCondition)
+        public void AddGuardConditionTo(Transition<TState, TTrigger> transition, IGuardCondition guardCondition)
         {
             ValidateHasTransition(transition);
             ValidateGuardConditionIsNotNull(guardCondition);
 
             if(guardConditions.ContainsKey(transition) == false)
             {
-                guardConditions.Add(transition, new List<IGuardCondition<TState, TTrigger>>());
+                guardConditions.Add(transition, new List<IGuardCondition>());
             }
 
             guardConditions[transition].Add(guardCondition);
         }
 
-        public void RemoveGuardConditionFrom(Transition<TState, TTrigger> transition, IGuardCondition<TState, TTrigger> guardCondition)
+        public void RemoveGuardConditionFrom(Transition<TState, TTrigger> transition, IGuardCondition guardCondition)
         {
             ValidateHasTransition(transition);
             ValidateGuardConditionIsNotNull(guardCondition);
@@ -441,7 +441,7 @@ namespace Paps.FSM
             }
         }
 
-        public bool ContainsGuardConditionOn(Transition<TState, TTrigger> transition, IGuardCondition<TState, TTrigger> guardCondition)
+        public bool ContainsGuardConditionOn(Transition<TState, TTrigger> transition, IGuardCondition guardCondition)
         {
             if(guardConditions.ContainsKey(transition))
             {
@@ -451,15 +451,15 @@ namespace Paps.FSM
             return false;
         }
 
-        public KeyValuePair<Transition<TState, TTrigger>, IGuardCondition<TState, TTrigger>[]>[] GetGuardConditions()
+        public KeyValuePair<Transition<TState, TTrigger>, IGuardCondition[]>[] GetGuardConditions()
         {
-            var keyValues = new KeyValuePair<Transition<TState, TTrigger>, IGuardCondition<TState, TTrigger>[]>[guardConditions.Count];
+            var keyValues = new KeyValuePair<Transition<TState, TTrigger>, IGuardCondition[]>[guardConditions.Count];
 
             int index = 0;
 
             foreach(var keyValue in guardConditions)
             {
-                keyValues[index] = new KeyValuePair<Transition<TState, TTrigger>, IGuardCondition<TState, TTrigger>[]>(keyValue.Key, keyValue.Value.ToArray());
+                keyValues[index] = new KeyValuePair<Transition<TState, TTrigger>, IGuardCondition[]>(keyValue.Key, keyValue.Value.ToArray());
                 index++;
             }
 
