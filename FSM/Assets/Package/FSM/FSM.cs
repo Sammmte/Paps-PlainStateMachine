@@ -20,7 +20,21 @@ namespace Paps.FSM
 
         private Queue<TransitionRequest> _transitionRequestQueue;
 
-        public TState CurrentState { get; private set; }
+        private TState _currentState;
+        public TState CurrentState
+        {
+            get
+            {
+                ValidateIsStarted();
+
+                return _currentState;
+            }
+
+            private set
+            {
+                _currentState = value;
+            }
+        }
         private IState _currentStateObject;
         private bool _isTransitioning;
 
@@ -73,10 +87,10 @@ namespace Paps.FSM
         {
             ValidateCanStart();
 
+            IsStarted = true;
+
             CurrentState = InitialState;
             _currentStateObject = GetStateById(CurrentState);
-
-            IsStarted = true;
 
             EnterCurrentState();
         }
@@ -106,12 +120,10 @@ namespace Paps.FSM
 
         public void Stop()
         {
-            bool wasStarted = IsStarted;
-
-            IsStarted = false;
-
-            if (wasStarted)
+            if(IsStarted)
             {
+                IsStarted = false;
+
                 ExitCurrentState();
             }
         }
@@ -119,6 +131,7 @@ namespace Paps.FSM
         private void ExitCurrentState()
         {
             _currentStateObject.Exit();
+            _currentStateObject = null;
         }
 
         public void SetInitialState(TState stateId)

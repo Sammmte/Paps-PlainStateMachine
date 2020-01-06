@@ -1011,5 +1011,13 @@ namespace Tests
 
             comparer.Received().Equals(Arg.Any<int>(), Arg.Any<int>());
         }
+
+        [Test]
+        public void ThrowAnExceptionIfUserTriesToGetCurrentStateWhileNotStarted()
+        {
+            var fsm = new FSM<int, int>();
+
+            Assert.Throws<StateMachineNotStartedException>(() => fsm.CurrentState.ToString());
+        }
     }
 }
