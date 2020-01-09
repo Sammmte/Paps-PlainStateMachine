@@ -22,25 +22,28 @@ guardEnemyFSM.SetInitialState(State.Patrol);
 
 //Define transitions between states.
 
-guardEnemyFSM.AddTransition(
-    State.Patrol, 
-    Trigger.PatrolFinished, 
-    State.SearchTarget);
+var transition1 = new Transition<State, Trigger>(
+                        State.Patrol, 
+                        Trigger.PatrolFinished, 
+                        State.SearchTarget);
 
-guardEnemyFSM.AddTransition(
-    State.SearchTarget, 
-    Trigger.StartPatrol, 
-    State.Patrol);
+var transition2 = new Transition<State, Trigger>(
+                        State.SearchTarget, 
+                        Trigger.StartPatrol, 
+                        State.Patrol);
+
+guardEnemyFSM.AddTransition(transition1);
+guardEnemyFSM.AddTransition(transition2);
 
 //Start your state machine
 
 guardEnemyFSM.Start();
 
-guardEnemyFSM.IsInState(State.Patrol); //True
+//guardEnemyFSM.CurrentState == State.Patrol
 
 guardEnemyFSM.Trigger(Trigger.PatrolFinished);
 
-guardEnemyFSM.IsInState(State.SearchTarget); //True
+//guardEnemyFSM.CurrentState == State.SearchTarget
 ```
 
 This project, as well as the example above, as well as this clarification and README, was inspired by [Stateless](https://github.com/dotnet-state-machine/stateless).
@@ -68,14 +71,10 @@ Add guard conditions to your transitions to wisely choose the next state. e.g.:
 
 ```csharp
 //You can create your custom guard condition classes implementing 
-//the IGuardCondition<TState, TTrigger> interface
-IGuardCondition<State, Trigger> startPatrolGuard = new MyCustomGuardCondition();
+//the IGuardCondition interface
+IGuardCondition startPatrolGuard = new MyCustomGuardCondition();
 
-guardEnemyFSM.AddGuardConditionTo(
-    State.SearchTarget, 
-    Trigger.StartPatrol, 
-    State.Patrol, 
-    startPatrolGuard);
+guardEnemyFSM.AddGuardConditionTo(transition, startPatrolGuard);
 ```
 
 Using lambda expressions
@@ -83,11 +82,7 @@ Using lambda expressions
 ```csharp
 //using Paps.FSM.Extensions
 
-guardEnemyFSM.AddGuardConditionTo(
-    State.SearchTarget, 
-    Trigger.StartPatrol, 
-    State.Patrol, 
-    () => !HasTarget());
+guardEnemyFSM.AddGuardConditionTo(transition, () => !HasTarget());
 ```
 
 ### Event Dispatching
@@ -113,7 +108,7 @@ Create timer states
 ```csharp
 //Wait 2 seconds, then start patrol
 guardEnemyFSM.AddTimerState(
-    State.Waiting, 2000, 
+    State.Waiting, 2000,
     stateId => guardEnemyFSM.Trigger(Trigger.StartPatrol));
 ```
 
@@ -144,7 +139,7 @@ guardEnemyFSM.FromAnyExceptTarget(Trigger.Wait, State.Waiting);
 Obtain transitions related to a specific state...
 
 ```csharp
-ITransition<State, Trigger>[] transitions = guardEnemyFSM.GetTransitionsRelatedTo(State.Patrol);
+Transition<State, Trigger>[] transitions = guardEnemyFSM.GetTransitionsRelatedTo(State.Patrol);
 ```
 
 ...or remove it
@@ -160,7 +155,7 @@ Open the "Packages" folder inside your project folder. Open the manifest.json, y
 ```json
 {
    "dependencies": {
-        "com.unity.some-package" : "1.0.0",
+        "com.unity.some-package" : "1.0.0"
         "com.unity.some-other-package" : "1.0.0"
         //other packages...
     }
@@ -194,8 +189,8 @@ Finally you must add this package dependency to your project in the "dependencie
 ```json
 {
     "dependencies": {
-        "com.unity.some-package" : "1.0.0",
-        "com.unity.some-other-package" : "1.0.0",
+        "com.unity.some-package" : "1.0.0"
+        "com.unity.some-other-package" : "1.0.0"
         "paps.fsm" : "1.0.3-unity"
       }
 }
@@ -218,7 +213,7 @@ Your manifest.json file should look like this:
   "dependencies": {
     "com.unity.some-package" : "1.0.0",
     "com.unity.some-other-package" : "1.0.0",
-    "paps.fsm": "1.0.3-unity"
+    "paps.fsm": "3.1.0-unity"
   }
 }
 ```
