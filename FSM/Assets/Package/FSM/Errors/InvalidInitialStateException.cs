@@ -8,5 +8,10 @@ namespace Paps.FSM
         {
 
         }
+
+        public InvalidInitialStateException(string message) : base(message)
+        {
+
+        }
     }
 }

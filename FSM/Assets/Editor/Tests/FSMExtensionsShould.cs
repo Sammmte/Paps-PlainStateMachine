@@ -67,7 +67,7 @@ namespace Tests
             fsm.AddTimerState(1, 1000, stateId => fsm.Trigger(0));
             fsm.AddTransition(new Transition<int, int>(1, 0, 2));
 
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
 
             fsm.Start();
 
@@ -89,7 +89,7 @@ namespace Tests
             fsm.AddEmpty(1);
             fsm.AddTransition(new Transition<int, int>(1, 0, 2));
 
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
 
             fsm.Start();
 
@@ -113,7 +113,7 @@ namespace Tests
             fsm.AddWithEvents(1, enterEvent, updateEvent, exitEvent);
             fsm.AddTransition(new Transition<int, int>(1, 0, 2));
 
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
 
             fsm.Start();
 

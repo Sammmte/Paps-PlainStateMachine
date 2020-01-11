@@ -5,6 +5,7 @@ using Paps.FSM.Extensions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Tests
 {
@@ -224,7 +225,7 @@ namespace Tests
 
             fsm.AddState(1, state1);
 
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
 
             fsm.Start();
 
@@ -240,7 +241,7 @@ namespace Tests
 
             fsm.AddState(1, state1);
 
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
 
             Assert.IsFalse(fsm.IsStarted);
 
@@ -258,7 +259,7 @@ namespace Tests
 
             fsm.AddState(1, state1);
 
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
 
             fsm.Start();
 
@@ -274,7 +275,7 @@ namespace Tests
 
             fsm.AddState(1, state1);
 
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
 
             fsm.Start();
 
@@ -292,7 +293,7 @@ namespace Tests
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
 
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
 
             fsm.AddTransition(new Transition<int, int>(1, 0, 2));
 
@@ -357,7 +358,7 @@ namespace Tests
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
 
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
 
             fsm.AddTransition(new Transition<int, int>(1, 0, 2));
 
@@ -379,7 +380,7 @@ namespace Tests
 
             fsm.AddState(1, state1);
 
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
 
             Assert.Throws<StateMachineNotStartedException>(fsm.Update);
         }
@@ -393,7 +394,7 @@ namespace Tests
 
             fsm.AddState(1, state1);
 
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
 
             fsm.Start();
 
@@ -417,7 +418,7 @@ namespace Tests
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
 
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
 
             fsm.AddTransition(new Transition<int, int>(1, 0, 2));
 
@@ -445,7 +446,7 @@ namespace Tests
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
 
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
 
             fsm.AddTransition(new Transition<int, int>(1, 0, 2));
 
@@ -550,7 +551,7 @@ namespace Tests
 
             fsm.AddGuardConditionTo(transition, guardCondition2);
 
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
 
             fsm.Start();
 
@@ -592,7 +593,7 @@ namespace Tests
 
             fsm.AddGuardConditionTo(transition, guardCondition3);
 
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
 
             fsm.Start();
 
@@ -616,7 +617,7 @@ namespace Tests
 
             fsm.AddTransition(new Transition<int, int>(1, 0, 1));
 
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
 
             fsm.Start();
 
@@ -720,7 +721,7 @@ namespace Tests
             fsm.AddTransition(transition2);
             fsm.AddTransition(transition3);
             fsm.AddTransition(transition4);
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
             fsm.Start();
 
             fsm.Trigger(transition1.Trigger);
@@ -752,7 +753,7 @@ namespace Tests
             fsm.AddGuardConditionTo(transition3, () => true);
             fsm.AddGuardConditionTo(transition4, () => true);
 
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
 
             fsm.Start();
 
@@ -775,7 +776,7 @@ namespace Tests
             fsm.AddTransition(transition1);
             fsm.AddTransition(transition2);
 
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
 
             fsm.Start();
 
@@ -802,7 +803,7 @@ namespace Tests
             fsm.AddTransition(transition1);
             fsm.AddTransition(transition2);
 
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
 
             fsm.Start();
 
@@ -821,7 +822,7 @@ namespace Tests
 
             fsm.AddWithEvents(1, onEnter);
 
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
 
             Assert.Throws<StateMachineStartedException>(() => fsm.Start());
         }
@@ -836,7 +837,7 @@ namespace Tests
 
             fsm.AddWithEvents(1, onEnter, onExit);
 
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
 
             fsm.Start();
 
@@ -855,7 +856,7 @@ namespace Tests
 
             fsm.AddWithEvents(1, onEnter, onExit);
 
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
 
             fsm.Start();
         }
@@ -870,7 +871,7 @@ namespace Tests
 
             fsm.AddWithEvents(1, onEnter, onExit);
 
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
 
             Assert.Throws<StateMachineNotStartedException>(() => fsm.Start());
         }
@@ -894,7 +895,7 @@ namespace Tests
 
             fsm.AddTransition(new Transition<int, int>(1, 0, 2));
 
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
 
             fsm.Start();
 
@@ -952,7 +953,7 @@ namespace Tests
             fsm.AddEmpty(1);
             fsm.AddEmpty(2);
 
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
 
             fsm.AddTransition(new Transition<int, int>(1, 0, 2));
 
@@ -1001,7 +1002,7 @@ namespace Tests
             fsm.AddEmpty(1);
             fsm.AddEmpty(2);
 
-            fsm.SetInitialState(1);
+            fsm.InitialState = 1;
 
             fsm.AddTransition(new Transition<int, int>(1, 0, 2));
 
@@ -1018,6 +1019,22 @@ namespace Tests
             var fsm = new FSM<int, int>();
 
             Assert.Throws<StateMachineNotStartedException>(() => fsm.CurrentState.ToString());
+        }
+
+        [Test]
+        public void ThrowAnExceptionIfUserTriesToSetAnNonExistentInitialState()
+        {
+            var fsm = new FSM<int, int>();
+
+            Assert.Throws<StateIdNotAddedException>(() => fsm.InitialState = 1);
+        }
+
+        [Test]
+        public void ThrowAnExceptionIfUserTriesToGetInitialStateWithoutBeingSet()
+        {
+            var fsm = new FSM<int, int>();
+
+            Assert.Throws<InvalidInitialStateException>(() => Debug.Log(fsm.InitialState));
         }
     }
 }

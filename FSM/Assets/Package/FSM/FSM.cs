@@ -9,10 +9,28 @@ namespace Paps.FSM
         public int StateCount => _states.Count;
         public int TransitionCount => _transitions.Count;
         public bool IsStarted { get; private set; }
-        public TState InitialState { get; private set; }
+        public TState InitialState
+        {
+            get
+            {
+                if (_setInitialStateOnce) return _initialState;
+                else throw new InvalidInitialStateException("Initial state was never set");
+            }
+
+            set
+            {
+                ValidateHasStateWithId(value);
+
+                _setInitialStateOnce = true;
+                _initialState = value;
+            }
+        }
 
         public event StateChange<TState, TTrigger> OnBeforeStateChanges;
         public event StateChange<TState, TTrigger> OnStateChanged;
+
+        private TState _initialState;
+        private bool _setInitialStateOnce;
 
         private Dictionary<TState, IState> _states;
         private HashSet<Transition<TState, TTrigger>> _transitions;
@@ -98,7 +116,7 @@ namespace Paps.FSM
         private void ValidateCanStart()
         {
             ValidateIsNotStarted();
-            ValidateInitialState(InitialState);
+            ValidateInitialState();
         }
         
         private void EnterCurrentState()
@@ -134,25 +152,16 @@ namespace Paps.FSM
             _currentStateObject = null;
         }
 
-        public void SetInitialState(TState stateId)
-        {
-            ValidateCanSetInitialState(stateId);
-
-            InternalSetInitialState(stateId);
-        }
-
         private void ValidateCanSetInitialState(TState initialStateId)
         {
             ValidateIsNotStarted();
-            ValidateInitialState(initialStateId);
+            ValidateHasStateWithId(initialStateId);
         }
 
-        private void ValidateInitialState(TState initialStateId)
+        private void ValidateInitialState()
         {
-            if(ContainsState(initialStateId) == false)
-            {
-                throw new InvalidInitialStateException();
-            }
+            if (_setInitialStateOnce == false)
+                throw new InvalidInitialStateException("Initial state was never set");
         }
 
         private void ValidateIsStarted()
@@ -179,11 +188,6 @@ namespace Paps.FSM
         public Transition<TState, TTrigger>[] GetTransitions()
         {
             return _transitions.ToArray();
-        }
-
-        private void InternalSetInitialState(TState stateId)
-        {
-            InitialState = stateId;
         }
 
         public void AddState(TState stateId, IState state)

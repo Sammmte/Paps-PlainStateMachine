@@ -18,7 +18,7 @@ guardEnemyFSM.AddState(State.SearchTarget, searchTarget);
 //You must specify a initial state before start using the state machine
 //otherwise an exception will be thrown
 
-guardEnemyFSM.SetInitialState(State.Patrol);
+guardEnemyFSM.InitialState = State.Patrol;
 
 //Define transitions between states.
 
@@ -155,7 +155,7 @@ Open the "Packages" folder inside your project folder. Open the manifest.json, y
 ```json
 {
    "dependencies": {
-        "com.unity.some-package" : "1.0.0"
+        "com.unity.some-package" : "1.0.0",
         "com.unity.some-other-package" : "1.0.0"
         //other packages...
     }
@@ -189,8 +189,8 @@ Finally you must add this package dependency to your project in the "dependencie
 ```json
 {
     "dependencies": {
-        "com.unity.some-package" : "1.0.0"
-        "com.unity.some-other-package" : "1.0.0"
+        "com.unity.some-package" : "1.0.0",
+        "com.unity.some-other-package" : "1.0.0",
         "paps.fsm" : "1.0.3-unity"
       }
 }
