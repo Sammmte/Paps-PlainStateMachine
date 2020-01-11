@@ -72,11 +72,11 @@ namespace Tests
                 {
                     if (cont == 1)
                     {
-                        item1 = state;
+                        item1 = fsm.GetStateById(state);
                     }
                     else
                     {
-                        item2 = state;
+                        item2 = fsm.GetStateById(state);
                     }
 
                     cont++;
@@ -1022,19 +1022,17 @@ namespace Tests
         }
 
         [Test]
-        public void ThrowAnExceptionIfUserTriesToSetAnNonExistentInitialState()
+        public void ThrowAnExceptionIfUserTriesToRemoveCurrentState()
         {
             var fsm = new FSM<int, int>();
 
-            Assert.Throws<StateIdNotAddedException>(() => fsm.InitialState = 1);
-        }
+            fsm.AddEmpty(1);
 
-        [Test]
-        public void ThrowAnExceptionIfUserTriesToGetInitialStateWithoutBeingSet()
-        {
-            var fsm = new FSM<int, int>();
+            fsm.InitialState = 1;
 
-            Assert.Throws<InvalidInitialStateException>(() => Debug.Log(fsm.InitialState));
+            fsm.Start();
+
+            Assert.Throws<InvalidOperationException>(() => fsm.RemoveState(1));
         }
     }
 }

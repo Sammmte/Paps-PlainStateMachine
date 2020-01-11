@@ -9,7 +9,7 @@ namespace Paps.FSM
 
         }
 
-        public StateIdAlreadyAddedException(string message) : base(message)
+        public StateIdAlreadyAddedException(string stateId) : base("State id " + stateId + " is already added to state machine")
         {
 
         }

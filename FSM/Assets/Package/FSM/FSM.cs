@@ -9,28 +9,10 @@ namespace Paps.FSM
         public int StateCount => _states.Count;
         public int TransitionCount => _transitions.Count;
         public bool IsStarted { get; private set; }
-        public TState InitialState
-        {
-            get
-            {
-                if (_setInitialStateOnce) return _initialState;
-                else throw new InvalidInitialStateException("Initial state was never set");
-            }
-
-            set
-            {
-                ValidateHasStateWithId(value);
-
-                _setInitialStateOnce = true;
-                _initialState = value;
-            }
-        }
+        public TState InitialState { get; set; }
 
         public event StateChange<TState, TTrigger> OnBeforeStateChanges;
         public event StateChange<TState, TTrigger> OnStateChanged;
-
-        private TState _initialState;
-        private bool _setInitialStateOnce;
 
         private Dictionary<TState, IState> _states;
         private HashSet<Transition<TState, TTrigger>> _transitions;
@@ -160,8 +142,8 @@ namespace Paps.FSM
 
         private void ValidateInitialState()
         {
-            if (_setInitialStateOnce == false)
-                throw new InvalidInitialStateException("Initial state was never set");
+            if (ContainsState(InitialState) == false)
+                throw new InvalidInitialStateException("State machine does not contains current initial state");
         }
 
         private void ValidateIsStarted()
@@ -205,7 +187,7 @@ namespace Paps.FSM
             }
             else if (_states.ContainsKey(stateId))
             {
-                throw new StateIdAlreadyAddedException("State id " + stateId + " was already added to state machine");
+                throw new StateIdAlreadyAddedException(stateId.ToString());
             }
         }
 
@@ -216,9 +198,19 @@ namespace Paps.FSM
 
         public void RemoveState(TState stateId)
         {
+            ValidateCanRemoveState(stateId);
+
             if(_states.Remove(stateId))
             {
                 RemoveTransitionsRelatedTo(stateId);
+            }
+        }
+
+        private void ValidateCanRemoveState(TState stateId)
+        {
+            if(IsStarted && _stateComparer.Equals(CurrentState, stateId))
+            {
+                throw new InvalidOperationException("Cannot remove current state");
             }
         }
 

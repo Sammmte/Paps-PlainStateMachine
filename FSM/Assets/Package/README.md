@@ -191,7 +191,7 @@ Finally you must add this package dependency to your project in the "dependencie
     "dependencies": {
         "com.unity.some-package" : "1.0.0",
         "com.unity.some-other-package" : "1.0.0",
-        "paps.fsm" : "1.0.3-unity"
+        "paps.fsm" : "1.0.3-unity" //or the version you want
       }
 }
 ```
@@ -213,7 +213,7 @@ Your manifest.json file should look like this:
   "dependencies": {
     "com.unity.some-package" : "1.0.0",
     "com.unity.some-other-package" : "1.0.0",
-    "paps.fsm": "3.1.0-unity"
+    "paps.fsm": "3.1.0-unity" //or the version you want
   }
 }
 ```

@@ -426,6 +426,94 @@ namespace Tests
             Assert.IsTrue(fsm.ContainsTransitionRelatedTo(3));
         }
 
-        
+        [Test]
+        public void ReturnCorrespondingValueWhenUserAsksIfContainsAllStates()
+        {
+            var fsm = new FSM<int, int>();
+
+            fsm.AddEmpty(1);
+            fsm.AddEmpty(2);
+            fsm.AddEmpty(3);
+
+            Assert.IsTrue(fsm.ContainsAll(1, 2, 3));
+            Assert.IsFalse(fsm.ContainsAll(1, 2, 3, 4));
+        }
+
+        [Test]
+        public void AddMultipleStates()
+        {
+            IState state1 = Substitute.For<IState>();
+            IState state2 = Substitute.For<IState>();
+
+            var fsm = new FSM<int, int>();
+
+            fsm.AddStates((1, state1), (2, state2));
+        }
+
+        [Test]
+        public void ThrowAnExceptionIfAStateIsAlreadyAddedWhenAddingMultipleStatesWithoutSideEffects()
+        {
+            var fsm = new FSM<int, int>();
+
+            IState state1 = Substitute.For<IState>();
+            IState state2 = Substitute.For<IState>();
+
+            fsm.AddState(2, state2);
+
+            Assert.Throws<StateIdAlreadyAddedException>(() => fsm.AddStates((1, state1), (2, state2)));
+            Assert.IsFalse(fsm.ContainsState(1));
+        }
+
+        [Test]
+        public void AddMultipleEmptyStates()
+        {
+            var fsm = new FSM<int, int>();
+
+            fsm.AddEmptyStates(1, 2, 3, 4);
+
+            Assert.IsTrue(fsm.ContainsAll(1, 2, 3, 4));
+        }
+
+        [Test]
+        public void ConfigureWithStatesAsTriggersWithNoReentrant()
+        {
+            var fsm = new FSM<int, int>();
+
+            fsm.AddEmptyStates(1, 2, 3);
+
+            fsm.ConfigureWithStatesAsTriggersWithNoReentrant();
+
+            Assert.IsTrue(
+                fsm.ContainsTransition(new Transition<int, int>(1, 2, 2)) &&
+                fsm.ContainsTransition(new Transition<int, int>(1, 3, 3)) &&
+                fsm.ContainsTransition(new Transition<int, int>(2, 1, 1)) &&
+                fsm.ContainsTransition(new Transition<int, int>(2, 3, 3)) &&
+                fsm.ContainsTransition(new Transition<int, int>(3, 1, 1)) &&
+                fsm.ContainsTransition(new Transition<int, int>(3, 2, 2))
+                );
+        }
+
+        [Test]
+        public void ConfigureWithStatesAsTriggers()
+        {
+            var fsm = new FSM<int, int>();
+
+            fsm.AddEmptyStates(1, 2, 3);
+
+            fsm.ConfigureWithStatesAsTriggers();
+
+            Assert.IsTrue(
+                fsm.ContainsTransition(new Transition<int, int>(1, 1, 1)) &&
+                fsm.ContainsTransition(new Transition<int, int>(1, 2, 2)) &&
+                fsm.ContainsTransition(new Transition<int, int>(1, 3, 3)) &&
+                fsm.ContainsTransition(new Transition<int, int>(2, 2, 2)) &&
+                fsm.ContainsTransition(new Transition<int, int>(2, 1, 1)) &&
+                fsm.ContainsTransition(new Transition<int, int>(2, 3, 3)) &&
+                fsm.ContainsTransition(new Transition<int, int>(3, 3, 3)) &&
+                fsm.ContainsTransition(new Transition<int, int>(3, 1, 1)) &&
+                fsm.ContainsTransition(new Transition<int, int>(3, 2, 2))
+                );
+        }
+
     }
 }

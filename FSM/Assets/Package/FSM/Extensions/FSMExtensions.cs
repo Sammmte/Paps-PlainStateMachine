@@ -11,7 +11,7 @@ namespace Paps.FSM.Extensions
         {
             TState[] states = fsm.GetStates();
 
-            foreach(TState state in states)
+            foreach (TState state in states)
             {
                 if (fsm.GetStateById(state) == stateRef)
                 {
@@ -21,14 +21,14 @@ namespace Paps.FSM.Extensions
 
             return false;
         }
-        
+
         public static T GetState<T, TState, TTrigger>(this IFSM<TState, TTrigger> fsm)
         {
             T candidate = default;
 
             TState[] states = fsm.GetStates();
 
-            foreach(TState state in states)
+            foreach (TState state in states)
             {
                 if (fsm.GetStateById(state) is T cast)
                 {
@@ -46,7 +46,7 @@ namespace Paps.FSM.Extensions
 
             TState[] states = fsm.GetStates();
 
-            foreach(TState state in states)
+            foreach (TState state in states)
             {
                 if (fsm.GetStateById(state) is T cast)
                 {
@@ -59,7 +59,7 @@ namespace Paps.FSM.Extensions
                 }
             }
 
-            if(statesList != null)
+            if (statesList != null)
             {
                 return statesList.ToArray();
             }
@@ -67,7 +67,7 @@ namespace Paps.FSM.Extensions
             return null;
         }
 
-        public static void AddTimerState<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId, 
+        public static void AddTimerState<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId,
             double milliseconds, Action<TState> onTimerElapsed)
         {
             fsm.AddState(stateId, new TimerState<TState, TTrigger>(fsm, stateId, milliseconds, onTimerElapsed));
@@ -77,7 +77,7 @@ namespace Paps.FSM.Extensions
         {
             fsm.AddState(stateId, new EmptyState());
         }
-        
+
         public static void AddWithEvents<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId,
             Action onEnter, Action onUpdate, Action onExit)
         {
@@ -96,13 +96,13 @@ namespace Paps.FSM.Extensions
             fsm.AddState(stateId, new DelegateState<TState, TTrigger>(onEnter, null, onExit));
         }
 
-        public static void ForeachState<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, ReturnTrueToFinishIteration<IState> finishable)
+        public static void ForeachState<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, ReturnTrueToFinishIteration<TState> finishable)
         {
             TState[] states = fsm.GetStates();
 
-            foreach(TState state in states)
+            foreach (TState state in states)
             {
-                if(finishable(fsm.GetStateById(state)))
+                if (finishable(state))
                 {
                     return;
                 }
@@ -126,7 +126,7 @@ namespace Paps.FSM.Extensions
         {
             TState[] states = fsm.GetStates();
 
-            foreach(TState state in states)
+            foreach (TState state in states)
             {
                 fsm.AddTransition(new Transition<TState, TTrigger>(state, trigger, stateTo));
             }
@@ -151,7 +151,7 @@ namespace Paps.FSM.Extensions
 
             Transition<TState, TTrigger>[] transitions = fsm.GetTransitions();
 
-            foreach(var transition in transitions)
+            foreach (var transition in transitions)
             {
                 if (transition.Trigger.Equals(trigger))
                 {
@@ -164,7 +164,7 @@ namespace Paps.FSM.Extensions
                 }
             }
 
-            if(transitionsList == null)
+            if (transitionsList == null)
             {
                 return null;
             }
@@ -229,8 +229,8 @@ namespace Paps.FSM.Extensions
         public static bool ContainsTransitionWithStateTo<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateTo)
         {
             Transition<TState, TTrigger>[] transitions = fsm.GetTransitions();
-            
-            foreach(var transition in transitions)
+
+            foreach (var transition in transitions)
             {
                 if (transition.StateTo.Equals(stateTo))
                 {
@@ -277,7 +277,7 @@ namespace Paps.FSM.Extensions
 
             Transition<TState, TTrigger>[] transitions = fsm.GetTransitions();
 
-            foreach(var transition in transitions)
+            foreach (var transition in transitions)
             {
                 if (transition.StateFrom.Equals(stateId) || transition.StateTo.Equals(stateId))
                 {
@@ -317,7 +317,7 @@ namespace Paps.FSM.Extensions
         {
             Transition<TState, TTrigger>[] transitions = fsm.GetTransitions();
 
-            foreach(var transition in transitions)
+            foreach (var transition in transitions)
             {
                 fsm.RemoveTransition(transition);
             }
@@ -333,6 +333,70 @@ namespace Paps.FSM.Extensions
             }
         }
 
-        
+        public static void ConfigureWithStatesAsTriggersWithNoReentrant<TState>(this IFSM<TState, TState> fsm)
+        {
+            TState[] states = fsm.GetStates();
+
+            for (int i = 0; i < states.Length; i++)
+            {
+                for (int j = 0; j < states.Length; j++)
+                {
+                    if (i != j)
+                    {
+                        fsm.AddTransition(new Transition<TState, TState>(states[i], states[j], states[j]));
+                    }
+                }
+            }
+        }
+
+        public static void ConfigureWithStatesAsTriggers<TState>(this IFSM<TState, TState> fsm)
+        {
+            TState[] states = fsm.GetStates();
+
+            for (int i = 0; i < states.Length; i++)
+            {
+                for (int j = 0; j < states.Length; j++)
+                {
+                    fsm.AddTransition(new Transition<TState, TState>(states[i], states[j], states[j]));
+                }
+            }
+        }
+
+        public static bool ContainsAll<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, params TState[] stateIds)
+        {
+            for(int i = 0; i < stateIds.Length; i++)
+            {
+                if (fsm.ContainsState(stateIds[i]) == false)
+                    return false;
+            }
+
+            return true;
+        }
+
+        public static void AddStates<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, params (TState, IState)[] states)
+        {
+            for (int i = 0; i < states.Length; i++)
+            {
+                if (fsm.ContainsState(states[i].Item1))
+                    throw new StateIdAlreadyAddedException(states[i].Item1.ToString());
+            }
+
+            for(int i = 0; i < states.Length; i++)
+            {
+                fsm.AddState(states[i].Item1, states[i].Item2);
+            }
+        }
+
+        public static void AddEmptyStates<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, params TState[] states)
+        {
+            (TState, IState)[] emptyStates = new(TState, IState)[states.Length];
+
+            for(int i = 0; i < emptyStates.Length; i++)
+            {
+                emptyStates[i] = (states[i], new EmptyState());
+            }
+
+            fsm.AddStates(emptyStates);
+        }
     }
 }
