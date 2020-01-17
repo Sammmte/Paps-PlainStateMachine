@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Paps.FSM
 {
@@ -79,21 +80,30 @@ namespace Paps.FSM
             _triggerComparer.SetEqualityComparer(triggerComparer);
         }
 
-        private static bool DefaultComparer<T>(T first, T second)
-        {
-            return first.Equals(second);
-        }
-
         public void Start()
         {
             ValidateCanStart();
 
+            TryStartOrRollback();
+        }
+
+        private void TryStartOrRollback()
+        {
             IsStarted = true;
 
             CurrentState = InitialState;
             _currentStateObject = GetStateById(CurrentState);
-
-            EnterCurrentState();
+            
+            try
+            {
+                EnterCurrentState();
+            }
+            catch
+            {
+                IsStarted = false;
+                _currentStateObject = null;
+                throw;
+            }
         }
 
         private void ValidateCanStart()
@@ -123,13 +133,29 @@ namespace Paps.FSM
         {
             if(IsStarted)
             {
-                _isExiting = true;
+                TryStopOrRollback();
+            }
+        }
 
+        private void TryStopOrRollback()
+        {
+            _isExiting = true;
+
+            try
+            {
                 ExitCurrentState();
 
                 _isExiting = false;
 
                 IsStarted = false;
+            }
+            catch
+            {
+                _isExiting = false;
+
+                IsStarted = true;
+
+                throw;
             }
         }
 

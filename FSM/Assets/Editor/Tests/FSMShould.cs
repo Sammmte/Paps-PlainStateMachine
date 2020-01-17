@@ -1019,5 +1019,43 @@ namespace Tests
 
             Assert.Throws<InvalidOperationException>(() => fsm.RemoveState(1));
         }
+
+        [Test]
+        public void PreventSideEffectsIfAnExceptionIsThrownWhenEntering()
+        {
+            var fsm = new FSM<int, int>();
+
+            IState state1 = Substitute.For<IState>();
+            
+            fsm.AddState(1, state1);
+            
+            state1.When(state => state.Enter())
+                .Do(callbackInfo => throw new Exception());
+
+            fsm.InitialState = 1;
+
+            Assert.Throws<Exception>(fsm.Start);
+            Assert.IsFalse(fsm.IsStarted);
+        }
+
+        [Test]
+        public void PreventSideEffectsIfAnExceptionIsThrownWhenExiting()
+        {
+            var fsm = new FSM<int, int>();
+
+            IState state1 = Substitute.For<IState>();
+            
+            fsm.AddState(1, state1);
+            
+            state1.When(state => state.Exit())
+                .Do(callbackInfo => throw new Exception());
+
+            fsm.InitialState = 1;
+
+            fsm.Start();
+
+            Assert.Throws<Exception>(fsm.Stop);
+            Assert.IsTrue(fsm.IsStarted);
+        }
     }
 }
