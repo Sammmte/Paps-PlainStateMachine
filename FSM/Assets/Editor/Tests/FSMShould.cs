@@ -847,21 +847,6 @@ namespace Tests
         }
 
         [Test]
-        public void BeStoppedWhenCallingTheExitOfStateAfterUserRequestedToStop()
-        {
-            var fsm = new FSM<int, int>();
-
-            Action onEnter = () => fsm.Stop();
-            Action onExit = () => Assert.IsFalse(fsm.IsStarted);
-
-            fsm.AddWithEvents(1, onEnter, onExit);
-
-            fsm.InitialState = 1;
-
-            fsm.Start();
-        }
-
-        [Test]
         public void ThrowAnExceptionIfUserTriesToTransitionOnExitOfStateWhenStopped()
         {
             var fsm = new FSM<int, int>();
@@ -873,7 +858,7 @@ namespace Tests
 
             fsm.InitialState = 1;
 
-            Assert.Throws<StateMachineNotStartedException>(() => fsm.Start());
+            Assert.Throws<StateMachineExitingException>(() => fsm.Start());
         }
 
         [Test]

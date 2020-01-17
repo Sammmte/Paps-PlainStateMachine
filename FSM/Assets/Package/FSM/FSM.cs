@@ -37,6 +37,7 @@ namespace Paps.FSM
         }
         private IState _currentStateObject;
         private bool _isTransitioning;
+        private bool _isExiting;
 
         private StateEqualityComparer _stateComparer;
         private TriggerEqualityComparer _triggerComparer;
@@ -122,9 +123,13 @@ namespace Paps.FSM
         {
             if(IsStarted)
             {
-                IsStarted = false;
+                _isExiting = true;
 
                 ExitCurrentState();
+
+                _isExiting = false;
+
+                IsStarted = false;
             }
         }
 
@@ -138,6 +143,11 @@ namespace Paps.FSM
         {
             ValidateIsNotStarted();
             ValidateHasStateWithId(initialStateId);
+        }
+
+        private void ValidateIsNotExiting()
+        {
+            if (_isExiting) throw new StateMachineExitingException("Cannot perform operation because the state machine is exiting");
         }
 
         private void ValidateInitialState()
@@ -293,6 +303,7 @@ namespace Paps.FSM
         public void Trigger(TTrigger trigger)
         {
             ValidateIsStarted();
+            ValidateIsNotExiting();
 
             _transitionRequestQueue.Enqueue(new TransitionRequest() { trigger = trigger });
 
