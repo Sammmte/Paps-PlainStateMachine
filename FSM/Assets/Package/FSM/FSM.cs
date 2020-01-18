@@ -84,26 +84,12 @@ namespace Paps.FSM
         {
             ValidateCanStart();
 
-            TryStartOrRollback();
-        }
-
-        private void TryStartOrRollback()
-        {
             IsStarted = true;
 
             CurrentState = InitialState;
             _currentStateObject = GetStateById(CurrentState);
-            
-            try
-            {
-                EnterCurrentState();
-            }
-            catch
-            {
-                IsStarted = false;
-                _currentStateObject = null;
-                throw;
-            }
+
+            EnterCurrentState();
         }
 
         private void ValidateCanStart()
@@ -133,30 +119,28 @@ namespace Paps.FSM
         {
             if(IsStarted)
             {
-                TryStopOrRollback();
+                ExitStateSafely();
             }
         }
 
-        private void TryStopOrRollback()
+        private void ExitStateSafely()
         {
             _isExiting = true;
-
+            
             try
             {
                 ExitCurrentState();
-
-                _isExiting = false;
-
-                IsStarted = false;
             }
             catch
             {
                 _isExiting = false;
-
-                IsStarted = true;
+                IsStarted = false;
 
                 throw;
             }
+
+            _isExiting = false;
+            IsStarted = false;
         }
 
         private void ExitCurrentState()
@@ -337,6 +321,7 @@ namespace Paps.FSM
             {
                 _isTransitioning = true;
                 TriggerQueued();
+                _isTransitioning = false;
             }
         }
         
@@ -366,8 +351,6 @@ namespace Paps.FSM
                     throw;
                 }
             }
-
-            _isTransitioning = false;
         }
 
         private bool TryGetStateTo(TTrigger trigger, out TState stateTo)

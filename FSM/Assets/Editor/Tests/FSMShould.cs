@@ -1021,7 +1021,7 @@ namespace Tests
         }
 
         [Test]
-        public void PreventSideEffectsIfAnExceptionIsThrownWhenEntering()
+        public void EnterSafely()
         {
             var fsm = new FSM<int, int>();
 
@@ -1035,11 +1035,11 @@ namespace Tests
             fsm.InitialState = 1;
 
             Assert.Throws<Exception>(fsm.Start);
-            Assert.IsFalse(fsm.IsStarted);
+            Assert.IsTrue(fsm.IsStarted);
         }
 
         [Test]
-        public void PreventSideEffectsIfAnExceptionIsThrownWhenExiting()
+        public void ExitSafely()
         {
             var fsm = new FSM<int, int>();
 
@@ -1055,7 +1055,7 @@ namespace Tests
             fsm.Start();
 
             Assert.Throws<Exception>(fsm.Stop);
-            Assert.IsTrue(fsm.IsStarted);
+            Assert.IsFalse(fsm.IsStarted);
         }
     }
 }
