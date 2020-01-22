@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Paps.FSM
 {
-    public delegate void StateChange<TState, TTrigger>(IFSM<TState, TTrigger> fsm);
+    public delegate void StateChange<TState, TTrigger>(TState previous, TTrigger trigger, TState current);
 
     public interface IFSM<TState, TTrigger>
     {

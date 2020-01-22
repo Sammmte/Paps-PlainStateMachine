@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Paps.FSM
 {
@@ -17,9 +16,11 @@ namespace Paps.FSM
 
         private Dictionary<TState, IState> _states;
         private HashSet<Transition<TState, TTrigger>> _transitions;
-        private Dictionary<Transition<TState, TTrigger>, List<IGuardCondition>> guardConditions;
+        private Dictionary<Transition<TState, TTrigger>, List<IGuardCondition>> _guardConditions;
 
         private Queue<TransitionRequest> _transitionRequestQueue;
+
+        private List<Exception> _stateEventExceptionList;
 
         private TState _currentState;
         public TState CurrentState
@@ -37,8 +38,8 @@ namespace Paps.FSM
             }
         }
         private IState _currentStateObject;
-        private bool _isTransitioning;
-        private bool _isExiting;
+        private bool _isEvaluatingTransitions;
+        private bool _isStopping;
 
         private StateEqualityComparer _stateComparer;
         private TriggerEqualityComparer _triggerComparer;
@@ -57,8 +58,9 @@ namespace Paps.FSM
 
             _states = new Dictionary<TState, IState>(_stateComparer);
             _transitions = new HashSet<Transition<TState, TTrigger>>(_transitionEqualityComparer);
-            guardConditions = new Dictionary<Transition<TState, TTrigger>, List<IGuardCondition>>(_transitionEqualityComparer);
+            _guardConditions = new Dictionary<Transition<TState, TTrigger>, List<IGuardCondition>>(_transitionEqualityComparer);
             _transitionRequestQueue = new Queue<TransitionRequest>();
+            _stateEventExceptionList = new List<Exception>();
         }
 
         public FSM() : this(EqualityComparer<TState>.Default, EqualityComparer<TTrigger>.Default)
@@ -89,7 +91,32 @@ namespace Paps.FSM
             CurrentState = InitialState;
             _currentStateObject = GetStateById(CurrentState);
 
-            EnterCurrentState();
+            DoEventSafely(EnterCurrentState, _stateEventExceptionList);
+
+            ThrowSingleOrAggregateExceptionAndClear();
+        }
+
+        private void ThrowSingleOrAggregateExceptionAndClear()
+        {
+            if (_stateEventExceptionList.Count > 0)
+            {
+                if (_stateEventExceptionList.Count == 1)
+                {
+                    var singleException = _stateEventExceptionList.First();
+                    _stateEventExceptionList.Clear();
+                    throw singleException;
+                }
+                else
+                {
+                    var aggregateException = new AggregateException(_stateEventExceptionList);
+                    _stateEventExceptionList.Clear();
+                    throw aggregateException;
+                }
+            }
+            else
+            {
+                _stateEventExceptionList.Clear();
+            }
         }
 
         private void ValidateCanStart()
@@ -119,28 +146,12 @@ namespace Paps.FSM
         {
             if(IsStarted)
             {
-                ExitStateSafely();
-            }
-        }
-
-        private void ExitStateSafely()
-        {
-            _isExiting = true;
-            
-            try
-            {
-                ExitCurrentState();
-            }
-            catch
-            {
-                _isExiting = false;
+                _isStopping = true;
+                DoEventSafely(ExitCurrentState, _stateEventExceptionList);
+                _isStopping = false;
                 IsStarted = false;
-
-                throw;
+                ThrowSingleOrAggregateExceptionAndClear();
             }
-
-            _isExiting = false;
-            IsStarted = false;
         }
 
         private void ExitCurrentState()
@@ -157,7 +168,7 @@ namespace Paps.FSM
 
         private void ValidateIsNotExiting()
         {
-            if (_isExiting) throw new StateMachineExitingException("Cannot perform operation because the state machine is exiting");
+            if (_isStopping) throw new StateMachineExitingException("Cannot perform operation because the state machine is exiting");
         }
 
         private void ValidateInitialState()
@@ -289,7 +300,7 @@ namespace Paps.FSM
 
         private void RemoveAllGuardConditionsRelatedTo(Transition<TState, TTrigger> transition)
         {
-            guardConditions.Remove(transition);
+            _guardConditions.Remove(transition);
         }
 
         private void ValidateHasStateWithId(TState stateId)
@@ -317,11 +328,11 @@ namespace Paps.FSM
 
             _transitionRequestQueue.Enqueue(new TransitionRequest() { trigger = trigger });
 
-            if (_isTransitioning == false)
+            if (_isEvaluatingTransitions == false)
             {
-                _isTransitioning = true;
+                _isEvaluatingTransitions = true;
                 TriggerQueued();
-                _isTransitioning = false;
+                _isEvaluatingTransitions = false;
             }
         }
         
@@ -337,13 +348,13 @@ namespace Paps.FSM
                 {
                     if(TryGetStateTo(transition.trigger, out stateTo))
                     {
-                        Transition(stateTo);
+                        Transition(transition.trigger, stateTo);
                     }
                 }
                 catch(MultipleValidTransitionsFromSameStateException e)
                 {
                     _transitionRequestQueue.Clear();
-                    _isTransitioning = false;
+                    _isEvaluatingTransitions = false;
                     throw;
                 }
                 catch
@@ -381,18 +392,34 @@ namespace Paps.FSM
             return modifiedFlag;
         } 
 
-        private void Transition(TState stateTo)
+        private void Transition(TTrigger trigger, TState stateTo)
         {
-            CallOnBeforeStateChangesEvent();
+            TState previous = CurrentState;
 
-            ExitCurrentState();
-            
+            CallOnBeforeStateChangesEventSafely(previous, trigger, stateTo, _stateEventExceptionList);
+
+            DoEventSafely(ExitCurrentState, _stateEventExceptionList);
+
             CurrentState = stateTo;
             _currentStateObject = GetStateById(CurrentState);
 
-            CallOnStateChangedEvent();
+            CallOnStateChangedEventSafely(previous, trigger, stateTo, _stateEventExceptionList);
 
-            EnterCurrentState();
+            DoEventSafely(EnterCurrentState, _stateEventExceptionList);
+
+            ThrowSingleOrAggregateExceptionAndClear();
+        }
+
+        private void DoEventSafely(Action action, List<Exception> possibleExceptionsList)
+        {
+            try
+            {
+                action();
+            }
+            catch(Exception e)
+            {
+                possibleExceptionsList.Add(e);
+            }
         }
 
         private Transition<TState, TTrigger> GetTransition(TState stateFrom, TTrigger trigger, TState stateTo)
@@ -415,9 +442,9 @@ namespace Paps.FSM
 
         private bool AllGuardConditionsTrueOrHasNone(Transition<TState, TTrigger> transition)
         {
-            if(guardConditions.ContainsKey(transition))
+            if(_guardConditions.ContainsKey(transition))
             {
-                var guardConditionsOfTransition = guardConditions[transition];
+                var guardConditionsOfTransition = _guardConditions[transition];
 
                 foreach (var guardCondition in guardConditionsOfTransition)
                 {
@@ -431,14 +458,32 @@ namespace Paps.FSM
             return true;
         }
 
-        private void CallOnStateChangedEvent()
+        private void CallOnStateChangedEventSafely(TState previous, TTrigger trigger, TState current, List<Exception> possibleExceptions)
         {
-            OnStateChanged?.Invoke(this);
+            if (OnStateChanged == null) return;
+
+            var invocationList = OnStateChanged.GetInvocationList();
+
+            foreach (var method in invocationList)
+            {
+                StateChange<TState, TTrigger> cast = (StateChange<TState, TTrigger>)method;
+
+                DoEventSafely(() => cast(previous, trigger, current), possibleExceptions);
+            }
         }
 
-        private void CallOnBeforeStateChangesEvent()
+        private void CallOnBeforeStateChangesEventSafely(TState previous, TTrigger trigger, TState current, List<Exception> possibleExceptions)
         {
-            OnBeforeStateChanges?.Invoke(this);
+            if (OnBeforeStateChanges == null) return;
+
+            var invocationList = OnBeforeStateChanges.GetInvocationList();
+
+            foreach(var method in invocationList)
+            {
+                StateChange<TState, TTrigger> cast = (StateChange<TState, TTrigger>)method;
+
+                DoEventSafely(() => cast(previous, trigger, current), possibleExceptions);
+            }
         }
 
         public void AddGuardConditionTo(Transition<TState, TTrigger> transition, IGuardCondition guardCondition)
@@ -446,12 +491,12 @@ namespace Paps.FSM
             ValidateHasTransition(transition);
             ValidateGuardConditionIsNotNull(guardCondition);
 
-            if(guardConditions.ContainsKey(transition) == false)
+            if(_guardConditions.ContainsKey(transition) == false)
             {
-                guardConditions.Add(transition, new List<IGuardCondition>());
+                _guardConditions.Add(transition, new List<IGuardCondition>());
             }
 
-            guardConditions[transition].Add(guardCondition);
+            _guardConditions[transition].Add(guardCondition);
         }
 
         public void RemoveGuardConditionFrom(Transition<TState, TTrigger> transition, IGuardCondition guardCondition)
@@ -459,22 +504,22 @@ namespace Paps.FSM
             ValidateHasTransition(transition);
             ValidateGuardConditionIsNotNull(guardCondition);
 
-            if(guardConditions.ContainsKey(transition))
+            if(_guardConditions.ContainsKey(transition))
             {
-                guardConditions[transition].Remove(guardCondition);
+                _guardConditions[transition].Remove(guardCondition);
 
-                if(guardConditions[transition].Count == 0)
+                if(_guardConditions[transition].Count == 0)
                 {
-                    guardConditions.Remove(transition);
+                    _guardConditions.Remove(transition);
                 }
             }
         }
 
         public bool ContainsGuardConditionOn(Transition<TState, TTrigger> transition, IGuardCondition guardCondition)
         {
-            if(guardConditions.ContainsKey(transition))
+            if(_guardConditions.ContainsKey(transition))
             {
-                return guardConditions[transition].Contains(guardCondition);
+                return _guardConditions[transition].Contains(guardCondition);
             }
 
             return false;
@@ -482,11 +527,11 @@ namespace Paps.FSM
 
         public KeyValuePair<Transition<TState, TTrigger>, IGuardCondition[]>[] GetGuardConditions()
         {
-            var keyValues = new KeyValuePair<Transition<TState, TTrigger>, IGuardCondition[]>[guardConditions.Count];
+            var keyValues = new KeyValuePair<Transition<TState, TTrigger>, IGuardCondition[]>[_guardConditions.Count];
 
             int index = 0;
 
-            foreach(var keyValue in guardConditions)
+            foreach(var keyValue in _guardConditions)
             {
                 keyValues[index] = new KeyValuePair<Transition<TState, TTrigger>, IGuardCondition[]>(keyValue.Key, keyValue.Value.ToArray());
                 index++;

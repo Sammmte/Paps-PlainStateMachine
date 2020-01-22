@@ -427,8 +427,8 @@ namespace Tests
             fsm.Trigger(0);
 
             stateChangedEventHandler
-                .Received()
-                .Invoke(fsm);
+                .Received(1)
+                .Invoke(1, 0, 2);
         }
 
         [Test]
@@ -455,8 +455,8 @@ namespace Tests
             fsm.Trigger(0);
 
             stateChangedEventHandler
-                .Received()
-                .Invoke(fsm);
+                .Received(1)
+                .Invoke(1, 0, 2);
         }
 
         [Test]
@@ -1056,6 +1056,64 @@ namespace Tests
 
             Assert.Throws<Exception>(fsm.Stop);
             Assert.IsFalse(fsm.IsStarted);
+        }
+
+        [Test]
+        public void ThrowAnAggregateExceptionIfAnyEventThrowsAnExceptionDuringTransition()
+        {
+            var fsm = new FSM<int, int>();
+
+            IState state1 = Substitute.For<IState>();
+            IState state2 = Substitute.For<IState>();
+
+            var exception1 = new InvalidOperationException();
+            var exception2 = new InvalidOperationException();
+            var exception3 = new InvalidOperationException();
+            var exception4 = new InvalidOperationException();
+
+            state1.When(state => state.Exit()).Do(callback => throw exception1);
+            state2.When(state => state.Enter()).Do(callback => throw exception2);
+
+            StateChange<int, int> onBeforeStateChangeEventHandler1 = Substitute.For<StateChange<int, int>>();
+            StateChange<int, int> onStateChangedEventHandler1 = Substitute.For<StateChange<int, int>>();
+            StateChange<int, int> onBeforeStateChangeEventHandler2 = Substitute.For<StateChange<int, int>>();
+            StateChange<int, int> onStateChangedEventHandler2 = Substitute.For<StateChange<int, int>>();
+
+            onBeforeStateChangeEventHandler1.When(call => call.Invoke(1, 0, 2)).Do(callback => throw exception3);
+            onStateChangedEventHandler1.When(call => call.Invoke(1, 0, 2)).Do(callback => throw exception4);
+
+            fsm.AddState(1, state1);
+            fsm.AddState(2, state2);
+
+            fsm.OnBeforeStateChanges += onBeforeStateChangeEventHandler1;
+            fsm.OnBeforeStateChanges += onBeforeStateChangeEventHandler2;
+            fsm.OnStateChanged += onStateChangedEventHandler1;
+            fsm.OnStateChanged += onStateChangedEventHandler2;
+
+            fsm.AddTransition(new Transition<int, int>(1, 0, 2));
+
+            fsm.InitialState = 1;
+
+            fsm.Start();
+
+            var aggregateException = Assert.Throws<AggregateException>(() => fsm.Trigger(0));
+
+            onBeforeStateChangeEventHandler1.Received(1).Invoke(1, 0, 2);
+            onStateChangedEventHandler1.Received(1).Invoke(1, 0, 2);
+            onBeforeStateChangeEventHandler2.Received(1).Invoke(1, 0, 2);
+            onStateChangedEventHandler2.Received(1).Invoke(1, 0, 2);
+
+            state1.Received(1).Exit();
+            state2.Received(1).Enter();
+
+            Assert.IsTrue(aggregateException.InnerExceptions.Count == 4);
+            Assert.IsTrue(
+                aggregateException.InnerExceptions.Contains(exception1) && 
+                aggregateException.InnerExceptions.Contains(exception2) &&
+                aggregateException.InnerExceptions.Contains(exception3) &&
+                aggregateException.InnerExceptions.Contains(exception4)
+                );
+            Assert.IsTrue(fsm.CurrentState == 2);
         }
     }
 }
