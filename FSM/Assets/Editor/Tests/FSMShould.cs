@@ -409,7 +409,7 @@ namespace Tests
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
 
-            var stateChangedEventHandler = Substitute.For<StateChange<int, int>>();
+            var stateChangedEventHandler = Substitute.For<StateChanged<int, int>>();
 
             var fsm = new FSM<int, int>();
 
@@ -437,7 +437,7 @@ namespace Tests
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
 
-            var stateChangedEventHandler = Substitute.For<StateChange<int, int>>();
+            var stateChangedEventHandler = Substitute.For<StateChanged<int, int>>();
 
             var fsm = new FSM<int, int>();
 
@@ -487,7 +487,7 @@ namespace Tests
                 return true;
             }
         }
-        
+
         [Test]
         public void ThrowAnExceptionIfUserTriesToAddOrRemoveANullGuardCondition()
         {
@@ -708,7 +708,7 @@ namespace Tests
                         fsm.Trigger(transition3.Trigger);
                         fsm.Trigger(transition4.Trigger);
                         state3.DidNotReceive().Enter();
-                    }, 
+                    },
                     null, null);
 
 
@@ -733,7 +733,7 @@ namespace Tests
         public void ThrowAnExceptionWhenUserTriesToTransitionAndGuardConditionsAreNotMutuallyExclusive()
         {
             var fsm = new FSM<int, int>();
-            
+
             fsm.AddEmpty(1);
             fsm.AddEmpty(2);
             fsm.AddEmpty(3);
@@ -765,7 +765,7 @@ namespace Tests
         public void ThrowAnExceptionWhenUserTriesToTransitionAndMultipleTransitionsWithSameSourceAndTriggerHasNoGuardConditions()
         {
             var fsm = new FSM<int, int>();
-            
+
             fsm.AddEmpty(1);
             fsm.AddEmpty(2);
             fsm.AddEmpty(3);
@@ -862,6 +862,25 @@ namespace Tests
         }
 
         [Test]
+        public void AddAndRemoveEventHandlerToStates()
+        {
+            var fsm = new FSM<int, int>();
+
+            fsm.AddEmpty(1);
+
+            IStateEventHandler eventHandler = Substitute.For<IStateEventHandler>();
+
+            fsm.SubscribeEventHandlerTo(1, eventHandler);
+
+            Assert.IsTrue(fsm.HasEventListener(1, eventHandler));
+
+            fsm.UnsubscribeEventHandlerOf(1);
+
+            Assert.IsFalse(fsm.HasEventListener(1));
+            Assert.IsFalse(fsm.HasEventListener(1, eventHandler));
+        }
+
+        [Test]
         public void SendEventToEventReceivers()
         {
             var fsm = new FSM<int, int>();
@@ -869,14 +888,20 @@ namespace Tests
             IState state1 = Substitute.For<IState>();
             IState state2 = Substitute.For<IState>();
 
+            IStateEventHandler eventHandler1 = Substitute.For<IStateEventHandler>();
+            IStateEventHandler eventHandler2 = Substitute.For<IStateEventHandler>();
+
             IEvent stateEvent = Substitute.For<IEvent>();
 
             stateEvent.GetEventData().Returns(10);
-
-            state1.HandleEvent(stateEvent).Returns(true);
+            
+            eventHandler1.HandleEvent(stateEvent).Returns(true);
 
             fsm.AddState(1, state1);
             fsm.AddState(2, state2);
+
+            fsm.SubscribeEventHandlerTo(1, eventHandler1);
+            fsm.SubscribeEventHandlerTo(2, eventHandler2);
 
             fsm.AddTransition(new Transition<int, int>(1, 0, 2));
 
@@ -886,13 +911,13 @@ namespace Tests
 
             Assert.IsTrue(fsm.SendEvent(stateEvent));
 
-            state1.Received().HandleEvent(stateEvent);
+            eventHandler1.Received().HandleEvent(stateEvent);
 
             fsm.Trigger(0);
 
             Assert.IsFalse(fsm.SendEvent(stateEvent));
 
-            state2.Received().HandleEvent(stateEvent);
+            eventHandler2.Received().HandleEvent(stateEvent);
         }
 
         [Test]
@@ -1074,10 +1099,10 @@ namespace Tests
             state1.When(state => state.Exit()).Do(callback => throw exception1);
             state2.When(state => state.Enter()).Do(callback => throw exception2);
 
-            StateChange<int, int> onBeforeStateChangeEventHandler1 = Substitute.For<StateChange<int, int>>();
-            StateChange<int, int> onStateChangedEventHandler1 = Substitute.For<StateChange<int, int>>();
-            StateChange<int, int> onBeforeStateChangeEventHandler2 = Substitute.For<StateChange<int, int>>();
-            StateChange<int, int> onStateChangedEventHandler2 = Substitute.For<StateChange<int, int>>();
+            StateChanged<int, int> onBeforeStateChangeEventHandler1 = Substitute.For<StateChanged<int, int>>();
+            StateChanged<int, int> onStateChangedEventHandler1 = Substitute.For<StateChanged<int, int>>();
+            StateChanged<int, int> onBeforeStateChangeEventHandler2 = Substitute.For<StateChanged<int, int>>();
+            StateChanged<int, int> onStateChangedEventHandler2 = Substitute.For<StateChanged<int, int>>();
 
             onBeforeStateChangeEventHandler1.When(call => call.Invoke(1, 0, 2)).Do(callback => throw exception3);
             onStateChangedEventHandler1.When(call => call.Invoke(1, 0, 2)).Do(callback => throw exception4);

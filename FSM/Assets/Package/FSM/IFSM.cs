@@ -1,22 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Paps.FSM
+﻿namespace Paps.FSM
 {
-    public delegate void StateChange<TState, TTrigger>(TState previous, TTrigger trigger, TState current);
-
     public interface IFSM<TState, TTrigger>
     {
         int StateCount { get; }
         int TransitionCount { get; }
 
-        event StateChange<TState, TTrigger> OnBeforeStateChanges;
-        event StateChange<TState, TTrigger> OnStateChanged;
-
-        bool IsStarted { get; }
-
         TState InitialState { get; set; }
-        TState CurrentState { get; }
 
         void AddState(TState stateId, IState state);
         void RemoveState(TState stateId);
@@ -34,12 +23,8 @@ namespace Paps.FSM
 
         IState GetStateById(TState stateId);
 
-        void Start();
-        void Update();
-        void Stop();
-
         void Trigger(TTrigger trigger);
 
-        bool SendEvent(IEvent messageEvent);
+        bool IsInState(TState stateId);
     }
 }

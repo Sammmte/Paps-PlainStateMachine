@@ -4,19 +4,21 @@ using System.Linq;
 
 namespace Paps.FSM
 {
-    public class FSM<TState, TTrigger> : IFSM<TState, TTrigger>, IFSMWithGuardConditions<TState, TTrigger>
+    public class FSM<TState, TTrigger> : IFSM<TState, TTrigger>, IFSMStartable<TState, TTrigger>, IFSMUpdatable<TState, TTrigger>, 
+        IFSMEventDispatcher<TState, TTrigger>, IFSMWithGuardConditions<TState, TTrigger>
     {
         public int StateCount => _states.Count;
         public int TransitionCount => _transitions.Count;
         public bool IsStarted { get; private set; }
         public TState InitialState { get; set; }
 
-        public event StateChange<TState, TTrigger> OnBeforeStateChanges;
-        public event StateChange<TState, TTrigger> OnStateChanged;
+        public event StateChanged<TState, TTrigger> OnBeforeStateChanges;
+        public event StateChanged<TState, TTrigger> OnStateChanged;
 
         private Dictionary<TState, IState> _states;
         private HashSet<Transition<TState, TTrigger>> _transitions;
         private Dictionary<Transition<TState, TTrigger>, List<IGuardCondition>> _guardConditions;
+        private Dictionary<TState, IStateEventHandler> _stateEventHandlers;
 
         private Queue<TransitionRequest> _transitionRequestQueue;
 
@@ -59,6 +61,7 @@ namespace Paps.FSM
             _states = new Dictionary<TState, IState>(_stateComparer);
             _transitions = new HashSet<Transition<TState, TTrigger>>(_transitionEqualityComparer);
             _guardConditions = new Dictionary<Transition<TState, TTrigger>, List<IGuardCondition>>(_transitionEqualityComparer);
+            _stateEventHandlers = new Dictionary<TState, IStateEventHandler>(_stateComparer);
             _transitionRequestQueue = new Queue<TransitionRequest>();
             _stateEventExceptionList = new List<Exception>();
         }
@@ -466,7 +469,7 @@ namespace Paps.FSM
 
             foreach (var method in invocationList)
             {
-                StateChange<TState, TTrigger> cast = (StateChange<TState, TTrigger>)method;
+                StateChanged<TState, TTrigger> cast = (StateChanged<TState, TTrigger>)method;
 
                 DoEventSafely(() => cast(previous, trigger, current), possibleExceptions);
             }
@@ -480,7 +483,7 @@ namespace Paps.FSM
 
             foreach(var method in invocationList)
             {
-                StateChange<TState, TTrigger> cast = (StateChange<TState, TTrigger>)method;
+                StateChanged<TState, TTrigger> cast = (StateChanged<TState, TTrigger>)method;
 
                 DoEventSafely(() => cast(previous, trigger, current), possibleExceptions);
             }
@@ -556,11 +559,50 @@ namespace Paps.FSM
             }
         }
 
+        private void RemoveEventHandlersOf(TState stateId)
+        {
+            _stateEventHandlers.Remove(stateId);
+        }
+
+        public void SubscribeEventHandlerTo(TState stateId, IStateEventHandler eventHandler)
+        {
+            ValidateHasStateWithId(stateId);
+
+            _stateEventHandlers.Add(stateId, eventHandler);
+        }
+
+        public void UnsubscribeEventHandlerOf(TState stateId)
+        {
+            ValidateHasStateWithId(stateId);
+
+            _stateEventHandlers.Remove(stateId);
+        }
+
+        public bool HasEventListener(TState stateId, IStateEventHandler eventListener)
+        {
+            return HasEventListener(stateId) && _stateEventHandlers[stateId] == eventListener;
+        }
+
+        public bool HasEventListener(TState stateId)
+        {
+            return _stateEventHandlers.ContainsKey(stateId);
+        }
+
         public bool SendEvent(IEvent messageEvent)
         {
             ValidateIsStarted();
 
-            return _currentStateObject.HandleEvent(messageEvent);
+            if(_stateEventHandlers.ContainsKey(CurrentState))
+            {
+                return _stateEventHandlers[CurrentState].HandleEvent(messageEvent);
+            }
+
+            return false;
+        }
+
+        public bool IsInState(TState stateId)
+        {
+            return IsStarted && _stateComparer.Equals(CurrentState, stateId);
         }
 
         private struct TransitionRequest
