@@ -398,5 +398,18 @@ namespace Paps.FSM.Extensions
 
             fsm.AddStates(emptyStates);
         }
+
+        public static void AddComposite<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, TState stateId, params IState[] states)
+        {
+            fsm.AddState(stateId, new CompositeState(states));
+        }
+
+        public static void SubscribeEventHandlersTo<TState, TTrigger>(this IFSMEventDispatcher<TState, TTrigger> fsm, TState stateId, params IStateEventHandler[] eventHandlers)
+        {
+            foreach(var eventHandler in eventHandlers)
+            {
+                fsm.SubscribeEventHandlerTo(stateId, eventHandler);
+            }
+        }
     }
 }

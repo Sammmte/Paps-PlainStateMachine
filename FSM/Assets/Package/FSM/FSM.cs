@@ -18,7 +18,7 @@ namespace Paps.FSM
         private Dictionary<TState, IState> _states;
         private HashSet<Transition<TState, TTrigger>> _transitions;
         private Dictionary<Transition<TState, TTrigger>, List<IGuardCondition>> _guardConditions;
-        private Dictionary<TState, IStateEventHandler> _stateEventHandlers;
+        private Dictionary<TState, HashSet<IStateEventHandler>> _stateEventHandlers;
 
         private Queue<TransitionRequest> _transitionRequestQueue;
 
@@ -61,7 +61,7 @@ namespace Paps.FSM
             _states = new Dictionary<TState, IState>(_stateComparer);
             _transitions = new HashSet<Transition<TState, TTrigger>>(_transitionEqualityComparer);
             _guardConditions = new Dictionary<Transition<TState, TTrigger>, List<IGuardCondition>>(_transitionEqualityComparer);
-            _stateEventHandlers = new Dictionary<TState, IStateEventHandler>(_stateComparer);
+            _stateEventHandlers = new Dictionary<TState, HashSet<IStateEventHandler>>(_stateComparer);
             _transitionRequestQueue = new Queue<TransitionRequest>();
             _stateEventExceptionList = new List<Exception>();
         }
@@ -568,19 +568,28 @@ namespace Paps.FSM
         {
             ValidateHasStateWithId(stateId);
 
-            _stateEventHandlers.Add(stateId, eventHandler);
+            if (_stateEventHandlers.ContainsKey(stateId) == false)
+                _stateEventHandlers.Add(stateId, new HashSet<IStateEventHandler>());
+
+            _stateEventHandlers[stateId].Add(eventHandler);
         }
 
-        public void UnsubscribeEventHandlerOf(TState stateId)
+        public void UnsubscribeEventHandlerFrom(TState stateId, IStateEventHandler eventHandler)
         {
             ValidateHasStateWithId(stateId);
 
-            _stateEventHandlers.Remove(stateId);
+            if(_stateEventHandlers.ContainsKey(stateId))
+            {
+                _stateEventHandlers[stateId].Remove(eventHandler);
+
+                if (_stateEventHandlers[stateId].Count == 0)
+                    _stateEventHandlers.Remove(stateId);
+            }  
         }
 
         public bool HasEventListener(TState stateId, IStateEventHandler eventListener)
         {
-            return HasEventListener(stateId) && _stateEventHandlers[stateId] == eventListener;
+            return HasEventListener(stateId) && _stateEventHandlers[stateId].Contains(eventListener);
         }
 
         public bool HasEventListener(TState stateId)
@@ -594,7 +603,13 @@ namespace Paps.FSM
 
             if(_stateEventHandlers.ContainsKey(CurrentState))
             {
-                return _stateEventHandlers[CurrentState].HandleEvent(messageEvent);
+                var eventHandlers = _stateEventHandlers[CurrentState];
+
+                foreach(IStateEventHandler eventHandler in eventHandlers)
+                {
+                    if (eventHandler.HandleEvent(messageEvent))
+                        return true;
+                }
             }
 
             return false;

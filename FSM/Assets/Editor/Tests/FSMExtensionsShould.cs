@@ -53,9 +53,7 @@ namespace Tests
 
             Assert.IsTrue(fsm.ContainsStateByReference(state1));
         }
-
         
-
         [Test]
         public void AddTimerState()
         {
@@ -513,6 +511,52 @@ namespace Tests
                 fsm.ContainsTransition(new Transition<int, int>(3, 1, 1)) &&
                 fsm.ContainsTransition(new Transition<int, int>(3, 2, 2))
                 );
+        }
+
+        [Test]
+        public void AddCompositeStates()
+        {
+            var fsm = new FSM<int, int>();
+
+            IState state1 = Substitute.For<IState>();
+            IState state2 = Substitute.For<IState>();
+
+            fsm.AddComposite(1, state1, state2);
+
+            Assert.IsTrue(fsm.ContainsState(1));
+
+            fsm.InitialState = 1;
+
+            fsm.Start();
+
+            state1.Received(1).Enter();
+            state2.Received(1).Enter();
+
+            fsm.Update();
+
+            state1.Received(1).Update();
+            state2.Received(1).Update();
+
+            fsm.Stop();
+
+            state1.Received(1).Exit();
+            state2.Received(1).Exit();
+        }
+
+        [Test]
+        public void AddMultipleEventListeners()
+        {
+            var fsm = new FSM<int, int>();
+
+            IStateEventHandler eventHandler1 = Substitute.For<IStateEventHandler>();
+            IStateEventHandler eventHandler2 = Substitute.For<IStateEventHandler>();
+
+            fsm.AddEmpty(1);
+
+            fsm.SubscribeEventHandlersTo(1, eventHandler1, eventHandler2);
+
+            Assert.IsTrue(fsm.HasEventListener(1, eventHandler1));
+            Assert.IsTrue(fsm.HasEventListener(1, eventHandler2));
         }
 
     }
