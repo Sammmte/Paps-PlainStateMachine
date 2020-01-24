@@ -555,9 +555,61 @@ namespace Tests
 
             fsm.SubscribeEventHandlersTo(1, eventHandler1, eventHandler2);
 
-            Assert.IsTrue(fsm.HasEventListener(1, eventHandler1));
-            Assert.IsTrue(fsm.HasEventListener(1, eventHandler2));
+            Assert.IsTrue(fsm.HasEventHandler(1, eventHandler1));
+            Assert.IsTrue(fsm.HasEventHandler(1, eventHandler2));
         }
 
+        [Test]
+        public void AddAndRemoveEventHandlerFromDelegates()
+        {
+            var fsm = new FSM<int, int>();
+
+            fsm.AddEmpty(1);
+
+            Func<IEvent, bool> method1 = Substitute.For<Func<IEvent, bool>>();
+            Func<IEvent, bool> method2 = Substitute.For<Func<IEvent, bool>>();
+
+            IEvent stateEvent = Substitute.For<IEvent>();
+
+            method1.Invoke(stateEvent).Returns(false);
+            method2.Invoke(stateEvent).Returns(true);
+
+            fsm.SubscribeEventHandlerTo(1, method1);
+            fsm.SubscribeEventHandlerTo(1, method2);
+
+            Assert.IsTrue(fsm.HasEventHandler(1, method1));
+            Assert.IsTrue(fsm.HasEventHandler(1, method2));
+
+            fsm.InitialState = 1;
+
+            fsm.Start();
+
+            Assert.IsTrue(fsm.SendEvent(stateEvent));
+
+            method1.Received(1).Invoke(stateEvent);
+            method2.Received(1).Invoke(stateEvent);
+
+            fsm.UnsubscribeEventHandlerFrom(1, method1);
+            fsm.UnsubscribeEventHandlerFrom(1, method2);
+
+            Assert.IsFalse(fsm.HasEventHandler(1, method1));
+            Assert.IsFalse(fsm.HasEventHandler(1, method2));
+        }
+
+        [Test]
+        public void AddMultipleEventHandlerFromMethods()
+        {
+            var fsm = new FSM<int, int>();
+
+            fsm.AddEmpty(1);
+
+            Func<IEvent, bool> method1 = Substitute.For<Func<IEvent, bool>>();
+            Func<IEvent, bool> method2 = Substitute.For<Func<IEvent, bool>>();
+
+            fsm.SubscribeEventHandlersTo(1, method1, method2);
+
+            Assert.IsTrue(fsm.HasEventHandler(1, method1));
+            Assert.IsTrue(fsm.HasEventHandler(1, method2));
+        }
     }
 }

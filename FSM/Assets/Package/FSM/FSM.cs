@@ -587,7 +587,7 @@ namespace Paps.FSM
             }  
         }
 
-        public bool HasEventListener(TState stateId, IStateEventHandler eventListener)
+        public bool HasEventHandler(TState stateId, IStateEventHandler eventListener)
         {
             return HasEventListener(stateId) && _stateEventHandlers[stateId].Contains(eventListener);
         }

@@ -404,12 +404,6 @@ namespace Paps.FSM.Extensions
             fsm.AddState(stateId, new CompositeState(states));
         }
 
-        public static void SubscribeEventHandlersTo<TState, TTrigger>(this IFSMEventDispatcher<TState, TTrigger> fsm, TState stateId, params IStateEventHandler[] eventHandlers)
-        {
-            foreach(var eventHandler in eventHandlers)
-            {
-                fsm.SubscribeEventHandlerTo(stateId, eventHandler);
-            }
-        }
+        
     }
 }

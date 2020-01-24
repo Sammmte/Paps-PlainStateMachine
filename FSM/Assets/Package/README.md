@@ -87,12 +87,19 @@ guardEnemyFSM.AddGuardConditionTo(transition, () => !HasTarget());
 
 ### Event Dispatching
 
-You can send events to state objects.
+You can send events to event handlers. Subscribe an object that implements the IStateEventHandler interface.
 
 ```csharp
 IState patrolState = new PatrolState();
 
 guardEnemyFSM.AddState(State.Patrol, patrolState);
+
+IStateEventHandler handler = new MyCustomEventHandler();
+
+guardEnemyFSM.SubscribeEventHandlerTo(State.Patrol, handler);
+
+guardEnemyFSM.SubscribeEventHandlerTo(State.Patrol, event => IsTheEventIWant(event)); 
+//You can add by using lambdas
 
 IEvent myEvent = new Event<string>("MyEvent");
 
