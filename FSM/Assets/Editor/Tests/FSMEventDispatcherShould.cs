@@ -8,7 +8,7 @@ namespace Tests
     public class FSMEventDispatcherShould
     {
         [Test]
-        public void AddAndRemoveEventHandlerToStates()
+        public void Add_And_Remove_Event_Handler_To_States()
         {
             var fsm = new FSM<int, int>();
 
@@ -27,7 +27,7 @@ namespace Tests
         }
 
         [Test]
-        public void SendEventToEventReceivers()
+        public void Send_Event_To_Event_Receivers()
         {
             var fsm = new FSM<int, int>();
 
@@ -67,7 +67,7 @@ namespace Tests
         }
 
         [Test]
-        public void SendEventsToEventReceiversAndStopWhenAnyReturnsTrue()
+        public void Send_Events_To_Event_Receivers_And_Stop_When_Any_Returns_True()
         {
             var fsm = new FSM<int, int>();
 
@@ -101,5 +101,7 @@ namespace Tests
             eventHandler2.Received(1).HandleEvent(stateEvent);
             eventHandler3.DidNotReceive().HandleEvent(stateEvent);
         }
+
+        
     }
 }

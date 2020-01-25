@@ -125,7 +125,13 @@ namespace Paps.FSM
         private void ValidateCanStart()
         {
             ValidateIsNotStarted();
+            ValidateIsNotEmpty();
             ValidateInitialState();
+        }
+
+        private void ValidateIsNotEmpty()
+        {
+            if (_states.Count == 0) throw new EmptyStateMachineException("State machine cannot be started because it has no states");
         }
         
         private void EnterCurrentState()

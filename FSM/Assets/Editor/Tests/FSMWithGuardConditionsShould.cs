@@ -7,7 +7,7 @@ namespace Tests
     public class FSMWithGuardConditionsShould
     {
         [Test]
-        public void AddRemoveAndTellIfContainsPredicateGuardCondition()
+        public void Add_Remove_And_Tell_If_Contains_Predicate_Guard_Condition()
         {
             var fsm = new FSM<int, int>();
 

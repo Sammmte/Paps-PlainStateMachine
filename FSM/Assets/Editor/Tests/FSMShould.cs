@@ -10,7 +10,7 @@ namespace Tests
     public class FSMShould
     {
         [Test]
-        public void AddAndRemoveStates()
+        public void Add_And_Remove_States()
         {
             var state1 = Substitute.For<IState>();
 
@@ -26,7 +26,7 @@ namespace Tests
         }
 
         [Test]
-        public void ThrowAnExceptionIfUserAddsStateWithExistingId()
+        public void Throw_An_Exception_If_User_Adds_State_With_Existing_Id()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -42,7 +42,7 @@ namespace Tests
         }
 
         [Test]
-        public void ThrowAnExceptionIfUserAddsANullState()
+        public void Throw_An_Exception_If_User_Adds_A_Null_State()
         {
             FSM<int, int> fsm = new FSM<int, int>();
 
@@ -50,44 +50,7 @@ namespace Tests
         }
 
         [Test]
-        public void IterateOverStates()
-        {
-            var state1 = Substitute.For<IState>();
-            var state2 = Substitute.For<IState>();
-
-            IState item1 = null;
-            IState item2 = null;
-
-            FSM<int, int> fsm = new FSM<int, int>();
-
-            fsm.AddState(1, state1);
-            fsm.AddState(2, state2);
-
-            int cont = 1;
-
-            fsm.ForeachState(
-                state =>
-                {
-                    if (cont == 1)
-                    {
-                        item1 = fsm.GetStateById(state);
-                    }
-                    else
-                    {
-                        item2 = fsm.GetStateById(state);
-                    }
-
-                    cont++;
-
-                    return false;
-                }
-                );
-
-            Assert.IsTrue(fsm.GetStateById(1) == item1 && fsm.GetStateById(2) == item2);
-        }
-
-        [Test]
-        public void RemoveStates()
+        public void Remove_States()
         {
             var state = Substitute.For<IState>();
 
@@ -103,7 +66,7 @@ namespace Tests
         }
 
         [Test]
-        public void AddAndRemoveTransitions()
+        public void Add_And_Remove_Transitions()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -125,7 +88,7 @@ namespace Tests
         }
 
         [Test]
-        public void ThrowAnExceptionIfUserTriesToAddOrRemoveTransitionWithNoAddedStates()
+        public void Throw_An_Exception_If_User_Tries_To_Add_Or_Remove_Transition_With_No_Added_States()
         {
             var transition1 = new Transition<int, int>(1, 2, 3);
 
@@ -137,55 +100,7 @@ namespace Tests
         }
 
         [Test]
-        public void IterateOverTransitions()
-        {
-            var state1 = Substitute.For<IState>();
-            var state2 = Substitute.For<IState>();
-            var state3 = Substitute.For<IState>();
-            var state4 = Substitute.For<IState>();
-
-            var transition1 = new Transition<int, int>(1, 2, 3);
-            var transition2 = new Transition<int, int>(4, 5, 6);
-
-            FSM<int, int> fsm = new FSM<int, int>();
-
-            fsm.AddState(1, state1);
-            fsm.AddState(3, state2);
-
-            fsm.AddState(4, state3);
-            fsm.AddState(6, state4);
-
-            fsm.AddTransition(transition1);
-            fsm.AddTransition(transition2);
-
-            Transition<int, int> item1 = default;
-            Transition<int, int> item2 = default;
-
-            int cont = 1;
-
-            fsm.ForeachTransition(
-                transition =>
-                {
-                    if (cont == 1)
-                    {
-                        item1 = transition;
-                    }
-                    else
-                    {
-                        item2 = transition;
-                    }
-
-                    cont++;
-
-                    return false;
-                }
-                );
-
-            Assert.IsTrue(item1.Equals(transition1) && item2.Equals(transition2));
-        }
-
-        [Test]
-        public void RemoveTransitions()
+        public void Remove_Transitions()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -207,15 +122,19 @@ namespace Tests
         }
 
         [Test]
-        public void ThrowAnExceptionIfUserTriesToStartAndInitialStateIsNotSet()
+        public void Throw_An_Exception_If_User_Tries_To_Start_With_At_Least_One_State_And_Does_Not_Contains_The_Initial_State()
         {
             var fsm = new FSM<int, int>();
+
+            IState state = Substitute.For<IState>();
+
+            fsm.AddState(1, state);
 
             Assert.Throws<InvalidInitialStateException>(() => fsm.Start());
         }
 
         [Test]
-        public void ThrowAnExceptionIfUserTriesToStartAndItsAlreadyStarted()
+        public void Throw_An_Exception_If_User_Tries_To_Start_And_It_Is_Already_Started()
         {
             var state1 = Substitute.For<IState>();
 
@@ -231,7 +150,7 @@ namespace Tests
         }
 
         [Test]
-        public void ShowCorrespondingValueWhenAskedIfIsStarted()
+        public void Show_Corresponding_Value_When_Asked_If_Is_Started()
         {
             var state1 = Substitute.For<IState>();
 
@@ -249,7 +168,7 @@ namespace Tests
         }
 
         [Test]
-        public void EnterInitialStartWhenStarted()
+        public void Enter_Initial_Start_When_Started()
         {
             var state1 = Substitute.For<IState>();
 
@@ -265,7 +184,7 @@ namespace Tests
         }
 
         [Test]
-        public void ReturnsCorrespondingValueWhenAskedIsInState()
+        public void Returns_Corresponding_Value_When_Asked_Is_In_State()
         {
             var state1 = Substitute.For<IState>();
 
@@ -281,7 +200,7 @@ namespace Tests
         }
 
         [Test]
-        public void ChangeStateWhenTriggeringAnExistingTransition()
+        public void Change_State_When_Triggering_An_Existing_Transition()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -305,7 +224,7 @@ namespace Tests
         }
 
         [Test]
-        public void ThrowAnExceptionIfUserTriesToTriggerWhenFSMIsNotStarted()
+        public void Throw_An_Exception_If_User_Tries_To_Trigger_When_Is_Not_Started()
         {
             var fsm = new FSM<int, int>();
 
@@ -313,7 +232,7 @@ namespace Tests
         }
 
         [Test]
-        public void ReturnCorrespondingValueWhenAskedIfContainsTransition()
+        public void Return_Corresponding_Value_When_Asked_If_Contains_Transition()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -333,7 +252,7 @@ namespace Tests
         }
 
         [Test]
-        public void ReturnCorrespondingValueWhenAskedIfContainsState()
+        public void Return_Corresponding_Value_When_Asked_If_Contains_State()
         {
             var state1 = Substitute.For<IState>();
 
@@ -346,7 +265,7 @@ namespace Tests
         }
 
         [Test]
-        public void ExitCurrentStateWhenStopped()
+        public void Exit_Current_State_When_Stopped()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -370,7 +289,7 @@ namespace Tests
         }
 
         [Test]
-        public void ThrowAnExceptionIfUserTriesToUpdateAndItIsNotStarted()
+        public void Throw_An_Exception_If_User_Tries_To_Update_And_It_Is_Not_Started()
         {
             var state1 = Substitute.For<IState>();
 
@@ -384,7 +303,7 @@ namespace Tests
         }
 
         [Test]
-        public void UpdateCurrentState()
+        public void Update_Current_State()
         {
             var state1 = Substitute.For<IState>();
 
@@ -402,7 +321,7 @@ namespace Tests
         }
 
         [Test]
-        public void RaiseStateChangedEventWhenHasSuccessfullyTransitioned()
+        public void Raise_State_Changed_Event_When_Has_Successfully_Transitioned()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -430,7 +349,7 @@ namespace Tests
         }
 
         [Test]
-        public void RaiseBeforeStateChangesEventWhenHasSuccessfullyTransitioned()
+        public void Raise_Before_State_Changes_Event_When_Has_Successfully_Transitioned()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -458,7 +377,7 @@ namespace Tests
         }
 
         [Test]
-        public void AddAndRemoveGuardConditions()
+        public void Add_And_Remove_Guard_Conditions()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -487,7 +406,7 @@ namespace Tests
         }
 
         [Test]
-        public void ThrowAnExceptionIfUserTriesToAddOrRemoveANullGuardCondition()
+        public void Throw_An_Exception_If_User_Tries_To_Add_Or_Remove_A_Null_Guard_Condition()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -508,7 +427,7 @@ namespace Tests
         }
 
         [Test]
-        public void ThrowAnExceptionIfUserTriesToAddOrRemoveGuardConditionOnANotAddedTransition()
+        public void Throw_An_Exception_If_User_Tries_To_Add_Or_Remove_Guard_Condition_On_A_Not_Added_Transition()
         {
             var fsm = new FSM<int, int>();
 
@@ -525,7 +444,7 @@ namespace Tests
         }
 
         [Test]
-        public void TransitionIfAllGuardConditionsReturnTrue()
+        public void Transition_If_All_Guard_Conditions_Return_True()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -563,7 +482,7 @@ namespace Tests
         }
 
         [Test]
-        public void NotTransitionIfAnyGuardConditionReturnsFalse()
+        public void Not_Transition_If_Any_Guard_Condition_Returns_False()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -605,7 +524,7 @@ namespace Tests
         }
 
         [Test]
-        public void ReenterStateWhenStateToIsEqualToStateFrom()
+        public void Reenter_State_When_State_To_Is_Equal_To_State_From()
         {
             var state1 = Substitute.For<IState>();
 
@@ -626,7 +545,7 @@ namespace Tests
         }
 
         [Test]
-        public void RemoveTransitionsRelatedToAStateIdWhenItIsRemoved()
+        public void Remove_Transitions_Related_To_A_State_Id_When_It_Is_Removed()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -651,7 +570,7 @@ namespace Tests
         }
 
         [Test]
-        public void RemoveGuardConditionsRelatedToATransitionWhenItIsRemoved()
+        public void Remove_Guard_Conditions_Related_To_A_Transition_When_It_Is_Removed()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -685,7 +604,7 @@ namespace Tests
         }
 
         [Test]
-        public void TransitionQueued()
+        public void Transition_Queued()
         {
             var fsm = new FSM<int, int>();
 
@@ -728,7 +647,7 @@ namespace Tests
         }
 
         [Test]
-        public void ThrowAnExceptionWhenUserTriesToTransitionAndGuardConditionsAreNotMutuallyExclusive()
+        public void Throw_An_Exception_When_User_Tries_To_Transition_And_Guard_Conditions_Are_Not_Mutually_Exclusive()
         {
             var fsm = new FSM<int, int>();
 
@@ -760,7 +679,7 @@ namespace Tests
         }
 
         [Test]
-        public void ThrowAnExceptionWhenUserTriesToTransitionAndMultipleTransitionsWithSameSourceAndTriggerHasNoGuardConditions()
+        public void Throw_An_Exception_When_User_Tries_To_Transition_And_Multiple_Transitions_With_Same_Source_And_Trigger_Has_No_Guard_Conditions()
         {
             var fsm = new FSM<int, int>();
 
@@ -782,7 +701,7 @@ namespace Tests
         }
 
         [Test]
-        public void LetTransitionOnFirstEnter()
+        public void Let_Transition_On_First_Enter()
         {
             var fsm = new FSM<int, int>();
 
@@ -812,7 +731,7 @@ namespace Tests
         }
 
         [Test]
-        public void ThrowAnExceptionIfUserTriesToStartOnFirstEnter()
+        public void Throw_An_Exception_If_User_Tries_To_Start_On_First_Enter()
         {
             var fsm = new FSM<int, int>();
 
@@ -826,7 +745,7 @@ namespace Tests
         }
 
         [Test]
-        public void LetUserStopItOnFirstEnter()
+        public void Let_User_Stop_It_On_First_Enter()
         {
             var fsm = new FSM<int, int>();
 
@@ -845,7 +764,7 @@ namespace Tests
         }
 
         [Test]
-        public void ThrowAnExceptionIfUserTriesToTransitionOnExitOfStateWhenStopped()
+        public void Throw_An_Exception_If_User_Tries_To_Transition_On_Exit_Of_State_When_Stopped()
         {
             var fsm = new FSM<int, int>();
 
@@ -859,12 +778,8 @@ namespace Tests
             Assert.Throws<StateMachineExitingException>(() => fsm.Start());
         }
 
-        
-
-        
-
         [Test]
-        public void ThrowAnExceptionIfUserTriesToSendAnEventAndStateMachineIsNotStarted()
+        public void Throw_An_Exception_If_User_Tries_To_Send_An_Event_And_Is_Not_Started()
         {
             var fsm = new FSM<int, int>();
 
@@ -872,7 +787,7 @@ namespace Tests
         }
 
         [Test]
-        public void ThrowAnExceptionIfUserTriesToComparerIsNull()
+        public void Throw_An_Exception_If_User_Tries_To_Comparer_Is_Null()
         {
             FSM<int, int> fsm = null;
 
@@ -887,7 +802,7 @@ namespace Tests
         }
 
         [Test]
-        public void UseCustomEqualityComparer()
+        public void Use_Custom_Equality_Comparer()
         {
             IEqualityComparer<int> comparer = Substitute.For<IEqualityComparer<int>>();
 
@@ -918,7 +833,7 @@ namespace Tests
         }
 
         [Test]
-        public void ReturnStateById()
+        public void Return_State_By_Id()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -933,7 +848,7 @@ namespace Tests
         }
 
         [Test]
-        public void ChangeEqualityComparerAfterConstruction()
+        public void Change_Equality_Comparer_After_Construction()
         {
             IEqualityComparer<int> comparer = Substitute.For<IEqualityComparer<int>>();
 
@@ -967,7 +882,7 @@ namespace Tests
         }
 
         [Test]
-        public void ThrowAnExceptionIfUserTriesToGetCurrentStateWhileNotStarted()
+        public void Throw_An_Exception_If_User_Tries_To_Get_Current_State_While_Not_Started()
         {
             var fsm = new FSM<int, int>();
 
@@ -975,7 +890,7 @@ namespace Tests
         }
 
         [Test]
-        public void ThrowAnExceptionIfUserTriesToRemoveCurrentState()
+        public void Throw_An_Exception_If_User_Tries_To_Remove_Current_State()
         {
             var fsm = new FSM<int, int>();
 
@@ -989,7 +904,7 @@ namespace Tests
         }
 
         [Test]
-        public void EnterSafely()
+        public void Enter_Safely()
         {
             var fsm = new FSM<int, int>();
 
@@ -1007,7 +922,7 @@ namespace Tests
         }
 
         [Test]
-        public void ExitSafely()
+        public void Exit_Safely()
         {
             var fsm = new FSM<int, int>();
 
@@ -1027,7 +942,7 @@ namespace Tests
         }
 
         [Test]
-        public void ThrowAnAggregateExceptionIfAnyEventThrowsAnExceptionDuringTransition()
+        public void Throw_An_Aggregate_Exception_If_Any_Event_Throws_An_Exception_During_Transition()
         {
             var fsm = new FSM<int, int>();
 
@@ -1082,6 +997,13 @@ namespace Tests
                 aggregateException.InnerExceptions.Contains(exception4)
                 );
             Assert.IsTrue(fsm.CurrentState == 2);
+        }
+
+        public void Throw_An_Exception_If_Is_Empty_When_Started()
+        {
+            var fsm = new FSM<int, int>();
+
+            Assert.Throws<EmptyStateMachineException>(() => fsm.Start());
         }
     }
 }

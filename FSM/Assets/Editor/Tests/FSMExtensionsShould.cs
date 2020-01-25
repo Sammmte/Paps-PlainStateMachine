@@ -11,7 +11,7 @@ namespace Tests
     public class FSMExtensionsShould
     {
         [Test]
-        public void GetState()
+        public void Get_State()
         {
             var state1 = Substitute.For<IState>();
 
@@ -25,7 +25,7 @@ namespace Tests
         }
 
         [Test]
-        public void GetStates()
+        public void Get_States()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -41,7 +41,7 @@ namespace Tests
         }
 
         [Test]
-        public void ReturnCorrespondingValueWhenAskedIfContainsByReference()
+        public void Return_Corresponding_Value_When_Asked_If_Contains_By_Reference()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -55,7 +55,7 @@ namespace Tests
         }
         
         [Test]
-        public void AddTimerState()
+        public void Add_Timer_State()
         {
             var stateAfter = Substitute.For<IState>();
 
@@ -77,7 +77,7 @@ namespace Tests
         }
 
         [Test]
-        public void AddEmpty()
+        public void Add_Empty()
         {
             var stateAfter = Substitute.For<IState>();
 
@@ -97,7 +97,7 @@ namespace Tests
         }
 
         [Test]
-        public void AddWithEvents()
+        public void Add_With_Events()
         {
             var stateAfter = Substitute.For<IState>();
 
@@ -129,7 +129,7 @@ namespace Tests
         }
 
         [Test]
-        public void AddTransitionFromAnyState()
+        public void Add_Transition_From_Any_State()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -156,7 +156,7 @@ namespace Tests
         }
 
         [Test]
-        public void AddTransitionFromAnyStateExceptTarget()
+        public void Add_Transition_From_Any_State_Except_Target()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -183,7 +183,7 @@ namespace Tests
         }
 
         [Test]
-        public void ReturnTransitionsWithSpecificTrigger()
+        public void Return_Transitions_With_Specific_Trigger()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -217,7 +217,7 @@ namespace Tests
         }
 
         [Test]
-        public void ReturnTransitionsWithSpecificStateFrom()
+        public void Return_Transitions_With_Specific_State_From()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -250,7 +250,7 @@ namespace Tests
         }
 
         [Test]
-        public void ReturnTransitionsWithSpecificStateTo()
+        public void Return_Transitions_With_Specific_State_To()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -283,7 +283,7 @@ namespace Tests
         }
 
         [Test]
-        public void ReturnTransitionWithRelatedState()
+        public void Return_Transition_With_Related_State()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -316,7 +316,7 @@ namespace Tests
         }
 
         [Test]
-        public void ReturnIfHasTransitionWithSpecificStateFrom()
+        public void Return_If_Has_Transition_With_Specific_State_From()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -334,7 +334,7 @@ namespace Tests
         }
 
         [Test]
-        public void ReturnIfHasTransitionWithSpecificStateTo()
+        public void Return_If_Has_Transition_With_Specific_State_To()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -352,7 +352,7 @@ namespace Tests
         }
 
         [Test]
-        public void ReturnIfHasTransitionWithSpecificTrigger()
+        public void Return_If_Has_Transition_With_Specific_Trigger()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -370,7 +370,7 @@ namespace Tests
         }
 
         [Test]
-        public void ReturnIfHasTransitionRelatedToSpecificState()
+        public void Return_If_Has_Transition_Related_To_Specific_State()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
@@ -389,7 +389,7 @@ namespace Tests
         }
 
         [Test]
-        public void RemoveAllTransitions()
+        public void Remove_All_Transitions()
         {
             var fsm = new FSM<int, int>();
 
@@ -406,7 +406,7 @@ namespace Tests
         }
 
         [Test]
-        public void RemoveAllTransitionsRelatedToSpecificState()
+        public void Remove_All_Transitions_Related_To_Specific_State()
         {
             var fsm = new FSM<int, int>();
 
@@ -425,7 +425,7 @@ namespace Tests
         }
 
         [Test]
-        public void ReturnCorrespondingValueWhenUserAsksIfContainsAllStates()
+        public void Return_Corresponding_Value_When_User_Asks_If_Contains_All_States()
         {
             var fsm = new FSM<int, int>();
 
@@ -438,7 +438,7 @@ namespace Tests
         }
 
         [Test]
-        public void AddMultipleStates()
+        public void Add_Multiple_States()
         {
             IState state1 = Substitute.For<IState>();
             IState state2 = Substitute.For<IState>();
@@ -449,7 +449,7 @@ namespace Tests
         }
 
         [Test]
-        public void ThrowAnExceptionIfAStateIsAlreadyAddedWhenAddingMultipleStatesWithoutSideEffects()
+        public void Throw_An_Exception_If_A_State_Is_Already_Added_When_Adding_Multiple_States_Without_Side_Effects()
         {
             var fsm = new FSM<int, int>();
 
@@ -463,7 +463,7 @@ namespace Tests
         }
 
         [Test]
-        public void AddMultipleEmptyStates()
+        public void Add_Multiple_Empty_States()
         {
             var fsm = new FSM<int, int>();
 
@@ -473,7 +473,7 @@ namespace Tests
         }
 
         [Test]
-        public void ConfigureWithStatesAsTriggersWithNoReentrant()
+        public void Configure_With_States_As_Triggers_With_No_Reentrant()
         {
             var fsm = new FSM<int, int>();
 
@@ -492,7 +492,7 @@ namespace Tests
         }
 
         [Test]
-        public void ConfigureWithStatesAsTriggers()
+        public void Configure_With_States_As_Triggers()
         {
             var fsm = new FSM<int, int>();
 
@@ -514,7 +514,7 @@ namespace Tests
         }
 
         [Test]
-        public void AddCompositeStates()
+        public void Add_Composite_States()
         {
             var fsm = new FSM<int, int>();
 
@@ -544,7 +544,7 @@ namespace Tests
         }
 
         [Test]
-        public void AddMultipleEventListeners()
+        public void Add_Multiple_Event_Handlers()
         {
             var fsm = new FSM<int, int>();
 
@@ -560,7 +560,7 @@ namespace Tests
         }
 
         [Test]
-        public void AddAndRemoveEventHandlerFromDelegates()
+        public void Add_And_Remove_Event_Handlers_From_Delegates()
         {
             var fsm = new FSM<int, int>();
 
@@ -597,7 +597,7 @@ namespace Tests
         }
 
         [Test]
-        public void AddMultipleEventHandlerFromMethods()
+        public void Add_Multiple_Event_Handlers_From_Methods()
         {
             var fsm = new FSM<int, int>();
 
@@ -610,6 +610,91 @@ namespace Tests
 
             Assert.IsTrue(fsm.HasEventHandler(1, method1));
             Assert.IsTrue(fsm.HasEventHandler(1, method2));
+        }
+
+        [Test]
+        public void Iterate_Over_Transitions()
+        {
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
+            var state3 = Substitute.For<IState>();
+            var state4 = Substitute.For<IState>();
+
+            var transition1 = new Transition<int, int>(1, 2, 3);
+            var transition2 = new Transition<int, int>(4, 5, 6);
+
+            FSM<int, int> fsm = new FSM<int, int>();
+
+            fsm.AddState(1, state1);
+            fsm.AddState(3, state2);
+
+            fsm.AddState(4, state3);
+            fsm.AddState(6, state4);
+
+            fsm.AddTransition(transition1);
+            fsm.AddTransition(transition2);
+
+            Transition<int, int> item1 = default;
+            Transition<int, int> item2 = default;
+
+            int cont = 1;
+
+            fsm.ForeachTransition(
+                transition =>
+                {
+                    if (cont == 1)
+                    {
+                        item1 = transition;
+                    }
+                    else
+                    {
+                        item2 = transition;
+                    }
+
+                    cont++;
+
+                    return false;
+                }
+                );
+
+            Assert.IsTrue(item1.Equals(transition1) && item2.Equals(transition2));
+        }
+
+        [Test]
+        public void Iterate_Over_States()
+        {
+            var state1 = Substitute.For<IState>();
+            var state2 = Substitute.For<IState>();
+
+            IState item1 = null;
+            IState item2 = null;
+
+            FSM<int, int> fsm = new FSM<int, int>();
+
+            fsm.AddState(1, state1);
+            fsm.AddState(2, state2);
+
+            int cont = 1;
+
+            fsm.ForeachState(
+                state =>
+                {
+                    if (cont == 1)
+                    {
+                        item1 = fsm.GetStateById(state);
+                    }
+                    else
+                    {
+                        item2 = fsm.GetStateById(state);
+                    }
+
+                    cont++;
+
+                    return false;
+                }
+                );
+
+            Assert.IsTrue(fsm.GetStateById(1) == item1 && fsm.GetStateById(2) == item2);
         }
     }
 }
