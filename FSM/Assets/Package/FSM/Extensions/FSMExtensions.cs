@@ -5,7 +5,7 @@ namespace Paps.FSM.Extensions
 {
     public delegate bool ReturnTrueToFinishIteration<T>(T current);
 
-    public static class IFSMExtensions
+    public static partial class FSMExtensions
     {
         public static bool ContainsStateByReference<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, IState stateRef)
         {
@@ -403,7 +403,5 @@ namespace Paps.FSM.Extensions
         {
             fsm.AddState(stateId, new CompositeState(states));
         }
-
-        
     }
 }
