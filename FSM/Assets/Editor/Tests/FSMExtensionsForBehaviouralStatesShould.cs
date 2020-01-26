@@ -279,5 +279,33 @@ namespace Tests
             Assert.Throws<ArgumentNullException>(() => fsm.ForeachBehaviour(null));
             Assert.Throws<ArgumentNullException>(() => fsm.ForeachBehaviourOn(1, null));
         }
+
+        [Test]
+        public void Enter_Update_And_Exit_Behaviours()
+        {
+            var fsm = new FSM<int, int>();
+
+            var stateBehaviour1 = Substitute.For<IStateBehaviour>();
+            var stateBehaviour2 = Substitute.For<IStateBehaviour>();
+
+            fsm.AddBehaviouralState(1, stateBehaviour1, stateBehaviour2);
+
+            fsm.InitialState = 1;
+
+            fsm.Start();
+
+            stateBehaviour1.Received(1).OnEnter();
+            stateBehaviour2.Received(1).OnEnter();
+
+            fsm.Update();
+
+            stateBehaviour1.Received(1).OnUpdate();
+            stateBehaviour2.Received(1).OnUpdate();
+
+            fsm.Stop();
+
+            stateBehaviour1.Received(1).OnExit();
+            stateBehaviour2.Received(1).OnExit();
+        }
     }
 }
