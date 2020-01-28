@@ -22,8 +22,6 @@ namespace Paps.FSM
 
         private Queue<TransitionRequest> _transitionRequestQueue;
 
-        private List<Exception> _stateEventExceptionList;
-
         private TState _currentState;
         public TState CurrentState
         {
@@ -63,7 +61,6 @@ namespace Paps.FSM
             _guardConditions = new Dictionary<Transition<TState, TTrigger>, List<IGuardCondition>>(_transitionEqualityComparer);
             _stateEventHandlers = new Dictionary<TState, HashSet<IStateEventHandler>>(_stateComparer);
             _transitionRequestQueue = new Queue<TransitionRequest>();
-            _stateEventExceptionList = new List<Exception>();
         }
 
         public FSM() : this(EqualityComparer<TState>.Default, EqualityComparer<TTrigger>.Default)
@@ -93,33 +90,8 @@ namespace Paps.FSM
 
             CurrentState = InitialState;
             _currentStateObject = GetStateById(CurrentState);
-
-            DoEventSafely(EnterCurrentState, _stateEventExceptionList);
-
-            ThrowSingleOrAggregateExceptionAndClear();
-        }
-
-        private void ThrowSingleOrAggregateExceptionAndClear()
-        {
-            if (_stateEventExceptionList.Count > 0)
-            {
-                if (_stateEventExceptionList.Count == 1)
-                {
-                    var singleException = _stateEventExceptionList.First();
-                    _stateEventExceptionList.Clear();
-                    throw singleException;
-                }
-                else
-                {
-                    var aggregateException = new AggregateException(_stateEventExceptionList);
-                    _stateEventExceptionList.Clear();
-                    throw aggregateException;
-                }
-            }
-            else
-            {
-                _stateEventExceptionList.Clear();
-            }
+            
+            EnterCurrentState();
         }
 
         private void ValidateCanStart()
@@ -156,10 +128,9 @@ namespace Paps.FSM
             if(IsStarted)
             {
                 _isStopping = true;
-                DoEventSafely(ExitCurrentState, _stateEventExceptionList);
+                ExitCurrentState();
                 _isStopping = false;
                 IsStarted = false;
-                ThrowSingleOrAggregateExceptionAndClear();
             }
         }
 
@@ -404,19 +375,17 @@ namespace Paps.FSM
         private void Transition(TTrigger trigger, TState stateTo)
         {
             TState previous = CurrentState;
-
-            CallOnBeforeStateChangesEventSafely(previous, trigger, stateTo, _stateEventExceptionList);
-
-            DoEventSafely(ExitCurrentState, _stateEventExceptionList);
+            
+            OnBeforeStateChanges?.Invoke(previous, trigger, stateTo);
+            
+            ExitCurrentState();
 
             CurrentState = stateTo;
             _currentStateObject = GetStateById(CurrentState);
-
-            CallOnStateChangedEventSafely(previous, trigger, stateTo, _stateEventExceptionList);
-
-            DoEventSafely(EnterCurrentState, _stateEventExceptionList);
-
-            ThrowSingleOrAggregateExceptionAndClear();
+            
+            OnStateChanged?.Invoke(previous, trigger, stateTo);
+            
+            EnterCurrentState();
         }
 
         private void DoEventSafely(Action action, List<Exception> possibleExceptionsList)
@@ -465,34 +434,6 @@ namespace Paps.FSM
             }
 
             return true;
-        }
-
-        private void CallOnStateChangedEventSafely(TState previous, TTrigger trigger, TState current, List<Exception> possibleExceptions)
-        {
-            if (OnStateChanged == null) return;
-
-            var invocationList = OnStateChanged.GetInvocationList();
-
-            foreach (var method in invocationList)
-            {
-                StateChanged<TState, TTrigger> cast = (StateChanged<TState, TTrigger>)method;
-
-                DoEventSafely(() => cast(previous, trigger, current), possibleExceptions);
-            }
-        }
-
-        private void CallOnBeforeStateChangesEventSafely(TState previous, TTrigger trigger, TState current, List<Exception> possibleExceptions)
-        {
-            if (OnBeforeStateChanges == null) return;
-
-            var invocationList = OnBeforeStateChanges.GetInvocationList();
-
-            foreach(var method in invocationList)
-            {
-                StateChanged<TState, TTrigger> cast = (StateChanged<TState, TTrigger>)method;
-
-                DoEventSafely(() => cast(previous, trigger, current), possibleExceptions);
-            }
         }
 
         public void AddGuardConditionTo(Transition<TState, TTrigger> transition, IGuardCondition guardCondition)
