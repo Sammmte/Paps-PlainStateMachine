@@ -20,7 +20,7 @@ namespace Paps.FSM
         private Dictionary<Transition<TState, TTrigger>, List<IGuardCondition>> _guardConditions;
         private Dictionary<TState, HashSet<IStateEventHandler>> _stateEventHandlers;
 
-        private Queue<TransitionRequest> _transitionRequestQueue;
+        private Queue<TransitionCommand> _transitionRequestQueue;
 
         private TState _currentState;
         public TState CurrentState
@@ -60,7 +60,7 @@ namespace Paps.FSM
             _transitions = new HashSet<Transition<TState, TTrigger>>(_transitionEqualityComparer);
             _guardConditions = new Dictionary<Transition<TState, TTrigger>, List<IGuardCondition>>(_transitionEqualityComparer);
             _stateEventHandlers = new Dictionary<TState, HashSet<IStateEventHandler>>(_stateComparer);
-            _transitionRequestQueue = new Queue<TransitionRequest>();
+            _transitionRequestQueue = new Queue<TransitionCommand>();
         }
 
         public FSM() : this(EqualityComparer<TState>.Default, EqualityComparer<TTrigger>.Default)
@@ -313,7 +313,7 @@ namespace Paps.FSM
             ValidateIsStarted();
             ValidateIsNotExiting();
 
-            _transitionRequestQueue.Enqueue(new TransitionRequest() { trigger = trigger });
+            _transitionRequestQueue.Enqueue(new TransitionCommand() { trigger = trigger });
 
             if (_isEvaluatingTransitions == false)
             {
@@ -327,7 +327,7 @@ namespace Paps.FSM
         {
             while(_transitionRequestQueue.Count > 0)
             {
-                TransitionRequest transition = _transitionRequestQueue.Dequeue();
+                TransitionCommand transition = _transitionRequestQueue.Dequeue();
 
                 TState stateTo = default;
 
@@ -574,7 +574,7 @@ namespace Paps.FSM
             return IsStarted && _stateComparer.Equals(CurrentState, stateId);
         }
 
-        private struct TransitionRequest
+        private struct TransitionCommand
         {
             public TTrigger trigger;
         }
