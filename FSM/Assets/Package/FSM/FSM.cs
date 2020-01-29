@@ -293,7 +293,14 @@ namespace Paps.FSM
 
         public bool ContainsState(TState stateId)
         {
-            return _states.ContainsKey(stateId);
+            try
+            {
+                return _states.ContainsKey(stateId);
+            }
+            catch (ArgumentNullException e)
+            {
+                return false;
+            }
         }
 
         public bool ContainsTransition(Transition<TState, TTrigger> transition)
