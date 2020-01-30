@@ -775,7 +775,7 @@ namespace Tests
 
             fsm.InitialState = "1";
 
-            Assert.Throws<StateMachineExitingException>(() => fsm.Start());
+            Assert.Throws<StateMachineStoppingException>(() => fsm.Start());
         }
 
         [Test]

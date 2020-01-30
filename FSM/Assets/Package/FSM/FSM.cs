@@ -9,7 +9,7 @@ namespace Paps.FSM
     {
         public int StateCount => _states.Count;
         public int TransitionCount => _transitions.Count;
-        public bool IsStarted { get; private set; }
+        public bool IsStarted => _internalState != FSMInternalState.Stopped;
         public TState InitialState { get; set; }
 
         public event StateChanged<TState, TTrigger> OnBeforeStateChanges;
@@ -20,7 +20,7 @@ namespace Paps.FSM
         private Dictionary<Transition<TState, TTrigger>, List<IGuardCondition>> _guardConditions;
         private Dictionary<TState, HashSet<IStateEventHandler>> _stateEventHandlers;
 
-        private Queue<TransitionCommand> _transitionRequestQueue;
+        private Queue<TransitionCommand> _transitionCommandQueue;
 
         private TState _currentState;
         public TState CurrentState
@@ -38,14 +38,14 @@ namespace Paps.FSM
             }
         }
         private IState _currentStateObject;
-        private bool _isEvaluatingTransitions;
-        private bool _isStopping;
+
+        private FSMInternalState _internalState = FSMInternalState.Stopped;
 
         private StateEqualityComparer _stateComparer;
         private TriggerEqualityComparer _triggerComparer;
         
         private TransitionEqualityComparer _transitionEqualityComparer;
-        
+
         public FSM(IEqualityComparer<TState> stateComparer, IEqualityComparer<TTrigger> triggerComparer)
         {
             if (stateComparer == null) throw new ArgumentNullException(nameof(stateComparer));
@@ -60,7 +60,7 @@ namespace Paps.FSM
             _transitions = new HashSet<Transition<TState, TTrigger>>(_transitionEqualityComparer);
             _guardConditions = new Dictionary<Transition<TState, TTrigger>, List<IGuardCondition>>(_transitionEqualityComparer);
             _stateEventHandlers = new Dictionary<TState, HashSet<IStateEventHandler>>(_stateComparer);
-            _transitionRequestQueue = new Queue<TransitionCommand>();
+            _transitionCommandQueue = new Queue<TransitionCommand>();
         }
 
         public FSM() : this(EqualityComparer<TState>.Default, EqualityComparer<TTrigger>.Default)
@@ -86,12 +86,17 @@ namespace Paps.FSM
         {
             ValidateCanStart();
 
-            IsStarted = true;
+            SetInternalState(FSMInternalState.Idle);
 
             CurrentState = InitialState;
             _currentStateObject = GetStateById(CurrentState);
             
             EnterCurrentState();
+        }
+
+        private void SetInternalState(FSMInternalState internalState)
+        {
+            _internalState = internalState;
         }
 
         private void ValidateCanStart()
@@ -125,13 +130,17 @@ namespace Paps.FSM
 
         public void Stop()
         {
-            if(IsStarted)
+            if(IsIn(FSMInternalState.Idle))
             {
-                _isStopping = true;
+                _internalState = FSMInternalState.Stopping;
                 ExitCurrentState();
-                _isStopping = false;
-                IsStarted = false;
+                _internalState = FSMInternalState.Stopped;
             }
+        }
+
+        private bool IsIn(FSMInternalState internalState)
+        {
+            return _internalState == internalState;
         }
 
         private void ExitCurrentState()
@@ -148,7 +157,7 @@ namespace Paps.FSM
 
         private void ValidateIsNotExiting()
         {
-            if (_isStopping) throw new StateMachineExitingException("Cannot perform operation because the state machine is exiting");
+            if (_internalState == FSMInternalState.Stopping) throw new StateMachineStoppingException("Cannot perform operation because the state machine is exiting");
         }
 
         private void ValidateInitialState()
@@ -210,6 +219,9 @@ namespace Paps.FSM
         public void RemoveState(TState stateId)
         {
             ValidateCanRemoveState(stateId);
+            ValidateIsNotIn(FSMInternalState.Stopping);
+            ValidateIsNotIn(FSMInternalState.Transitioning);
+            ValidateIsNotIn(FSMInternalState.EvaluatingTransitions);
 
             if(_states.Remove(stateId))
             {
@@ -266,6 +278,9 @@ namespace Paps.FSM
         {
             ValidateHasStateWithId(transition.StateFrom);
             ValidateHasStateWithId(transition.StateTo);
+            ValidateIsNotIn(FSMInternalState.Stopping);
+            ValidateIsNotIn(FSMInternalState.Transitioning);
+            ValidateIsNotIn(FSMInternalState.EvaluatingTransitions);
 
             InternalRemoveTransition(transition);
         }
@@ -311,23 +326,46 @@ namespace Paps.FSM
         public void Trigger(TTrigger trigger)
         {
             ValidateIsStarted();
-            ValidateIsNotExiting();
+            ValidateIsNotIn(FSMInternalState.Stopping);
 
-            _transitionRequestQueue.Enqueue(new TransitionCommand() { trigger = trigger });
-
-            if (_isEvaluatingTransitions == false)
+            _transitionCommandQueue.Enqueue(new TransitionCommand() { trigger = trigger });
+            
+            if (IsIn(FSMInternalState.EvaluatingTransitions) == false &&
+                IsIn(FSMInternalState.Transitioning) == false)
             {
-                _isEvaluatingTransitions = true;
+                SetInternalState(FSMInternalState.EvaluatingTransitions);
                 TriggerQueued();
-                _isEvaluatingTransitions = false;
+                SetInternalState(FSMInternalState.Idle);
             }
         }
-        
+
+        private void ValidateIsNotIn(FSMInternalState internalState)
+        {
+            if(IsIn(internalState)) ThrowByInternalState();
+        }
+
+        private void ThrowByInternalState()
+        {
+            switch (_internalState)
+            {
+                case FSMInternalState.Stopped:
+                    throw new StateMachineNotStartedException();
+                case FSMInternalState.Stopping:
+                    throw new StateMachineStoppingException();
+                case FSMInternalState.Transitioning:
+                    throw new StateMachineTransitioningException();
+                case FSMInternalState.EvaluatingTransitions:
+                    throw new StateMachineEvaluatingTransitionsException();
+                case FSMInternalState.Idle:
+                    throw new StateMachineStartedException();
+            }
+        }
+
         private void TriggerQueued()
         {
-            while(_transitionRequestQueue.Count > 0)
+            while(_transitionCommandQueue.Count > 0)
             {
-                TransitionCommand transition = _transitionRequestQueue.Dequeue();
+                TransitionCommand transition = _transitionCommandQueue.Dequeue();
 
                 TState stateTo = default;
 
@@ -340,8 +378,8 @@ namespace Paps.FSM
                 }
                 catch(MultipleValidTransitionsFromSameStateException e)
                 {
-                    _transitionRequestQueue.Clear();
-                    _isEvaluatingTransitions = false;
+                    _transitionCommandQueue.Clear();
+                    SetInternalState(FSMInternalState.Idle);
                     throw;
                 }
                 catch
@@ -381,6 +419,8 @@ namespace Paps.FSM
 
         private void Transition(TTrigger trigger, TState stateTo)
         {
+            SetInternalState(FSMInternalState.Transitioning);
+            
             TState previous = CurrentState;
             
             OnBeforeStateChanges?.Invoke(previous, trigger, stateTo);
@@ -391,6 +431,8 @@ namespace Paps.FSM
             _currentStateObject = GetStateById(CurrentState);
             
             OnStateChanged?.Invoke(previous, trigger, stateTo);
+            
+            SetInternalState(FSMInternalState.EvaluatingTransitions);
             
             EnterCurrentState();
         }
@@ -460,6 +502,9 @@ namespace Paps.FSM
         {
             ValidateHasTransition(transition);
             ValidateGuardConditionIsNotNull(guardCondition);
+            ValidateIsNotIn(FSMInternalState.Stopping);
+            ValidateIsNotIn(FSMInternalState.Transitioning);
+            ValidateIsNotIn(FSMInternalState.EvaluatingTransitions);
 
             if(_guardConditions.ContainsKey(transition))
             {
@@ -654,6 +699,15 @@ namespace Paps.FSM
             {
                 _equalityComparer = equalityComparer ?? EqualityComparer<TTrigger>.Default;
             }
+        }
+
+        private enum FSMInternalState
+        {
+            Stopped,
+            Idle,
+            Stopping,
+            Transitioning,
+            EvaluatingTransitions
         }
     }
 }
