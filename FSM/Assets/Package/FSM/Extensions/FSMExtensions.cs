@@ -7,6 +7,12 @@ namespace Paps.FSM.Extensions
 
     public static partial class FSMExtensions
     {
+        public static void AddTransition<TState, TTrigger>(this FSM<TState, TTrigger> fsm, TState stateFrom,
+            TTrigger trigger, TState stateTo)
+        {
+            fsm.AddTransition(new Transition<TState, TTrigger>(stateFrom, trigger, stateTo));
+        }
+
         public static bool ContainsStateByReference<TState, TTrigger>(this IFSM<TState, TTrigger> fsm, IState stateRef)
         {
             TState[] states = fsm.GetStates();

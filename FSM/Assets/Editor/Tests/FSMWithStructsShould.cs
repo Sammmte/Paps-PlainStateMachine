@@ -4,6 +4,7 @@ using Paps.FSM;
 using Paps.FSM.Extensions;
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Tests
 {
@@ -909,6 +910,68 @@ namespace Tests
             var fsm = new FSM<int, int>();
 
             Assert.Throws<EmptyStateMachineException>(() => fsm.Start());
+        }
+
+        [Test]
+        public void Permit_Remove_State_While_Starting()
+        {
+            var fsm = new FSM<int, int>();
+            
+            fsm.AddWithEvents(1, () => fsm.RemoveState(2));
+            fsm.AddEmpty(2);
+
+            fsm.InitialState = 1;
+            
+            Assert.DoesNotThrow(() => fsm.Start());
+            Assert.IsFalse(fsm.ContainsState(2));
+        }
+
+        [Test]
+        public void Throw_An_Exception_If_User_Tries_To_Remove_State_While_In_Transition()
+        {
+            var fsm = new FSM<int, int>();
+            
+            fsm.AddWithEvents(1, () => {}, () => fsm.RemoveState(2));
+            fsm.AddEmpty(2);
+            
+            fsm.AddTransition(1, 0, 2);
+
+            fsm.InitialState = 1;
+            
+            fsm.Start();
+
+            Assert.Throws<StateMachineTransitioningException>(() => fsm.Trigger(0));
+            Assert.IsTrue(fsm.ContainsState(2));
+        }
+
+        [Test]
+        public void Throw_An_Exception_If_User_Tries_To_Remove_State_While_Evaluating_Guard_Conditions()
+        {
+            var fsm = new FSM<int, int>();
+            
+            fsm.AddEmpty(1);
+            fsm.AddEmpty(2);
+
+            var transition = new Transition<int, int>(1, 0, 2);
+            
+            fsm.AddTransition(transition);
+
+            IGuardCondition guardCondition = Substitute.For<IGuardCondition>();
+            
+            guardCondition.When(g => g.IsValid()).Do(callback => fsm.RemoveState(2));
+
+            guardCondition.IsValid().Returns(true);
+            
+            Debug.Log(fsm.ContainsTransition(transition));
+            
+            fsm.AddGuardConditionTo(transition, guardCondition);
+
+            fsm.InitialState = 1;
+            
+            fsm.Start();
+
+            Assert.Throws<StateMachineEvaluatingTransitionsException>(() => fsm.Trigger(0));
+            Assert.IsTrue(fsm.ContainsState(2));
         }
     }
 }

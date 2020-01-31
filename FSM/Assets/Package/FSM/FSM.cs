@@ -54,7 +54,7 @@ namespace Paps.FSM
             _stateComparer = new StateEqualityComparer(stateComparer);
             _triggerComparer = new TriggerEqualityComparer(triggerComparer);
 
-            _transitionEqualityComparer = new TransitionEqualityComparer(stateComparer, triggerComparer);
+            _transitionEqualityComparer = new TransitionEqualityComparer(_stateComparer, _triggerComparer);
 
             _states = new Dictionary<TState, IState>(_stateComparer);
             _transitions = new HashSet<Transition<TState, TTrigger>>(_transitionEqualityComparer);
@@ -278,7 +278,6 @@ namespace Paps.FSM
         {
             ValidateHasStateWithId(transition.StateFrom);
             ValidateHasStateWithId(transition.StateTo);
-            ValidateIsNotIn(FSMInternalState.Stopping);
             ValidateIsNotIn(FSMInternalState.Transitioning);
             ValidateIsNotIn(FSMInternalState.EvaluatingTransitions);
 
@@ -502,8 +501,6 @@ namespace Paps.FSM
         {
             ValidateHasTransition(transition);
             ValidateGuardConditionIsNotNull(guardCondition);
-            ValidateIsNotIn(FSMInternalState.Stopping);
-            ValidateIsNotIn(FSMInternalState.Transitioning);
             ValidateIsNotIn(FSMInternalState.EvaluatingTransitions);
 
             if(_guardConditions.ContainsKey(transition))
