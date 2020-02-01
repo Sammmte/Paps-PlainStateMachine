@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Paps.FSM
 {
-    public class FSM<TState, TTrigger> : IFSM<TState, TTrigger>, IFSMStartable<TState, TTrigger>, IFSMUpdatable<TState, TTrigger>, 
+    public class FSM<TState, TTrigger> : IPlainFSM<TState, TTrigger>, IFSMStartable<TState, TTrigger>, IFSMUpdatable<TState, TTrigger>, 
         IFSMEventDispatcher<TState, TTrigger>, IFSMWithGuardConditions<TState, TTrigger>
     {
         private enum FSMInternalState
