@@ -916,12 +916,12 @@ namespace Tests
         public void Permit_Remove_State_While_Starting()
         {
             var fsm = new FSM<int, int>();
-            
+
             fsm.AddWithEvents(1, () => fsm.RemoveState(2));
             fsm.AddEmpty(2);
 
             fsm.InitialState = 1;
-            
+
             Assert.DoesNotThrow(() => fsm.Start());
             Assert.IsFalse(fsm.ContainsState(2));
         }
@@ -930,14 +930,14 @@ namespace Tests
         public void Throw_An_Exception_If_User_Tries_To_Remove_State_While_In_Transition()
         {
             var fsm = new FSM<int, int>();
-            
-            fsm.AddWithEvents(1, () => {}, () => fsm.RemoveState(2));
+
+            fsm.AddWithEvents(1, () => { }, () => fsm.RemoveState(2));
             fsm.AddEmpty(2);
-            
+
             fsm.AddTransition(1, 0, 2);
 
             fsm.InitialState = 1;
-            
+
             fsm.Start();
 
             Assert.Throws<StateMachineTransitioningException>(() => fsm.Trigger(0));
@@ -948,24 +948,115 @@ namespace Tests
         public void Throw_An_Exception_If_User_Tries_To_Remove_State_While_Evaluating_Guard_Conditions()
         {
             var fsm = new FSM<int, int>();
-            
+
             fsm.AddEmpty(1);
             fsm.AddEmpty(2);
 
             var transition = new Transition<int, int>(1, 0, 2);
-            
+
             fsm.AddTransition(transition);
 
             IGuardCondition guardCondition = Substitute.For<IGuardCondition>();
 
             guardCondition.IsValid().Returns(true);
-            
+
             guardCondition.When(g => g.IsValid()).Do(callback => fsm.RemoveState(2));
 
             fsm.AddGuardConditionTo(transition, guardCondition);
 
             fsm.InitialState = 1;
-            
+
+            fsm.Start();
+
+            Assert.Throws<StateMachineEvaluatingTransitionsException>(() => fsm.Trigger(0));
+            Assert.IsTrue(fsm.ContainsState(2));
+        }
+
+        [Test]
+        public void Throw_An_Exception_If_User_Tries_To_Remove_State_While_Stopping()
+        {
+            var fsm = new FSM<int, int>();
+
+            fsm.AddWithExitEvent(1, () => fsm.RemoveState(1));
+
+            fsm.InitialState = 1;
+
+            fsm.Start();
+
+            Assert.Throws<StateMachineStoppingException>(() => fsm.Stop());
+            Assert.IsTrue(fsm.ContainsState(1));
+        }
+
+        [Test]
+        public void Throw_An_Exception_If_User_Tries_To_Remove_Transition_While_Evaluating_Transitions()
+        {
+            var fsm = new FSM<int, int>();
+
+            fsm.AddEmpty(1);
+            fsm.AddEmpty(2);
+
+            var transition = new Transition<int, int>(1, 0, 2);
+
+            fsm.AddTransition(transition);
+
+            IGuardCondition guardCondition = Substitute.For<IGuardCondition>();
+
+            guardCondition.IsValid().Returns(true);
+
+            guardCondition.When(g => g.IsValid()).Do(callback => fsm.RemoveTransition(transition));
+
+            fsm.AddGuardConditionTo(transition, guardCondition);
+
+            fsm.InitialState = 1;
+
+            fsm.Start();
+
+            Assert.Throws<StateMachineEvaluatingTransitionsException>(() => fsm.Trigger(0));
+            Assert.IsTrue(fsm.ContainsState(2));
+        }
+
+        [Test]
+        public void Throw_An_Exception_If_User_Tries_To_Remove_Transition_While_In_Transition()
+        {
+            var fsm = new FSM<int, int>();
+
+            var transition = new Transition<int, int>(1, 0, 2);
+
+            fsm.AddWithExitEvent(1, () => fsm.RemoveTransition(transition));
+            fsm.AddEmpty(2);
+
+            fsm.AddTransition(transition);
+
+            fsm.InitialState = 1;
+
+            fsm.Start();
+
+            Assert.Throws<StateMachineTransitioningException>(() => fsm.Trigger(0));
+            Assert.IsTrue(fsm.ContainsState(2));
+        }
+
+        [Test]
+        public void Throw_An_Exception_If_User_Tries_To_Remove_Guard_Condition_While_Evaluating_Transitions()
+        {
+            var fsm = new FSM<int, int>();
+
+            fsm.AddEmpty(1);
+            fsm.AddEmpty(2);
+
+            var transition = new Transition<int, int>(1, 0, 2);
+
+            fsm.AddTransition(transition);
+
+            IGuardCondition guardCondition = Substitute.For<IGuardCondition>();
+
+            guardCondition.IsValid().Returns(true);
+
+            guardCondition.When(g => g.IsValid()).Do(callback => fsm.RemoveGuardConditionFrom(transition, guardCondition));
+
+            fsm.AddGuardConditionTo(transition, guardCondition);
+
+            fsm.InitialState = 1;
+
             fsm.Start();
 
             Assert.Throws<StateMachineEvaluatingTransitionsException>(() => fsm.Trigger(0));

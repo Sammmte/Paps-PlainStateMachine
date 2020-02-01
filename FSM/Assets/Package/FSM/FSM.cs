@@ -218,18 +218,18 @@ namespace Paps.FSM
 
         public void RemoveState(TState stateId)
         {
-            ValidateCanRemoveState(stateId);
             ValidateIsNotIn(FSMInternalState.Stopping);
             ValidateIsNotIn(FSMInternalState.Transitioning);
             ValidateIsNotIn(FSMInternalState.EvaluatingTransitions);
+            ValidateIsNotCurrentIfIsStarted(stateId);
 
-            if(_states.Remove(stateId))
+            if (_states.Remove(stateId))
             {
                 RemoveTransitionsRelatedTo(stateId);
             }
         }
 
-        private void ValidateCanRemoveState(TState stateId)
+        private void ValidateIsNotCurrentIfIsStarted(TState stateId)
         {
             if(IsStarted && _stateComparer.Equals(CurrentState, stateId))
             {
@@ -271,7 +271,7 @@ namespace Paps.FSM
             ValidateHasStateWithId(transition.StateFrom);
             ValidateHasStateWithId(transition.StateTo);
 
-            UnityEngine.Debug.Log(_transitions.Add(transition));
+            _transitions.Add(transition);
         }
 
         public void RemoveTransition(Transition<TState, TTrigger> transition)
