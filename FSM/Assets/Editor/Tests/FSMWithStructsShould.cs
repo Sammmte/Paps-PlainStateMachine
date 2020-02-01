@@ -1012,7 +1012,7 @@ namespace Tests
             fsm.Start();
 
             Assert.Throws<StateMachineEvaluatingTransitionsException>(() => fsm.Trigger(0));
-            Assert.IsTrue(fsm.ContainsState(2));
+            Assert.IsTrue(fsm.ContainsTransition(transition));
         }
 
         [Test]
@@ -1032,7 +1032,7 @@ namespace Tests
             fsm.Start();
 
             Assert.Throws<StateMachineTransitioningException>(() => fsm.Trigger(0));
-            Assert.IsTrue(fsm.ContainsState(2));
+            Assert.IsTrue(fsm.ContainsTransition(transition));
         }
 
         [Test]
@@ -1060,7 +1060,82 @@ namespace Tests
             fsm.Start();
 
             Assert.Throws<StateMachineEvaluatingTransitionsException>(() => fsm.Trigger(0));
-            Assert.IsTrue(fsm.ContainsState(2));
+            Assert.IsTrue(fsm.ContainsGuardConditionOn(transition, guardCondition));
         }
+
+        [Test]
+        public void Throw_An_Exception_If_User_Tries_To_Stop_While_In_Transition()
+        {
+            var fsm = new FSM<int, int>();
+
+            var transition = new Transition<int, int>(1, 0, 2);
+
+            fsm.AddWithExitEvent(1, () => fsm.Stop());
+            fsm.AddEmpty(2);
+
+            fsm.AddTransition(transition);
+
+            fsm.InitialState = 1;
+
+            fsm.Start();
+
+            Assert.Throws<StateMachineTransitioningException>(() => fsm.Trigger(0));
+        }
+
+        [Test]
+        public void Throw_An_Exception_If_User_Tries_To_Stop_While_Evaluating_Transitions()
+        {
+            var fsm = new FSM<int, int>();
+
+            fsm.AddEmpty(1);
+            fsm.AddEmpty(2);
+
+            var transition = new Transition<int, int>(1, 0, 2);
+
+            fsm.AddTransition(transition);
+
+            IGuardCondition guardCondition = Substitute.For<IGuardCondition>();
+
+            guardCondition.IsValid().Returns(true);
+
+            guardCondition.When(g => g.IsValid()).Do(callback => fsm.Stop());
+
+            fsm.AddGuardConditionTo(transition, guardCondition);
+
+            fsm.InitialState = 1;
+
+            fsm.Start();
+
+            Assert.Throws<StateMachineEvaluatingTransitionsException>(() => fsm.Trigger(0));
+        }
+
+        [Test]
+        public void Throw_An_Exception_If_User_Tries_To_Stop_While_Stopping()
+        {
+            var fsm = new FSM<int, int>();
+
+            fsm.AddWithExitEvent(1, () => fsm.Stop());
+
+            fsm.InitialState = 1;
+
+            fsm.Start();
+
+            Assert.Throws<StateMachineStoppingException>(() => fsm.Stop());
+        }
+
+        [Test]
+        public void Throw_An_Exception_If_User_Tries_To_Start_While_Stopping()
+        {
+            var fsm = new FSM<int, int>();
+
+            fsm.AddWithExitEvent(1, () => fsm.Start());
+
+            fsm.InitialState = 1;
+
+            fsm.Start();
+
+            Assert.Throws<StateMachineStoppingException>(() => fsm.Stop());
+        }
+        
     }
 }
