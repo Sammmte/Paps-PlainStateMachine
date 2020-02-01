@@ -910,5 +910,65 @@ namespace Tests
 
             Assert.Throws<EmptyStateMachineException>(() => fsm.Start());
         }
+
+        [Test]
+        public void Permit_Remove_State_While_Starting()
+        {
+            var fsm = new FSM<string, string>();
+
+            fsm.AddWithEvents("1", () => fsm.RemoveState("2"));
+            fsm.AddEmpty("2");
+
+            fsm.InitialState = "1";
+
+            Assert.DoesNotThrow(() => fsm.Start());
+            Assert.IsFalse(fsm.ContainsState("2"));
+        }
+
+        [Test]
+        public void Throw_An_Exception_If_User_Tries_To_Remove_State_While_In_Transition()
+        {
+            var fsm = new FSM<string, string>();
+
+            fsm.AddWithEvents("1", () => { }, () => fsm.RemoveState("2"));
+            fsm.AddEmpty("2");
+
+            fsm.AddTransition("1", "0", "2");
+
+            fsm.InitialState = "1";
+
+            fsm.Start();
+
+            Assert.Throws<StateMachineTransitioningException>(() => fsm.Trigger("0"));
+            Assert.IsTrue(fsm.ContainsState("2"));
+        }
+
+        [Test]
+        public void Throw_An_Exception_If_User_Tries_To_Remove_State_While_Evaluating_Guard_Conditions()
+        {
+            var fsm = new FSM<string, string>();
+
+            fsm.AddEmpty("1");
+            fsm.AddEmpty("2");
+
+            var transition = new Transition<string, string>("1", "0", "2");
+
+            fsm.AddTransition(transition);
+
+            IGuardCondition guardCondition = Substitute.For<IGuardCondition>();
+
+            guardCondition.IsValid().Returns(true);
+
+            guardCondition.When(g => g.IsValid()).Do(callback => fsm.RemoveState("2"));
+
+            fsm.AddGuardConditionTo(transition, guardCondition);
+
+            fsm.InitialState = "1";
+
+            fsm.Start();
+
+            Assert.Throws<StateMachineEvaluatingTransitionsException>(() => fsm.Trigger("0"));
+            Assert.IsTrue(fsm.ContainsState("2"));
+        }
     }
 }

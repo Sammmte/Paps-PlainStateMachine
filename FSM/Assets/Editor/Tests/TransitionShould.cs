@@ -1,5 +1,6 @@
 ﻿using NUnit.Framework;
 using Paps.FSM;
+using System.Collections.Generic;
 
 namespace Tests
 {
@@ -22,6 +23,18 @@ namespace Tests
             var transition2 = new Transition<int, int>(1, 2, 3);
 
             Assert.IsTrue(transition1.Equals(transition2));
+        }
+
+        [Test]
+        public void Work_With_Hashsets()
+        {
+            var transition = new Transition<int, int>(1, 2, 3);
+
+            HashSet<Transition<int, int>> hashset = new HashSet<Transition<int, int>>();
+
+            hashset.Add(transition);
+
+            Assert.IsTrue(hashset.Contains(transition));
         }
     }
 }

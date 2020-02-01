@@ -957,13 +957,11 @@ namespace Tests
             fsm.AddTransition(transition);
 
             IGuardCondition guardCondition = Substitute.For<IGuardCondition>();
-            
-            guardCondition.When(g => g.IsValid()).Do(callback => fsm.RemoveState(2));
 
             guardCondition.IsValid().Returns(true);
             
-            Debug.Log(fsm.ContainsTransition(transition));
-            
+            guardCondition.When(g => g.IsValid()).Do(callback => fsm.RemoveState(2));
+
             fsm.AddGuardConditionTo(transition, guardCondition);
 
             fsm.InitialState = 1;

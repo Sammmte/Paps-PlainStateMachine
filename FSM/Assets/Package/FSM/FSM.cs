@@ -271,7 +271,7 @@ namespace Paps.FSM
             ValidateHasStateWithId(transition.StateFrom);
             ValidateHasStateWithId(transition.StateTo);
 
-            _transitions.Add(transition);
+            UnityEngine.Debug.Log(_transitions.Add(transition));
         }
 
         public void RemoveTransition(Transition<TState, TTrigger> transition)
