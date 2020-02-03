@@ -221,7 +221,6 @@ namespace Paps.FSM
 
         public void RemoveState(TState stateId)
         {
-            ValidateIsNotIn(FSMInternalState.Stopping);
             ValidateIsNotIn(FSMInternalState.Transitioning);
             ValidateIsNotIn(FSMInternalState.EvaluatingTransitions);
             ValidateIsNotCurrentIfIsStarted(stateId);
@@ -314,7 +313,7 @@ namespace Paps.FSM
             {
                 return _states.ContainsKey(stateId);
             }
-            catch (ArgumentNullException e)
+            catch (ArgumentNullException)
             {
                 return false;
             }
@@ -378,7 +377,7 @@ namespace Paps.FSM
                         Transition(transition.trigger, stateTo);
                     }
                 }
-                catch(MultipleValidTransitionsFromSameStateException e)
+                catch(MultipleValidTransitionsFromSameStateException)
                 {
                     _transitionCommandQueue.Clear();
                     SetInternalState(FSMInternalState.Idle);

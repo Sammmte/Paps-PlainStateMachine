@@ -973,21 +973,6 @@ namespace Tests
         }
 
         [Test]
-        public void Throw_An_Exception_If_User_Tries_To_Remove_State_While_Stopping()
-        {
-            var fsm = new FSM<int, int>();
-
-            fsm.AddWithExitEvent(1, () => fsm.RemoveState(1));
-
-            fsm.InitialState = 1;
-
-            fsm.Start();
-
-            Assert.Throws<StateMachineStoppingException>(() => fsm.Stop());
-            Assert.IsTrue(fsm.ContainsState(1));
-        }
-
-        [Test]
         public void Throw_An_Exception_If_User_Tries_To_Remove_Transition_While_Evaluating_Transitions()
         {
             var fsm = new FSM<int, int>();
