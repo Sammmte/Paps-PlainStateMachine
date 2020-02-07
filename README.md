@@ -1,11 +1,12 @@
-# Paps FSM 
+# Paps Plain State Machine
 
-A simple finite state machine made in c#. Developed in a Unity 3D Project.
+A simple plain state machine made in c#. Developed in a Unity 3D Project.
 
 ```csharp
 //Create your state machine using any type you want for state and trigger identifiers
+//using Paps.StateMachines
 
-var guardEnemyFSM = new FSM<State, Trigger>();
+var guardEnemyFSM = new PlainStateMachine<State, Trigger>();
 
 //State objects must implement IState interface
 
@@ -63,7 +64,7 @@ When a state machine is started or when a state becomes the current state the IS
 
 The IState.Exit() function will be called when the current state gets replaced after a transition or when a state machine is stopped.
 
-IState.Update() function gets called on the current state when you call the IFSM.Update() function of your state machine object.
+IState.Update() function gets called on the current state when you call the PlainStateMachine.Update() function of your state machine object.
 
 ### Guard Conditions
 
@@ -80,7 +81,7 @@ guardEnemyFSM.AddGuardConditionTo(transition, startPatrolGuard);
 Using lambda expressions
 
 ```csharp
-//using Paps.FSM.Extensions
+//using Paps.StateMachines.Extensions
 
 guardEnemyFSM.AddGuardConditionTo(transition, () => !HasTarget());
 ```
@@ -101,7 +102,7 @@ guardEnemyFSM.SendEvent(myEvent);
 
 ### Useful Extensions
 
-Use this extensions by adding "using Paps.FSM.Extensions"
+Use this extensions by adding "using Paps.StateMachines.Extensions"
 
 Create timer states
 
@@ -178,7 +179,7 @@ First you need to add a "scopedRegistries" json object with the following data:
   ]
 ```
 
-The "url" field represents the url where Paps.FSM packages is hosted.
+The "url" field represents the url where Paps Plain State Machine packages is hosted.
 
 the "scopes" field represents the permitted package "namespaces". For example if you want to use two packages with names "pepe.awesome-feature" and "pepe.fantastic-feature", you could write both names in the "scopes" object, or simply write "pepe".
 
@@ -191,7 +192,7 @@ Finally you must add this package dependency to your project in the "dependencie
     "dependencies": {
         "com.unity.some-package" : "1.0.0",
         "com.unity.some-other-package" : "1.0.0",
-        "paps.fsm" : "1.0.3-unity" //or the version you want
+        "paps.plain-state-machine" : "0.0.1-unity" //or the version you want
       }
 }
 ```
@@ -213,7 +214,7 @@ Your manifest.json file should look like this:
   "dependencies": {
     "com.unity.some-package" : "1.0.0",
     "com.unity.some-other-package" : "1.0.0",
-    "paps.fsm": "3.1.0-unity" //or the version you want
+    "paps.plain-state-machine": "0.0.1-unity" //or the version you want
   }
 }
 ```

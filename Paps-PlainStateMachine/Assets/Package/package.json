@@ -1,0 +1,18 @@
+{
+  "name": "paps.plain-state-machine",
+  "version": "0.0.1-unity",
+  "displayName": "Paps Plain State Machine",
+  "unity": "2019.2",
+  "description": "A simple plain state machine made in c#",
+  "keywords": [
+    "c#",
+    "fsm",
+    "paps",
+    "unity",
+    "state machine"
+  ],
+  "author": {
+    "name": "Santiago Perez"
+  },
+  "homepage": "https://github.com/Sammmte/Paps-PlainStateMachine"
+}
