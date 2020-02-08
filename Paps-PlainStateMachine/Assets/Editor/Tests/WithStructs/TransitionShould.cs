@@ -2,7 +2,7 @@
 using Paps.StateMachines;
 using System.Collections.Generic;
 
-namespace Tests
+namespace Tests.WithStructs
 {
     public class TransitionShould
     {

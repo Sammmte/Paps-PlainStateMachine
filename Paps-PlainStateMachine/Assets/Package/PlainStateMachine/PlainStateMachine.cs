@@ -19,7 +19,22 @@ namespace Paps.StateMachines
         public int StateCount => _states.Count;
         public int TransitionCount => _transitions.Count;
         public bool IsStarted => _internalState != PlainStateMachineInternalState.Stopped;
-        public TState InitialState { get; set; }
+
+        private TState _initialState;
+        public TState InitialState
+        {
+            get
+            {
+                return _initialState;
+            }
+            
+            set
+            {
+                ValidateHasStateWithId(value);
+
+                _initialState = value;
+            }
+        }
 
         public event StateChanged<TState, TTrigger> OnBeforeStateChanges;
         public event StateChanged<TState, TTrigger> OnStateChanged;
@@ -219,18 +234,34 @@ namespace Paps.StateMachines
         private void InternalAddState(TState stateId, IState state)
         {
             _states.Add(stateId, state);
+
+            if (_states.Count == 1)
+            {
+                InitialState = stateId;
+            }
         }
 
-        public void RemoveState(TState stateId)
+        public bool RemoveState(TState stateId)
         {
-            ValidateIsNotIn(PlainStateMachineInternalState.EvaluatingTransitions);
-            ValidateIsNotCurrentIfIsStarted(stateId);
-            ValidateIsNotNextStateOnTransition(stateId);
-
-            if (_states.Remove(stateId))
+            if(ContainsState(stateId))
             {
+                ValidateIsNotIn(PlainStateMachineInternalState.EvaluatingTransitions);
+                ValidateIsNotCurrentIfIsStarted(stateId);
+                ValidateIsNotNextStateOnTransition(stateId);
+
+                _states.Remove(stateId);
+
                 RemoveTransitionsRelatedTo(stateId);
+
+                if(_states.Count == 0)
+                {
+                    _initialState = default;
+                }
+
+                return true;
             }
+
+            return false;
         }
 
         private void ValidateIsNotNextStateOnTransition(TState stateId)
@@ -258,7 +289,9 @@ namespace Paps.StateMachines
             {
                 var transition = transitions[i];
 
-                InternalRemoveTransition(transition);
+                _transitions.Remove(transition);
+
+                RemoveAllGuardConditionsRelatedTo(transition);
             }
         }
 
@@ -287,21 +320,19 @@ namespace Paps.StateMachines
             _transitions.Add(transition);
         }
 
-        public void RemoveTransition(Transition<TState, TTrigger> transition)
+        public bool RemoveTransition(Transition<TState, TTrigger> transition)
         {
-            ValidateHasStateWithId(transition.StateFrom);
-            ValidateHasStateWithId(transition.StateTo);
-            ValidateIsNotIn(PlainStateMachineInternalState.EvaluatingTransitions);
-
-            InternalRemoveTransition(transition);
-        }
-
-        private void InternalRemoveTransition(Transition<TState, TTrigger> transition)
-        {
-            if (transition != null && _transitions.Remove(transition))
+            if(ContainsTransition(transition))
             {
+                ValidateIsNotIn(PlainStateMachineInternalState.EvaluatingTransitions);
+
+                _transitions.Remove(transition);
+
                 RemoveAllGuardConditionsRelatedTo(transition);
+                return true;
             }
+
+            return false;
         }
 
         private void RemoveAllGuardConditionsRelatedTo(Transition<TState, TTrigger> transition)
@@ -488,21 +519,26 @@ namespace Paps.StateMachines
             _guardConditions[transition].Add(guardCondition);
         }
 
-        public void RemoveGuardConditionFrom(Transition<TState, TTrigger> transition, IGuardCondition guardCondition)
+        public bool RemoveGuardConditionFrom(Transition<TState, TTrigger> transition, IGuardCondition guardCondition)
         {
             ValidateHasTransition(transition);
             ValidateGuardConditionIsNotNull(guardCondition);
-            ValidateIsNotIn(PlainStateMachineInternalState.EvaluatingTransitions);
 
-            if(_guardConditions.ContainsKey(transition))
+            if (ContainsGuardConditionOn(transition, guardCondition))
             {
+                ValidateIsNotIn(PlainStateMachineInternalState.EvaluatingTransitions);
+
                 _guardConditions[transition].Remove(guardCondition);
 
-                if(_guardConditions[transition].Count == 0)
+                if (_guardConditions[transition].Count == 0)
                 {
                     _guardConditions.Remove(transition);
                 }
+
+                return true;
             }
+
+            return false;
         }
 
         public bool ContainsGuardConditionOn(Transition<TState, TTrigger> transition, IGuardCondition guardCondition)
@@ -515,19 +551,11 @@ namespace Paps.StateMachines
             return false;
         }
 
-        public KeyValuePair<Transition<TState, TTrigger>, IGuardCondition[]>[] GetGuardConditions()
+        public IGuardCondition[] GetGuardConditionsOf(Transition<TState, TTrigger> transition)
         {
-            var keyValues = new KeyValuePair<Transition<TState, TTrigger>, IGuardCondition[]>[_guardConditions.Count];
+            ValidateHasTransition(transition);
 
-            int index = 0;
-
-            foreach(var keyValue in _guardConditions)
-            {
-                keyValues[index] = new KeyValuePair<Transition<TState, TTrigger>, IGuardCondition[]>(keyValue.Key, keyValue.Value.ToArray());
-                index++;
-            }
-
-            return keyValues;
+            return _guardConditions[transition].ToArray();
         }
 
         private void ValidateHasTransition(Transition<TState, TTrigger> transition)
@@ -556,7 +584,7 @@ namespace Paps.StateMachines
             _stateEventHandlers[stateId].Add(eventHandler);
         }
 
-        public void UnsubscribeEventHandlerFrom(TState stateId, IStateEventHandler eventHandler)
+        public bool UnsubscribeEventHandlerFrom(TState stateId, IStateEventHandler eventHandler)
         {
             ValidateHasStateWithId(stateId);
 
@@ -565,18 +593,34 @@ namespace Paps.StateMachines
                 _stateEventHandlers[stateId].Remove(eventHandler);
 
                 if (_stateEventHandlers[stateId].Count == 0)
+                {
                     _stateEventHandlers.Remove(stateId);
-            }  
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
-        public bool HasEventHandler(TState stateId, IStateEventHandler eventListener)
+        public bool HasEventHandlerOn(TState stateId, IStateEventHandler eventListener)
         {
-            return HasEventListener(stateId) && _stateEventHandlers[stateId].Contains(eventListener);
+            return HasAnyEventHandlerOn(stateId) && _stateEventHandlers[stateId].Contains(eventListener);
         }
 
-        public bool HasEventListener(TState stateId)
+        public bool HasAnyEventHandlerOn(TState stateId)
         {
             return _stateEventHandlers.ContainsKey(stateId);
+        }
+
+        public IStateEventHandler[] GetEventHandlersOf(TState stateId)
+        {
+            ValidateHasStateWithId(stateId);
+
+            if (_stateEventHandlers.ContainsKey(stateId))
+                return _stateEventHandlers[stateId].ToArray();
+            else
+                return null;
         }
 
         public bool SendEvent(IEvent messageEvent)

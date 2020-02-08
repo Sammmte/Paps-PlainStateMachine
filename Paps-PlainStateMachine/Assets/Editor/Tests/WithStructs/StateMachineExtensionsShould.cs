@@ -6,9 +6,9 @@ using System;
 using System.Linq;
 using System.Threading;
 
-namespace Tests
+namespace Tests.WithStructs
 {
-    public class FSMExtensionsShould
+    public class StateMachineExtensionsShould
     {
         [Test]
         public void Get_State()
@@ -555,8 +555,8 @@ namespace Tests
 
             fsm.SubscribeEventHandlersTo(1, eventHandler1, eventHandler2);
 
-            Assert.IsTrue(fsm.HasEventHandler(1, eventHandler1));
-            Assert.IsTrue(fsm.HasEventHandler(1, eventHandler2));
+            Assert.IsTrue(fsm.HasEventHandlerOn(1, eventHandler1));
+            Assert.IsTrue(fsm.HasEventHandlerOn(1, eventHandler2));
         }
 
         [Test]

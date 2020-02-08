@@ -3,9 +3,9 @@ using NUnit.Framework;
 using Paps.StateMachines;
 using Paps.StateMachines.Extensions;
 
-namespace Tests
+namespace Tests.WithStructs
 {
-    public class FSMEventDispatcherShould
+    public class EventDispatcherStateMachineShould
     {
         [Test]
         public void Add_And_Remove_Event_Handler_To_States()
@@ -18,12 +18,12 @@ namespace Tests
 
             fsm.SubscribeEventHandlerTo(1, eventHandler);
 
-            Assert.IsTrue(fsm.HasEventHandler(1, eventHandler));
+            Assert.IsTrue(fsm.HasEventHandlerOn(1, eventHandler));
 
-            fsm.UnsubscribeEventHandlerFrom(1, eventHandler);
+            Assert.IsTrue(fsm.UnsubscribeEventHandlerFrom(1, eventHandler));
 
-            Assert.IsFalse(fsm.HasEventListener(1));
-            Assert.IsFalse(fsm.HasEventHandler(1, eventHandler));
+            Assert.IsFalse(fsm.HasAnyEventHandlerOn(1));
+            Assert.IsFalse(fsm.HasEventHandlerOn(1, eventHandler));
         }
 
         [Test]
@@ -102,6 +102,33 @@ namespace Tests
             eventHandler3.DidNotReceive().HandleEvent(stateEvent);
         }
 
-        
+        [Test]
+        public void Return_Event_Handlers_Of_A_Specific_State()
+        {
+            var fsm = new PlainStateMachine<int, int>();
+
+            var stateId1 = 1;
+            var stateId2 = 2;
+
+            var stateObj = Substitute.For<IState>();
+
+            var eventHandler1 = Substitute.For<IStateEventHandler>();
+            var eventHandler2 = Substitute.For<IStateEventHandler>();
+            var eventHandler3 = Substitute.For<IStateEventHandler>();
+
+            fsm.AddState(stateId1, stateObj);
+            fsm.AddState(stateId2, stateObj);
+
+            fsm.SubscribeEventHandlerTo(stateId1, eventHandler1);
+            fsm.SubscribeEventHandlerTo(stateId1, eventHandler2);
+
+            fsm.SubscribeEventHandlerTo(stateId2, eventHandler3);
+
+            var eventHandlers = fsm.GetEventHandlersOf(stateId1);
+
+            Assert.Contains(eventHandler1, eventHandlers);
+            Assert.Contains(eventHandler2, eventHandlers);
+            AssertExtensions.DoesNotContains(eventHandler3, eventHandlers);
+        }
     }
 }

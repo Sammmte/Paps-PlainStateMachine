@@ -5,9 +5,9 @@ namespace Paps.StateMachines.Extensions
 {
     public delegate bool ReturnTrueToFinishIteration<T>(T current);
 
-    public static partial class FSMExtensions
+    public static partial class StateMachineExtensions
     {
-        public static void AddTransition<TState, TTrigger>(this PlainStateMachine<TState, TTrigger> fsm, TState stateFrom,
+        public static void AddTransition<TState, TTrigger>(this IStateMachine<TState, TTrigger> fsm, TState stateFrom,
             TTrigger trigger, TState stateTo)
         {
             fsm.AddTransition(new Transition<TState, TTrigger>(stateFrom, trigger, stateTo));

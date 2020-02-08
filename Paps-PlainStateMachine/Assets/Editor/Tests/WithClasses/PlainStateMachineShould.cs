@@ -4,26 +4,25 @@ using Paps.StateMachines;
 using Paps.StateMachines.Extensions;
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
-namespace Tests
+namespace Tests.WithClasses
 {
-    public class FSMWithStructsShould
+    public class PlainStateMachineShould
     {
         [Test]
         public void Add_And_Remove_States()
         {
             var state1 = Substitute.For<IState>();
 
-            PlainStateMachine<int, int> fsm = new PlainStateMachine<int, int>();
+            PlainStateMachine<string, string> fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddState(1, state1);
+            fsm.AddState("1", state1);
 
-            Assert.IsTrue(fsm.StateCount == 1 && fsm.ContainsState(1) && fsm.GetStateById(1) == state1);
+            Assert.IsTrue(fsm.StateCount == 1 && fsm.ContainsState("1") && fsm.GetStateById("1") == state1);
 
-            fsm.RemoveState(1);
+            fsm.RemoveState("1");
 
-            Assert.IsTrue(fsm.StateCount == 0 && fsm.ContainsState(1) == false);
+            Assert.IsTrue(fsm.StateCount == 0 && fsm.ContainsState("1") == false);
         }
 
         [Test]
@@ -32,22 +31,22 @@ namespace Tests
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
 
-            PlainStateMachine<int, int> fsm = new PlainStateMachine<int, int>();
+            PlainStateMachine<string, string> fsm = new PlainStateMachine<string, string>();
 
             Assert.Throws<StateIdAlreadyAddedException>(
                 () =>
                 {
-                    fsm.AddState(1, state1);
-                    fsm.AddState(1, state2);
+                    fsm.AddState("1", state1);
+                    fsm.AddState("1", state2);
                 });
         }
 
         [Test]
         public void Throw_An_Exception_If_User_Adds_A_Null_State()
         {
-            PlainStateMachine<int, int> fsm = new PlainStateMachine<int, int>();
+            PlainStateMachine<string, string> fsm = new PlainStateMachine<string, string>();
 
-            Assert.Throws<ArgumentNullException>(() => fsm.AddState(1, null));
+            Assert.Throws<ArgumentNullException>(() => fsm.AddState("1", null));
         }
 
         [Test]
@@ -55,13 +54,13 @@ namespace Tests
         {
             var state = Substitute.For<IState>();
 
-            PlainStateMachine<int, int> fsm = new PlainStateMachine<int, int>();
+            PlainStateMachine<string, string> fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddState(1, state);
+            fsm.AddState("1", state);
 
             Assert.IsTrue(fsm.StateCount == 1);
 
-            fsm.RemoveState(1);
+            fsm.RemoveState("1");
 
             Assert.IsTrue(fsm.StateCount == 0);
         }
@@ -72,12 +71,12 @@ namespace Tests
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
 
-            var transition = new Transition<int, int>(1, 0, 2);
+            var transition = new Transition<string, string>("1", "0", "2");
 
-            PlainStateMachine<int, int> fsm = new PlainStateMachine<int, int>();
+            PlainStateMachine<string, string> fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddState(1, state1);
-            fsm.AddState(2, state2);
+            fsm.AddState("1", state1);
+            fsm.AddState("2", state2);
 
             fsm.AddTransition(transition);
 
@@ -89,29 +88,17 @@ namespace Tests
         }
 
         [Test]
-        public void Throw_An_Exception_If_User_Tries_To_Add_Or_Remove_Transition_With_No_Added_States()
-        {
-            var transition1 = new Transition<int, int>(1, 2, 3);
-
-            var fsm = new PlainStateMachine<int, int>();
-
-            Assert.Throws<StateIdNotAddedException>(() => fsm.AddTransition(transition1));
-
-            Assert.Throws<StateIdNotAddedException>(() => fsm.RemoveTransition(transition1));
-        }
-
-        [Test]
         public void Remove_Transitions()
         {
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
 
-            var transition = new Transition<int, int>(1, 2, 3);
+            var transition = new Transition<string, string>("1", "2", "3");
 
-            PlainStateMachine<int, int> fsm = new PlainStateMachine<int, int>();
+            PlainStateMachine<string, string> fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddState(1, state1);
-            fsm.AddState(3, state2);
+            fsm.AddState("1", state1);
+            fsm.AddState("3", state2);
 
             fsm.AddTransition(transition);
 
@@ -123,27 +110,15 @@ namespace Tests
         }
 
         [Test]
-        public void Throw_An_Exception_If_User_Tries_To_Start_With_At_Least_One_State_And_Does_Not_Contains_The_Initial_State()
-        {
-            var fsm = new PlainStateMachine<int, int>();
-
-            IState state = Substitute.For<IState>();
-
-            fsm.AddState(1, state);
-
-            Assert.Throws<InvalidInitialStateException>(() => fsm.Start());
-        }
-
-        [Test]
         public void Throw_An_Exception_If_User_Tries_To_Start_And_It_Is_Already_Started()
         {
             var state1 = Substitute.For<IState>();
 
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddState(1, state1);
+            fsm.AddState("1", state1);
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             fsm.Start();
 
@@ -155,11 +130,11 @@ namespace Tests
         {
             var state1 = Substitute.For<IState>();
 
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddState(1, state1);
+            fsm.AddState("1", state1);
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             Assert.IsFalse(fsm.IsStarted);
 
@@ -173,11 +148,11 @@ namespace Tests
         {
             var state1 = Substitute.For<IState>();
 
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddState(1, state1);
+            fsm.AddState("1", state1);
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             fsm.Start();
 
@@ -189,15 +164,15 @@ namespace Tests
         {
             var state1 = Substitute.For<IState>();
 
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddState(1, state1);
+            fsm.AddState("1", state1);
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             fsm.Start();
 
-            Assert.IsTrue(fsm.CurrentState == 1);
+            Assert.IsTrue(fsm.CurrentState == "1");
         }
 
         [Test]
@@ -206,30 +181,30 @@ namespace Tests
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
 
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddState(1, state1);
-            fsm.AddState(2, state2);
+            fsm.AddState("1", state1);
+            fsm.AddState("2", state2);
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
-            fsm.AddTransition(new Transition<int, int>(1, 0, 2));
+            fsm.AddTransition(new Transition<string, string>("1", "0", "2"));
 
             fsm.Start();
 
-            Assert.IsTrue(fsm.CurrentState == 1);
+            Assert.IsTrue(fsm.CurrentState == "1");
 
-            fsm.Trigger(0);
+            fsm.Trigger("0");
 
-            Assert.IsTrue(fsm.CurrentState == 2);
+            Assert.IsTrue(fsm.CurrentState == "2");
         }
 
         [Test]
         public void Throw_An_Exception_If_User_Tries_To_Trigger_When_Is_Not_Started()
         {
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            Assert.Throws<StateMachineNotStartedException>(() => fsm.Trigger(0));
+            Assert.Throws<StateMachineNotStartedException>(() => fsm.Trigger("0"));
         }
 
         [Test]
@@ -238,13 +213,13 @@ namespace Tests
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
 
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddState(1, state1);
-            fsm.AddState(3, state2);
+            fsm.AddState("1", state1);
+            fsm.AddState("3", state2);
 
-            var transition1 = new Transition<int, int>(1, 2, 3);
-            var transition2 = new Transition<int, int>(4, 5, 6);
+            var transition1 = new Transition<string, string>("1", "2", "3");
+            var transition2 = new Transition<string, string>("4", "5", "6");
 
             fsm.AddTransition(transition1);
 
@@ -257,12 +232,12 @@ namespace Tests
         {
             var state1 = Substitute.For<IState>();
 
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddState(1, state1);
+            fsm.AddState("1", state1);
 
-            Assert.IsTrue(fsm.ContainsState(1));
-            Assert.IsFalse(fsm.ContainsState(2));
+            Assert.IsTrue(fsm.ContainsState("1"));
+            Assert.IsFalse(fsm.ContainsState("2"));
         }
 
         [Test]
@@ -271,18 +246,18 @@ namespace Tests
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
 
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddState(1, state1);
-            fsm.AddState(2, state2);
+            fsm.AddState("1", state1);
+            fsm.AddState("2", state2);
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
-            fsm.AddTransition(new Transition<int, int>(1, 0, 2));
+            fsm.AddTransition(new Transition<string, string>("1", "0", "2"));
 
             fsm.Start();
 
-            fsm.Trigger(0);
+            fsm.Trigger("0");
 
             fsm.Stop();
 
@@ -294,11 +269,11 @@ namespace Tests
         {
             var state1 = Substitute.For<IState>();
 
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddState(1, state1);
+            fsm.AddState("1", state1);
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             Assert.Throws<StateMachineNotStartedException>(fsm.Update);
         }
@@ -308,11 +283,11 @@ namespace Tests
         {
             var state1 = Substitute.For<IState>();
 
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddState(1, state1);
+            fsm.AddState("1", state1);
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             fsm.Start();
 
@@ -327,26 +302,26 @@ namespace Tests
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
 
-            var stateChangedEventHandler = Substitute.For<StateChanged<int, int>>();
+            var stateChangedEventHandler = Substitute.For<StateChanged<string, string>>();
 
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
             fsm.OnStateChanged += stateChangedEventHandler;
 
-            fsm.AddState(1, state1);
-            fsm.AddState(2, state2);
+            fsm.AddState("1", state1);
+            fsm.AddState("2", state2);
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
-            fsm.AddTransition(new Transition<int, int>(1, 0, 2));
+            fsm.AddTransition(new Transition<string, string>("1", "0", "2"));
 
             fsm.Start();
 
-            fsm.Trigger(0);
+            fsm.Trigger("0");
 
             stateChangedEventHandler
                 .Received(1)
-                .Invoke(1, 0, 2);
+                .Invoke("1", "0", "2");
         }
 
         [Test]
@@ -355,26 +330,26 @@ namespace Tests
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
 
-            var stateChangedEventHandler = Substitute.For<StateChanged<int, int>>();
+            var stateChangedEventHandler = Substitute.For<StateChanged<string, string>>();
 
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
             fsm.OnBeforeStateChanges += stateChangedEventHandler;
 
-            fsm.AddState(1, state1);
-            fsm.AddState(2, state2);
+            fsm.AddState("1", state1);
+            fsm.AddState("2", state2);
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
-            fsm.AddTransition(new Transition<int, int>(1, 0, 2));
+            fsm.AddTransition(new Transition<string, string>("1", "0", "2"));
 
             fsm.Start();
 
-            fsm.Trigger(0);
+            fsm.Trigger("0");
 
             stateChangedEventHandler
                 .Received(1)
-                .Invoke(1, 0, 2);
+                .Invoke("1", "0", "2");
         }
 
         [Test]
@@ -383,12 +358,12 @@ namespace Tests
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
 
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddState(1, state1);
-            fsm.AddState(2, state2);
+            fsm.AddState("1", state1);
+            fsm.AddState("2", state2);
 
-            var transition = new Transition<int, int>(1, 0, 2);
+            var transition = new Transition<string, string>("1", "0", "2");
 
             fsm.AddTransition(transition);
 
@@ -412,12 +387,12 @@ namespace Tests
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
 
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddState(1, state1);
-            fsm.AddState(2, state2);
+            fsm.AddState("1", state1);
+            fsm.AddState("2", state2);
 
-            var transition = new Transition<int, int>(1, 0, 2);
+            var transition = new Transition<string, string>("1", "0", "2");
 
             fsm.AddTransition(transition);
 
@@ -430,9 +405,9 @@ namespace Tests
         [Test]
         public void Throw_An_Exception_If_User_Tries_To_Add_Or_Remove_Guard_Condition_On_A_Not_Added_Transition()
         {
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            var transition = new Transition<int, int>(1, 2, 3);
+            var transition = new Transition<string, string>("1", "2", "3");
 
             Assert.Throws<TransitionNotAddedException>(() => fsm.AddGuardConditionTo(transition, TestGuardCondition));
 
@@ -450,12 +425,12 @@ namespace Tests
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
 
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddState(1, state1);
-            fsm.AddState(2, state2);
+            fsm.AddState("1", state1);
+            fsm.AddState("2", state2);
 
-            var transition = new Transition<int, int>(1, 0, 2);
+            var transition = new Transition<string, string>("1", "0", "2");
 
             fsm.AddTransition(transition);
 
@@ -469,16 +444,16 @@ namespace Tests
 
             fsm.AddGuardConditionTo(transition, guardCondition2);
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             fsm.Start();
 
-            fsm.Trigger(0);
+            fsm.Trigger("0");
 
             guardCondition1.Received().Invoke();
             guardCondition2.Received().Invoke();
 
-            Assert.IsTrue(fsm.CurrentState == 2);
+            Assert.IsTrue(fsm.CurrentState == "2");
 
         }
 
@@ -488,12 +463,12 @@ namespace Tests
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
 
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddState(1, state1);
-            fsm.AddState(2, state2);
+            fsm.AddState("1", state1);
+            fsm.AddState("2", state2);
 
-            var transition = new Transition<int, int>(1, 0, 2);
+            var transition = new Transition<string, string>("1", "0", "2");
 
             fsm.AddTransition(transition);
 
@@ -511,17 +486,17 @@ namespace Tests
 
             fsm.AddGuardConditionTo(transition, guardCondition3);
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             fsm.Start();
 
-            fsm.Trigger(0);
+            fsm.Trigger("0");
 
             guardCondition1.Received().Invoke();
             guardCondition2.Received().Invoke();
             guardCondition3.DidNotReceive().Invoke();
 
-            Assert.IsFalse(fsm.CurrentState == 2);
+            Assert.IsFalse(fsm.CurrentState == "2");
         }
 
         [Test]
@@ -529,17 +504,17 @@ namespace Tests
         {
             var state1 = Substitute.For<IState>();
 
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddState(1, state1);
+            fsm.AddState("1", state1);
 
-            fsm.AddTransition(new Transition<int, int>(1, 0, 1));
+            fsm.AddTransition(new Transition<string, string>("1", "0", "1"));
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             fsm.Start();
 
-            fsm.Trigger(0);
+            fsm.Trigger("0");
 
             state1.Received().Exit();
             state1.Received(2).Enter();
@@ -551,20 +526,20 @@ namespace Tests
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
 
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddState(1, state1);
-            fsm.AddState(2, state2);
+            fsm.AddState("1", state1);
+            fsm.AddState("2", state2);
 
-            var transition1 = new Transition<int, int>(1, 0, 1);
-            var transition2 = new Transition<int, int>(1, 0, 2);
-            var transition3 = new Transition<int, int>(2, 0, 1);
+            var transition1 = new Transition<string, string>("1", "0", "1");
+            var transition2 = new Transition<string, string>("1", "0", "2");
+            var transition3 = new Transition<string, string>("2", "0", "1");
 
             fsm.AddTransition(transition1);
             fsm.AddTransition(transition2);
             fsm.AddTransition(transition3);
 
-            fsm.RemoveState(2);
+            fsm.RemoveState("2");
 
             Assert.IsFalse(fsm.ContainsTransition(transition2) && fsm.ContainsTransition(transition3));
             Assert.IsTrue(fsm.ContainsTransition(transition1));
@@ -576,19 +551,19 @@ namespace Tests
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
 
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddState(1, state1);
-            fsm.AddState(2, state2);
+            fsm.AddState("1", state1);
+            fsm.AddState("2", state2);
 
-            var transition = new Transition<int, int>(1, 0, 2);
+            var transition = new Transition<string, string>("1", "0", "2");
 
             fsm.AddTransition(transition);
 
             fsm.AddGuardConditionTo(transition, TestGuardCondition);
             fsm.AddGuardConditionTo(transition, TestGuardCondition2);
 
-            fsm.RemoveState(1);
+            fsm.RemoveState("1");
 
             Assert.IsFalse(fsm.ContainsGuardConditionOn(transition, TestGuardCondition));
             Assert.IsFalse(fsm.ContainsGuardConditionOn(transition, TestGuardCondition2));
@@ -607,18 +582,18 @@ namespace Tests
         [Test]
         public void Transition_Queued()
         {
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            var transition1 = new Transition<int, int>(1, 0, 2);
-            var transition2 = new Transition<int, int>(2, 0, 3);
-            var transition3 = new Transition<int, int>(3, 0, 4);
-            var transition4 = new Transition<int, int>(4, 0, 5);
+            var transition1 = new Transition<string, string>("1", "0", "2");
+            var transition2 = new Transition<string, string>("2", "0", "3");
+            var transition3 = new Transition<string, string>("3", "0", "4");
+            var transition4 = new Transition<string, string>("4", "0", "5");
 
             var state1 = Substitute.For<IState>();
             var state3 = Substitute.For<IState>();
             var state4 = Substitute.For<IState>();
             var state5 = Substitute.For<IState>();
-            var state2 = new DelegateState<int, int>
+            var state2 = new DelegateState<string, string>
                 (
                     () =>
                     {
@@ -630,36 +605,36 @@ namespace Tests
                     null, null);
 
 
-            fsm.AddState(1, state1);
-            fsm.AddState(2, state2);
-            fsm.AddState(3, state3);
-            fsm.AddState(4, state4);
-            fsm.AddState(5, state5);
+            fsm.AddState("1", state1);
+            fsm.AddState("2", state2);
+            fsm.AddState("3", state3);
+            fsm.AddState("4", state4);
+            fsm.AddState("5", state5);
             fsm.AddTransition(transition1);
             fsm.AddTransition(transition2);
             fsm.AddTransition(transition3);
             fsm.AddTransition(transition4);
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
             fsm.Start();
 
             fsm.Trigger(transition1.Trigger);
 
-            Assert.IsTrue(fsm.CurrentState == 5);
+            Assert.IsTrue(fsm.CurrentState == "5");
         }
 
         [Test]
         public void Throw_An_Exception_When_User_Tries_To_Transition_And_Guard_Conditions_Are_Not_Mutually_Exclusive()
         {
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddEmpty(1);
-            fsm.AddEmpty(2);
-            fsm.AddEmpty(3);
+            fsm.AddEmpty("1");
+            fsm.AddEmpty("2");
+            fsm.AddEmpty("3");
 
-            var transition1 = new Transition<int, int>(1, 0, 1);
-            var transition2 = new Transition<int, int>(1, 0, 2);
-            var transition3 = new Transition<int, int>(1, 1, 2);
-            var transition4 = new Transition<int, int>(1, 1, 3);
+            var transition1 = new Transition<string, string>("1", "0", "1");
+            var transition2 = new Transition<string, string>("1", "0", "2");
+            var transition3 = new Transition<string, string>("1", "1", "2");
+            var transition4 = new Transition<string, string>("1", "1", "3");
 
             fsm.AddTransition(transition1);
             fsm.AddTransition(transition2);
@@ -671,76 +646,76 @@ namespace Tests
             fsm.AddGuardConditionTo(transition3, () => true);
             fsm.AddGuardConditionTo(transition4, () => true);
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             fsm.Start();
 
-            Assert.DoesNotThrow(() => fsm.Trigger(0));
-            Assert.Throws<MultipleValidTransitionsFromSameStateException>(() => fsm.Trigger(1));
+            Assert.DoesNotThrow(() => fsm.Trigger("0"));
+            Assert.Throws<MultipleValidTransitionsFromSameStateException>(() => fsm.Trigger("1"));
         }
 
         [Test]
         public void Throw_An_Exception_When_User_Tries_To_Transition_And_Multiple_Transitions_With_Same_Source_And_Trigger_Has_No_Guard_Conditions()
         {
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddEmpty(1);
-            fsm.AddEmpty(2);
-            fsm.AddEmpty(3);
+            fsm.AddEmpty("1");
+            fsm.AddEmpty("2");
+            fsm.AddEmpty("3");
 
-            var transition1 = new Transition<int, int>(1, 0, 1);
-            var transition2 = new Transition<int, int>(1, 0, 2);
+            var transition1 = new Transition<string, string>("1", "0", "1");
+            var transition2 = new Transition<string, string>("1", "0", "2");
 
             fsm.AddTransition(transition1);
             fsm.AddTransition(transition2);
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             fsm.Start();
 
-            Assert.Throws<MultipleValidTransitionsFromSameStateException>(() => fsm.Trigger(0));
+            Assert.Throws<MultipleValidTransitionsFromSameStateException>(() => fsm.Trigger("0"));
         }
 
         [Test]
         public void Let_Transition_On_First_Enter()
         {
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            Action onEnter1 = () => fsm.Trigger(0);
+            Action onEnter1 = () => fsm.Trigger("0");
             Action onEnter2Substitute = Substitute.For<Action>();
-            Action onEnter2 = onEnter2Substitute + (() => fsm.Trigger(0));
+            Action onEnter2 = onEnter2Substitute + (() => fsm.Trigger("0"));
             Action onEnter3 = Substitute.For<Action>();
 
-            fsm.AddWithEvents(1, onEnter1);
-            fsm.AddWithEvents(2, onEnter2);
-            fsm.AddWithEvents(3, onEnter3);
+            fsm.AddWithEvents("1", onEnter1);
+            fsm.AddWithEvents("2", onEnter2);
+            fsm.AddWithEvents("3", onEnter3);
 
-            var transition1 = new Transition<int, int>(1, 0, 2);
-            var transition2 = new Transition<int, int>(2, 0, 3);
+            var transition1 = new Transition<string, string>("1", "0", "2");
+            var transition2 = new Transition<string, string>("2", "0", "3");
 
             fsm.AddTransition(transition1);
             fsm.AddTransition(transition2);
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             fsm.Start();
 
             onEnter2Substitute.Received();
             onEnter3.Received();
 
-            Assert.IsTrue(fsm.CurrentState == 3);
+            Assert.IsTrue(fsm.CurrentState == "3");
         }
 
         [Test]
         public void Throw_An_Exception_If_User_Tries_To_Start_On_First_Enter()
         {
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
             Action onEnter = () => fsm.Start();
 
-            fsm.AddWithEvents(1, onEnter);
+            fsm.AddWithEvents("1", onEnter);
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             Assert.Throws<StateMachineStartedException>(() => fsm.Start());
         }
@@ -748,14 +723,14 @@ namespace Tests
         [Test]
         public void Let_User_Stop_It_On_First_Enter()
         {
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
             Action onEnter = () => fsm.Stop();
             Action onExit = Substitute.For<Action>();
 
-            fsm.AddWithEvents(1, onEnter, onExit);
+            fsm.AddWithEvents("1", onEnter, onExit);
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             fsm.Start();
 
@@ -767,14 +742,14 @@ namespace Tests
         [Test]
         public void Throw_An_Exception_If_User_Tries_To_Transition_On_Exit_Of_State_When_Stopped()
         {
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
             Action onEnter = () => fsm.Stop();
-            Action onExit = () => fsm.Trigger(0);
+            Action onExit = () => fsm.Trigger("0");
 
-            fsm.AddWithEvents(1, onEnter, onExit);
+            fsm.AddWithEvents("1", onEnter, onExit);
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             Assert.Throws<StateMachineStoppingException>(() => fsm.Start());
         }
@@ -782,7 +757,7 @@ namespace Tests
         [Test]
         public void Throw_An_Exception_If_User_Tries_To_Send_An_Event_And_Is_Not_Started()
         {
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
             Assert.Throws<StateMachineNotStartedException>(() => fsm.SendEvent(Substitute.For<IEvent>()));
         }
@@ -790,13 +765,13 @@ namespace Tests
         [Test]
         public void Throw_An_Exception_If_User_Tries_To_Comparer_Is_Null()
         {
-            PlainStateMachine<int, int> fsm = null;
+            PlainStateMachine<string, string> fsm = null;
 
-            IEqualityComparer<int> comparer = null;
+            IEqualityComparer<string> comparer = null;
 
-            Assert.Throws<ArgumentNullException>(() => new PlainStateMachine<int, int>(comparer, comparer));
+            Assert.Throws<ArgumentNullException>(() => new PlainStateMachine<string, string>(comparer, comparer));
 
-            fsm = new PlainStateMachine<int, int>();
+            fsm = new PlainStateMachine<string, string>();
 
             Assert.Throws<ArgumentNullException>(() => fsm.SetStateComparer(comparer));
             Assert.Throws<ArgumentNullException>(() => fsm.SetTriggerComparer(comparer));
@@ -805,32 +780,32 @@ namespace Tests
         [Test]
         public void Use_Custom_Equality_Comparer()
         {
-            IEqualityComparer<int> comparer = Substitute.For<IEqualityComparer<int>>();
+            IEqualityComparer<string> comparer = Substitute.For<IEqualityComparer<string>>();
 
-            comparer.Equals(1, 1).Returns(true);
-            comparer.Equals(2, 2).Returns(true);
-            comparer.Equals(1, 2).Returns(false);
-            comparer.Equals(2, 1).Returns(false);
-            comparer.Equals(0, 0).Returns(true);
-            comparer.Equals(1, 0).Returns(false);
-            comparer.Equals(2, 0).Returns(false);
-            comparer.Equals(0, 1).Returns(false);
-            comparer.Equals(0, 2).Returns(false);
+            comparer.Equals("1", "1").Returns(true);
+            comparer.Equals("2", "2").Returns(true);
+            comparer.Equals("1", "2").Returns(false);
+            comparer.Equals("2", "1").Returns(false);
+            comparer.Equals("0", "0").Returns(true);
+            comparer.Equals("1", "0").Returns(false);
+            comparer.Equals("2", "0").Returns(false);
+            comparer.Equals("0", "1").Returns(false);
+            comparer.Equals("0", "2").Returns(false);
 
-            var fsm = new PlainStateMachine<int, int>(comparer, comparer);
+            var fsm = new PlainStateMachine<string, string>(comparer, comparer);
 
-            fsm.AddEmpty(1);
-            fsm.AddEmpty(2);
+            fsm.AddEmpty("1");
+            fsm.AddEmpty("2");
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
-            fsm.AddTransition(new Transition<int, int>(1, 0, 2));
+            fsm.AddTransition(new Transition<string, string>("1", "0", "2"));
 
             fsm.Start();
 
-            fsm.Trigger(0);
+            fsm.Trigger("0");
 
-            comparer.Received().Equals(Arg.Any<int>(), Arg.Any<int>());
+            comparer.Received().Equals(Arg.Any<string>(), Arg.Any<string>());
         }
 
         [Test]
@@ -839,53 +814,53 @@ namespace Tests
             var state1 = Substitute.For<IState>();
             var state2 = Substitute.For<IState>();
 
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddState(1, state1);
-            fsm.AddState(2, state2);
+            fsm.AddState("1", state1);
+            fsm.AddState("2", state2);
 
-            Assert.AreEqual(fsm.GetStateById(1), state1);
-            Assert.AreEqual(fsm.GetStateById(2), state2);
+            Assert.AreEqual(fsm.GetStateById("1"), state1);
+            Assert.AreEqual(fsm.GetStateById("2"), state2);
         }
 
         [Test]
         public void Change_Equality_Comparer_After_Construction()
         {
-            IEqualityComparer<int> comparer = Substitute.For<IEqualityComparer<int>>();
+            IEqualityComparer<string> comparer = Substitute.For<IEqualityComparer<string>>();
 
-            comparer.Equals(1, 1).Returns(true);
-            comparer.Equals(2, 2).Returns(true);
-            comparer.Equals(1, 2).Returns(false);
-            comparer.Equals(2, 1).Returns(false);
-            comparer.Equals(0, 0).Returns(true);
-            comparer.Equals(1, 0).Returns(false);
-            comparer.Equals(2, 0).Returns(false);
-            comparer.Equals(0, 1).Returns(false);
-            comparer.Equals(0, 2).Returns(false);
+            comparer.Equals("1", "1").Returns(true);
+            comparer.Equals("2", "2").Returns(true);
+            comparer.Equals("1", "2").Returns(false);
+            comparer.Equals("2", "1").Returns(false);
+            comparer.Equals("0", "0").Returns(true);
+            comparer.Equals("1", "0").Returns(false);
+            comparer.Equals("2", "0").Returns(false);
+            comparer.Equals("0", "1").Returns(false);
+            comparer.Equals("0", "2").Returns(false);
 
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
             fsm.SetStateComparer(comparer);
             fsm.SetTriggerComparer(comparer);
 
-            fsm.AddEmpty(1);
-            fsm.AddEmpty(2);
+            fsm.AddEmpty("1");
+            fsm.AddEmpty("2");
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
-            fsm.AddTransition(new Transition<int, int>(1, 0, 2));
+            fsm.AddTransition(new Transition<string, string>("1", "0", "2"));
 
             fsm.Start();
 
-            fsm.Trigger(0);
+            fsm.Trigger("0");
 
-            comparer.Received().Equals(Arg.Any<int>(), Arg.Any<int>());
+            comparer.Received().Equals(Arg.Any<string>(), Arg.Any<string>());
         }
 
         [Test]
         public void Throw_An_Exception_If_User_Tries_To_Get_Current_State_While_Not_Started()
         {
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
             Assert.Throws<StateMachineNotStartedException>(() => fsm.CurrentState.ToString());
         }
@@ -893,21 +868,21 @@ namespace Tests
         [Test]
         public void Throw_An_Exception_If_User_Tries_To_Remove_Current_State()
         {
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddEmpty(1);
+            fsm.AddEmpty("1");
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             fsm.Start();
 
-            Assert.Throws<InvalidOperationException>(() => fsm.RemoveState(1));
+            Assert.Throws<InvalidOperationException>(() => fsm.RemoveState("1"));
         }
 
         [Test]
         public void Throw_An_Exception_If_Is_Empty_When_Started()
         {
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
             Assert.Throws<EmptyStateMachineException>(() => fsm.Start());
         }
@@ -915,44 +890,44 @@ namespace Tests
         [Test]
         public void Permit_Remove_State_While_Starting()
         {
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddWithEvents(1, () => fsm.RemoveState(2));
-            fsm.AddEmpty(2);
+            fsm.AddWithEvents("1", () => fsm.RemoveState("2"));
+            fsm.AddEmpty("2");
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             Assert.DoesNotThrow(() => fsm.Start());
-            Assert.IsFalse(fsm.ContainsState(2));
+            Assert.IsFalse(fsm.ContainsState("2"));
         }
 
         [Test]
         public void Throw_An_Exception_If_User_Tries_To_Remove_Next_State_While_In_Transition()
         {
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddWithExitEvent(1, () => fsm.RemoveState(2));
-            fsm.AddEmpty(2);
+            fsm.AddWithExitEvent("1", () => fsm.RemoveState("2"));
+            fsm.AddEmpty("2");
 
-            fsm.AddTransition(1, 0, 2);
+            fsm.AddTransition("1", "0", "2");
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             fsm.Start();
 
-            Assert.Throws<ProtectedStateException>(() => fsm.Trigger(0));
-            Assert.IsTrue(fsm.ContainsState(2));
+            Assert.Throws<ProtectedStateException>(() => fsm.Trigger("0"));
+            Assert.IsTrue(fsm.ContainsState("2"));
         }
 
         [Test]
         public void Throw_An_Exception_If_User_Tries_To_Remove_State_While_Evaluating_Guard_Conditions()
         {
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddEmpty(1);
-            fsm.AddEmpty(2);
+            fsm.AddEmpty("1");
+            fsm.AddEmpty("2");
 
-            var transition = new Transition<int, int>(1, 0, 2);
+            var transition = new Transition<string, string>("1", "0", "2");
 
             fsm.AddTransition(transition);
 
@@ -960,27 +935,27 @@ namespace Tests
 
             guardCondition.IsValid().Returns(true);
 
-            guardCondition.When(g => g.IsValid()).Do(callback => fsm.RemoveState(2));
+            guardCondition.When(g => g.IsValid()).Do(callback => fsm.RemoveState("2"));
 
             fsm.AddGuardConditionTo(transition, guardCondition);
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             fsm.Start();
 
-            Assert.Throws<StateMachineEvaluatingTransitionsException>(() => fsm.Trigger(0));
-            Assert.IsTrue(fsm.ContainsState(2));
+            Assert.Throws<StateMachineEvaluatingTransitionsException>(() => fsm.Trigger("0"));
+            Assert.IsTrue(fsm.ContainsState("2"));
         }
 
         [Test]
         public void Throw_An_Exception_If_User_Tries_To_Remove_Transition_While_Evaluating_Transitions()
         {
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddEmpty(1);
-            fsm.AddEmpty(2);
+            fsm.AddEmpty("1");
+            fsm.AddEmpty("2");
 
-            var transition = new Transition<int, int>(1, 0, 2);
+            var transition = new Transition<string, string>("1", "0", "2");
 
             fsm.AddTransition(transition);
 
@@ -992,23 +967,23 @@ namespace Tests
 
             fsm.AddGuardConditionTo(transition, guardCondition);
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             fsm.Start();
 
-            Assert.Throws<StateMachineEvaluatingTransitionsException>(() => fsm.Trigger(0));
-            Assert.IsTrue(fsm.ContainsTransition(transition));
+            Assert.Throws<StateMachineEvaluatingTransitionsException>(() => fsm.Trigger("0"));
+            Assert.IsTrue(fsm.ContainsState("2"));
         }
 
         [Test]
         public void Throw_An_Exception_If_User_Tries_To_Remove_Guard_Condition_While_Evaluating_Transitions()
         {
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddEmpty(1);
-            fsm.AddEmpty(2);
+            fsm.AddEmpty("1");
+            fsm.AddEmpty("2");
 
-            var transition = new Transition<int, int>(1, 0, 2);
+            var transition = new Transition<string, string>("1", "0", "2");
 
             fsm.AddTransition(transition);
 
@@ -1020,42 +995,42 @@ namespace Tests
 
             fsm.AddGuardConditionTo(transition, guardCondition);
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             fsm.Start();
 
-            Assert.Throws<StateMachineEvaluatingTransitionsException>(() => fsm.Trigger(0));
-            Assert.IsTrue(fsm.ContainsGuardConditionOn(transition, guardCondition));
+            Assert.Throws<StateMachineEvaluatingTransitionsException>(() => fsm.Trigger("0"));
+            Assert.IsTrue(fsm.ContainsState("2"));
         }
 
         [Test]
         public void Throw_An_Exception_If_User_Tries_To_Stop_While_In_Transition()
         {
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            var transition = new Transition<int, int>(1, 0, 2);
+            var transition = new Transition<string, string>("1", "0", "2");
 
-            fsm.AddWithExitEvent(1, () => fsm.Stop());
-            fsm.AddEmpty(2);
+            fsm.AddWithExitEvent("1", () => fsm.Stop());
+            fsm.AddEmpty("2");
 
             fsm.AddTransition(transition);
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             fsm.Start();
 
-            Assert.Throws<StateMachineTransitioningException>(() => fsm.Trigger(0));
+            Assert.Throws<StateMachineTransitioningException>(() => fsm.Trigger("0"));
         }
 
         [Test]
         public void Throw_An_Exception_If_User_Tries_To_Stop_While_Evaluating_Transitions()
         {
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddEmpty(1);
-            fsm.AddEmpty(2);
+            fsm.AddEmpty("1");
+            fsm.AddEmpty("2");
 
-            var transition = new Transition<int, int>(1, 0, 2);
+            var transition = new Transition<string, string>("1", "0", "2");
 
             fsm.AddTransition(transition);
 
@@ -1067,21 +1042,21 @@ namespace Tests
 
             fsm.AddGuardConditionTo(transition, guardCondition);
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             fsm.Start();
 
-            Assert.Throws<StateMachineEvaluatingTransitionsException>(() => fsm.Trigger(0));
+            Assert.Throws<StateMachineEvaluatingTransitionsException>(() => fsm.Trigger("0"));
         }
 
         [Test]
         public void Throw_An_Exception_If_User_Tries_To_Stop_While_Stopping()
         {
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddWithExitEvent(1, () => fsm.Stop());
+            fsm.AddWithExitEvent("1", () => fsm.Stop());
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             fsm.Start();
 
@@ -1091,81 +1066,141 @@ namespace Tests
         [Test]
         public void Throw_An_Exception_If_User_Tries_To_Start_While_Stopping()
         {
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddWithExitEvent(1, () => fsm.Start());
+            fsm.AddWithExitEvent("1", () => fsm.Start());
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             fsm.Start();
 
             Assert.Throws<StateMachineStoppingException>(() => fsm.Stop());
         }
-        
+
         [Test]
         public void Permit_Remove_Previous_State_While_New_Current_State_Enters()
         {
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            fsm.AddEmpty(1);
-            fsm.AddWithEnterEvent(2, () => fsm.RemoveState(1));
+            fsm.AddEmpty("1");
+            fsm.AddWithEnterEvent("2", () => fsm.RemoveState("1"));
 
-            fsm.AddTransition(1, 0, 2);
+            fsm.AddTransition("1", "0", "2");
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             fsm.Start();
 
-            Assert.DoesNotThrow(() => fsm.Trigger(0));
-            Assert.IsFalse(fsm.ContainsState(1));
+            Assert.DoesNotThrow(() => fsm.Trigger("0"));
+            Assert.IsFalse(fsm.ContainsState("1"));
         }
 
         [Test]
         public void Permit_Remove_Transition_While_In_Transition()
         {
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            var transition = new Transition<int, int>(1, 0, 2);
+            var transition = new Transition<string, string>("1", "0", "2");
 
-            fsm.AddEmpty(1);
-            fsm.AddWithEnterEvent(2, () => fsm.RemoveTransition(transition));
+            fsm.AddEmpty("1");
+            fsm.AddWithEnterEvent("2", () => fsm.RemoveTransition(transition));
 
             fsm.AddTransition(transition);
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             fsm.Start();
 
-            Assert.DoesNotThrow(() => fsm.Trigger(0));
+            Assert.DoesNotThrow(() => fsm.Trigger("0"));
             Assert.IsFalse(fsm.ContainsTransition(transition));
         }
 
         [Test]
         public void Permit_Remove_Transition_While_In_Queued_Transition()
         {
-            var fsm = new PlainStateMachine<int, int>();
+            var fsm = new PlainStateMachine<string, string>();
 
-            var transition1 = new Transition<int, int>(1, 0, 2);
-            var transition2 = new Transition<int, int>(2, 0, 3);
+            var transition1 = new Transition<string, string>("1", "0", "2");
+            var transition2 = new Transition<string, string>("2", "0", "3");
 
-            fsm.AddEmpty(1);
-            fsm.AddWithEnterEvent(2, 
-            () => 
+            fsm.AddEmpty("1");
+            fsm.AddWithEnterEvent("2",
+            () =>
             {
                 fsm.RemoveTransition(transition1);
-                fsm.Trigger(0);
+                fsm.Trigger("0");
             });
-            fsm.AddEmpty(3);
+            fsm.AddEmpty("3");
 
             fsm.AddTransition(transition1);
             fsm.AddTransition(transition2);
 
-            fsm.InitialState = 1;
+            fsm.InitialState = "1";
 
             fsm.Start();
 
-            Assert.DoesNotThrow(() => fsm.Trigger(0));
+            Assert.DoesNotThrow(() => fsm.Trigger("0"));
             Assert.IsFalse(fsm.ContainsTransition(transition1));
+        }
+
+        [Test]
+        public void Throw_An_Exception_If_User_Tries_To_Set_An_Initial_State_That_Was_Not_Added()
+        {
+            var fsm = new PlainStateMachine<string, string>();
+
+            Assert.Throws<StateIdNotAddedException>(() => fsm.InitialState = "1");
+        }
+
+        [Test]
+        public void Set_Initial_State_Automatically_When_The_First_State_Is_Added()
+        {
+            var fsm = new PlainStateMachine<string, string>();
+
+            string stateId1 = "1";
+            string stateId2 = "2";
+
+            var stateObj = Substitute.For<IState>();
+
+            fsm.AddState(stateId1, stateObj);
+
+            Assert.AreEqual(stateId1, fsm.InitialState);
+
+            fsm.AddState(stateId2, stateObj);
+
+            Assert.AreNotEqual(stateId2, fsm.InitialState);
+        }
+
+        [Test]
+        public void Leave_Initial_State_With_Default_Type_Value_If_The_Last_State_Is_Removed()
+        {
+            var fsm = new PlainStateMachine<string, string>();
+
+            string stateId = "1";
+
+            var stateObj = Substitute.For<IState>();
+
+            fsm.AddState(stateId, stateObj);
+
+            fsm.RemoveState(stateId);
+
+            Assert.AreEqual(default(string), fsm.InitialState);
+        }
+
+        [Test]
+        public void Permit_Change_Initial_State_If_The_Input_State_Id_Was_Added()
+        {
+            var fsm = new PlainStateMachine<string, string>();
+
+            string stateId1 = "1";
+            string stateId2 = "2";
+
+            var stateObj = Substitute.For<IState>();
+
+            fsm.AddState(stateId1, stateObj);
+            fsm.AddState(stateId2, stateObj);
+
+            Assert.DoesNotThrow(() => fsm.InitialState = stateId2);
+            Assert.AreEqual(stateId2, fsm.InitialState);
         }
     }
 }

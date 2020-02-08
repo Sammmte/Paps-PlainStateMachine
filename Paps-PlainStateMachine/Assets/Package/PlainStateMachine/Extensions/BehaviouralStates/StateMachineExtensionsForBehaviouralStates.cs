@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Paps.StateMachines.Extensions.BehaviouralStates
 {
-    public static class FSMExtensions
+    public static class StateMachineExtensions
     {
         public static BehaviouralState AddBehaviouralState<TState, TTrigger>(this IStateMachine<TState, TTrigger> fsm, TState stateId)
         {

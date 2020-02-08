@@ -7,9 +7,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Paps.StateMachines.Extensions.BehaviouralStates;
 
-namespace Tests
+namespace Tests.WithStructs
 {
-    public class FSMExtensionsForBehaviouralStatesShould
+    public class StateMachineExtensionsForBehaviouralStatesShould
     {
         private class TestStateBehaviour : IStateBehaviour
         {

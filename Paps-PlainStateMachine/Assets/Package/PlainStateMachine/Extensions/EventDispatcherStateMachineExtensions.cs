@@ -2,7 +2,7 @@
 
 namespace Paps.StateMachines.Extensions
 {
-    public static class FSMEventDispatcherExtensions
+    public static class EventDispatcherStateMachineExtensions
     {
         public static void SubscribeEventHandlerTo<TState, TTrigger>(this IEventDispatcherStateMachine<TState, TTrigger> fsm, TState stateId, Func<IEvent, bool> method)
         {
@@ -16,7 +16,7 @@ namespace Paps.StateMachines.Extensions
 
         public static bool HasEventHandler<TState, TTrigger>(this IEventDispatcherStateMachine<TState, TTrigger> fsm, TState stateId, Func<IEvent, bool> method)
         {
-            return fsm.HasEventHandler(stateId, new DelegateStateEventHandler(method));
+            return fsm.HasEventHandlerOn(stateId, new DelegateStateEventHandler(method));
         }
 
         public static void SubscribeEventHandlersTo<TState, TTrigger>(this IEventDispatcherStateMachine<TState, TTrigger> fsm, TState stateId, params IStateEventHandler[] eventHandlers)

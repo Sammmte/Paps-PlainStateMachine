@@ -3,10 +3,12 @@
     public interface IEventDispatcherStateMachine<TState, TTrigger> : IStateMachine<TState, TTrigger>
     {
         void SubscribeEventHandlerTo(TState stateId, IStateEventHandler eventHandler);
-        void UnsubscribeEventHandlerFrom(TState stateId, IStateEventHandler eventHandler);
+        bool UnsubscribeEventHandlerFrom(TState stateId, IStateEventHandler eventHandler);
 
-        bool HasEventHandler(TState stateId, IStateEventHandler eventHandler);
-        bool HasEventListener(TState stateId);
+        bool HasEventHandlerOn(TState stateId, IStateEventHandler eventHandler);
+        bool HasAnyEventHandlerOn(TState stateId);
+
+        IStateEventHandler[] GetEventHandlersOf(TState stateId);
 
         bool SendEvent(IEvent ev);
     }

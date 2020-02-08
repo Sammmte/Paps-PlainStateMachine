@@ -8,14 +8,14 @@
         TState InitialState { get; set; }
 
         void AddState(TState stateId, IState state);
-        void RemoveState(TState stateId);
+        bool RemoveState(TState stateId);
 
         bool ContainsState(TState stateId);
 
         TState[] GetStates();
 
         void AddTransition(Transition<TState, TTrigger> transition);
-        void RemoveTransition(Transition<TState, TTrigger> transition);
+        bool RemoveTransition(Transition<TState, TTrigger> transition);
 
         bool ContainsTransition(Transition<TState, TTrigger> transition);
 
