@@ -109,7 +109,7 @@ guardEnemyFSM.SendEvent(myEvent);
 //Output: Handling event MyEvent
 ```
 
-Event handlers returns a boolean on its HandleEvent function
+Event handlers returns a boolean on its HandleEvent function. If you have more than one event handler, the event instance will be sent to each one until one returns "true" or all returns "false".
 
 ### Useful Extensions
 
