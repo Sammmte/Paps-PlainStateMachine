@@ -31,6 +31,8 @@ namespace Paps.StateMachines
 
         private Queue<TransitionCommand> _transitionCommandQueue;
 
+        private TState _protectedNextState;
+
         private TState _currentState;
         public TState CurrentState
         {
@@ -221,13 +223,22 @@ namespace Paps.StateMachines
 
         public void RemoveState(TState stateId)
         {
-            ValidateIsNotIn(PlainStateMachineInternalState.Transitioning);
             ValidateIsNotIn(PlainStateMachineInternalState.EvaluatingTransitions);
             ValidateIsNotCurrentIfIsStarted(stateId);
+            ValidateIsNotNextStateOnTransition(stateId);
 
             if (_states.Remove(stateId))
             {
                 RemoveTransitionsRelatedTo(stateId);
+            }
+        }
+
+        private void ValidateIsNotNextStateOnTransition(TState stateId)
+        {
+            if (IsIn(PlainStateMachineInternalState.Transitioning))
+            {
+                if (_stateComparer.Equals(stateId, _protectedNextState))
+                    throw new ProtectedStateException("Cannot remove protected state " + stateId + " because it takes part on the current transition");
             }
         }
 
@@ -280,7 +291,6 @@ namespace Paps.StateMachines
         {
             ValidateHasStateWithId(transition.StateFrom);
             ValidateHasStateWithId(transition.StateTo);
-            ValidateIsNotIn(PlainStateMachineInternalState.Transitioning);
             ValidateIsNotIn(PlainStateMachineInternalState.EvaluatingTransitions);
 
             InternalRemoveTransition(transition);
@@ -366,6 +376,8 @@ namespace Paps.StateMachines
         {
             while(_transitionCommandQueue.Count > 0)
             {
+                SetInternalState(PlainStateMachineInternalState.EvaluatingTransitions);
+
                 TransitionCommand transition = _transitionCommandQueue.Dequeue();
 
                 TState stateTo = default;
@@ -421,6 +433,8 @@ namespace Paps.StateMachines
         private void Transition(TTrigger trigger, TState stateTo)
         {
             SetInternalState(PlainStateMachineInternalState.Transitioning);
+
+            _protectedNextState = stateTo;
             
             TState previous = CurrentState;
             
@@ -433,9 +447,9 @@ namespace Paps.StateMachines
             
             OnStateChanged?.Invoke(previous, trigger, stateTo);
             
-            SetInternalState(PlainStateMachineInternalState.EvaluatingTransitions);
-            
             EnterCurrentState();
+
+            _protectedNextState = default;
         }
 
         private bool IsValidTransition(Transition<TState, TTrigger> transition)
@@ -669,7 +683,5 @@ namespace Paps.StateMachines
                 _equalityComparer = equalityComparer ?? EqualityComparer<TTrigger>.Default;
             }
         }
-
-        
     }
 }
