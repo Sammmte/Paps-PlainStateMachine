@@ -316,6 +316,7 @@ namespace Paps.StateMachines
         {
             ValidateHasStateWithId(transition.StateFrom);
             ValidateHasStateWithId(transition.StateTo);
+            ValidateIsNotIn(PlainStateMachineInternalState.EvaluatingTransitions);
 
             _transitions.Add(transition);
         }
@@ -510,6 +511,7 @@ namespace Paps.StateMachines
         {
             ValidateHasTransition(transition);
             ValidateGuardConditionIsNotNull(guardCondition);
+            ValidateIsNotIn(PlainStateMachineInternalState.EvaluatingTransitions);
 
             if(_guardConditions.ContainsKey(transition) == false)
             {

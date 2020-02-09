@@ -1202,5 +1202,63 @@ namespace Tests.WithClasses
             Assert.DoesNotThrow(() => fsm.InitialState = stateId2);
             Assert.AreEqual(stateId2, fsm.InitialState);
         }
+
+        [Test]
+        public void Throw_An_Exception_If_User_Tries_To_Add_Guard_Conditions_When_Evaluating_Transitions()
+        {
+            var fsm = new PlainStateMachine<string, string>();
+
+            fsm.AddEmpty("1");
+            fsm.AddEmpty("2");
+
+            var transition = new Transition<string, string>("1", "0", "2");
+
+            fsm.AddTransition(transition);
+
+            IGuardCondition guardCondition1 = Substitute.For<IGuardCondition>();
+            IGuardCondition guardCondition2 = Substitute.For<IGuardCondition>();
+
+            guardCondition1.IsValid().Returns(true);
+
+            guardCondition1.When(g => g.IsValid()).Do(callback => fsm.AddGuardConditionTo(transition, guardCondition2));
+
+            fsm.AddGuardConditionTo(transition, guardCondition1);
+
+            fsm.InitialState = "1";
+
+            fsm.Start();
+
+            Assert.Throws<StateMachineEvaluatingTransitionsException>(() => fsm.Trigger("0"));
+            Assert.IsFalse(fsm.ContainsGuardConditionOn(transition, guardCondition2));
+        }
+
+        [Test]
+        public void Throw_An_Exception_If_User_Tries_To_Add_Transitions_When_Evaluating_Transitions()
+        {
+            var fsm = new PlainStateMachine<string, string>();
+
+            fsm.AddEmpty("1");
+            fsm.AddEmpty("2");
+
+            var transition = new Transition<string, string>("1", "0", "2");
+            var transition2 = new Transition<string, string>("2", "0", "1");
+
+            fsm.AddTransition(transition);
+
+            IGuardCondition guardCondition = Substitute.For<IGuardCondition>();
+
+            guardCondition.IsValid().Returns(true);
+
+            guardCondition.When(g => g.IsValid()).Do(callback => fsm.AddTransition(transition2));
+
+            fsm.AddGuardConditionTo(transition, guardCondition);
+
+            fsm.InitialState = "1";
+
+            fsm.Start();
+
+            Assert.Throws<StateMachineEvaluatingTransitionsException>(() => fsm.Trigger("0"));
+            Assert.IsFalse(fsm.ContainsTransition(transition2));
+        }
     }
 }
