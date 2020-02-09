@@ -1240,10 +1240,10 @@ namespace Tests.WithStructs
             fsm.AddEmpty(1);
             fsm.AddEmpty(2);
 
-            var transition = new Transition<int, int>(1, 0, 2);
+            var transition1 = new Transition<int, int>(1, 0, 2);
             var transition2 = new Transition<int, int>(2, 0, 1);
 
-            fsm.AddTransition(transition);
+            fsm.AddTransition(transition1);
 
             IGuardCondition guardCondition = Substitute.For<IGuardCondition>();
 
@@ -1251,7 +1251,7 @@ namespace Tests.WithStructs
 
             guardCondition.When(g => g.IsValid()).Do(callback => fsm.AddTransition(transition2));
 
-            fsm.AddGuardConditionTo(transition, guardCondition);
+            fsm.AddGuardConditionTo(transition1, guardCondition);
 
             fsm.InitialState = 1;
 
@@ -1259,6 +1259,46 @@ namespace Tests.WithStructs
 
             Assert.Throws<StateMachineEvaluatingTransitionsException>(() => fsm.Trigger(0));
             Assert.IsFalse(fsm.ContainsTransition(transition2));
+        }
+
+        [Test]
+        public void Permit_Add_Transitions_While_In_Transition()
+        {
+            var fsm = new PlainStateMachine<int, int>();
+
+            var transition1 = new Transition<int, int>(1, 0, 2);
+            var transition2 = new Transition<int, int>(2, 0, 1);
+
+            fsm.AddWithExitEvent(1, () => fsm.AddTransition(transition2));
+            fsm.AddEmpty(2);
+
+            fsm.AddTransition(transition1);
+
+            fsm.Start();
+
+            Assert.DoesNotThrow(() => fsm.Trigger(0));
+
+            Assert.That(fsm.ContainsTransition(transition2), "Contains transition 2");
+        }
+
+        [Test]
+        public void Permit_Add_Guard_Conditions_While_In_Transition()
+        {
+            var fsm = new PlainStateMachine<int, int>();
+
+            var transition = new Transition<int, int>(1, 0, 2);
+
+            var guardCondition = Substitute.For<IGuardCondition>();
+
+            fsm.AddWithExitEvent(1, () => fsm.AddGuardConditionTo(transition, guardCondition));
+            fsm.AddEmpty(2);
+
+            fsm.AddTransition(transition);
+
+            fsm.Start();
+
+            Assert.DoesNotThrow(() => fsm.Trigger(0));
+            Assert.That(fsm.ContainsGuardConditionOn(transition, guardCondition), "Contains guard condition");
         }
     }
 }
