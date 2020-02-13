@@ -129,5 +129,19 @@ namespace Tests.WithStructs
             Assert.Contains(eventHandler2, eventHandlers);
             AssertExtensions.DoesNotContains(eventHandler3, eventHandlers);
         }
+
+        [Test]
+        public void Do_Not_Throw_An_Exception_If_User_Asks_If_Has_Event_Handler_On_State_And_There_Is_None()
+        {
+            var fsm = new PlainStateMachine<int, int>();
+
+            var stateId = 1;
+
+            var stateObj = Substitute.For<IState>();
+
+            fsm.AddState(stateId, stateObj);
+
+            Assert.DoesNotThrow(() => fsm.HasEventHandler(stateId, someEvent => false));
+        }
     }
 }
