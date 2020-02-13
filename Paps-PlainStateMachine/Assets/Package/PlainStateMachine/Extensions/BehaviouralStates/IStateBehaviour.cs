@@ -1,4 +1,4 @@
-﻿namespace Paps.StateMachines.Extensions
+﻿namespace Paps.StateMachines.Extensions.BehaviouralStates
 {
     public interface IStateBehaviour
     {
