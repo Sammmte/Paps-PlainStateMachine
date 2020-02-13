@@ -607,12 +607,7 @@ namespace Paps.StateMachines
 
         public bool HasEventHandlerOn(TState stateId, IStateEventHandler eventListener)
         {
-            return HasAnyEventHandlerOn(stateId) && _stateEventHandlers[stateId].Contains(eventListener);
-        }
-
-        public bool HasAnyEventHandlerOn(TState stateId)
-        {
-            return _stateEventHandlers.ContainsKey(stateId);
+            return _stateEventHandlers.Count > 0 && _stateEventHandlers[stateId].Contains(eventListener);
         }
 
         public IStateEventHandler[] GetEventHandlersOf(TState stateId)

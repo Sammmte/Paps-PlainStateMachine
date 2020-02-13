@@ -6,7 +6,6 @@
         bool UnsubscribeEventHandlerFrom(TState stateId, IStateEventHandler eventHandler);
 
         bool HasEventHandlerOn(TState stateId, IStateEventHandler eventHandler);
-        bool HasAnyEventHandlerOn(TState stateId);
 
         IStateEventHandler[] GetEventHandlersOf(TState stateId);
 

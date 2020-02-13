@@ -22,7 +22,6 @@ namespace Tests.WithStructs
 
             Assert.IsTrue(fsm.UnsubscribeEventHandlerFrom(1, eventHandler));
 
-            Assert.IsFalse(fsm.HasAnyEventHandlerOn(1));
             Assert.IsFalse(fsm.HasEventHandlerOn(1, eventHandler));
         }
 
