@@ -16,8 +16,7 @@ IState searchTarget = new SearchTargetState();
 guardEnemyFSM.AddState(State.Patrol, patrolState);
 guardEnemyFSM.AddState(State.SearchTarget, searchTarget);
 
-//You must specify a initial state before start using the state machine
-//otherwise an exception will be thrown
+//You can specify the initial state. By default the first added will be the initial state.
 
 guardEnemyFSM.InitialState = State.Patrol;
 
