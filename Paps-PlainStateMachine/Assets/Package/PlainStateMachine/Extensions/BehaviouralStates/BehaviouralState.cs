@@ -5,7 +5,7 @@ using System.Collections;
 
 namespace Paps.StateMachines.Extensions.BehaviouralStates
 {
-    public class BehaviouralState : IState, IEnumerable<IStateBehaviour>
+    public class BehaviouralState : IBehaviouralState
     {
         private HashSet<IStateBehaviour> _behaviours;
 
@@ -28,9 +28,9 @@ namespace Paps.StateMachines.Extensions.BehaviouralStates
             _behaviours.Add(behaviour);
         }
 
-        public void RemoveBehaviour(IStateBehaviour behaviour)
+        public bool RemoveBehaviour(IStateBehaviour behaviour)
         {
-            _behaviours.Remove(behaviour);
+            return _behaviours.Remove(behaviour);
         }
 
         public bool ContainsBehaviour(IStateBehaviour behaviour)

@@ -1,11 +1,10 @@
 ﻿using NSubstitute;
 using NUnit.Framework;
 using Paps.StateMachines;
-using Paps.StateMachines.Extensions;
+using Paps.StateMachines.Extensions.BehaviouralStates;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Paps.StateMachines.Extensions.BehaviouralStates;
 
 namespace Tests.WithStructs
 {
@@ -34,7 +33,7 @@ namespace Tests.WithStructs
         {
             var fsm = new PlainStateMachine<int, int>();
             
-            var behaviouralState1 = fsm.AddBehaviouralState(1);
+            var behaviouralState1 = fsm.AddWithBehaviours(1);
 
             Assert.IsTrue(fsm.ContainsState(1));
             Assert.IsTrue(fsm.GetStateById(1) == behaviouralState1);
@@ -42,7 +41,7 @@ namespace Tests.WithStructs
             IStateBehaviour stateBehaviour1 = Substitute.For<IStateBehaviour>();
             IStateBehaviour stateBehaviour2 = Substitute.For<IStateBehaviour>();
 
-            var behaviouralState2 = fsm.AddBehaviouralState(2, stateBehaviour1, stateBehaviour2);
+            var behaviouralState2 = fsm.AddWithBehaviours(2, stateBehaviour1, stateBehaviour2);
 
             Assert.IsTrue(fsm.ContainsState(2));
             Assert.IsTrue(fsm.GetStateById(2) == behaviouralState2);
@@ -53,39 +52,33 @@ namespace Tests.WithStructs
         }
 
         [Test]
-        public void Add_Behaviours_To_Behavioural_States_After_Creation()
+        public void Add_Behaviour_To_Behavioural_States()
         {
             var fsm = new PlainStateMachine<int, int>();
 
             var stateBehaviour1 = Substitute.For<IStateBehaviour>();
 
-            fsm.AddBehaviouralState(1);
+            fsm.AddWithBehaviours(1);
 
             fsm.AddBehaviourTo(1, stateBehaviour1);
 
             Assert.IsTrue(fsm.ContainsBehaviour(stateBehaviour1));
-            Assert.IsTrue(fsm.ContainsBehaviourOn(1, stateBehaviour1));
-            Assert.IsTrue(fsm.BehaviourCount() == 1);
-            Assert.IsTrue(fsm.BehaviourCountOf(1) == 1);
+        }
 
-            var stateBehaviour2 = fsm.AddBehaviourTo<TestStateBehaviour, int, int>(1);
+        [Test]
+        public void Add_Multiple_Behaviours_To_Behavioural_States()
+        {
+            var fsm = new PlainStateMachine<int, int>();
 
+            var stateBehaviour1 = Substitute.For<IStateBehaviour>();
+            var stateBehaviour2 = Substitute.For<IStateBehaviour>();
+
+            fsm.AddWithBehaviours(1);
+
+            fsm.AddBehavioursTo(1, stateBehaviour1, stateBehaviour2);
+
+            Assert.IsTrue(fsm.ContainsBehaviour(stateBehaviour1));
             Assert.IsTrue(fsm.ContainsBehaviour(stateBehaviour2));
-            Assert.IsTrue(fsm.ContainsBehaviourOn(1, stateBehaviour2));
-            Assert.IsTrue(fsm.BehaviourCount() == 2);
-            Assert.IsTrue(fsm.BehaviourCountOf(1) == 2);
-
-            var stateBehaviour3 = Substitute.For<IStateBehaviour>();
-            var stateBehaviour4 = Substitute.For<IStateBehaviour>();
-
-            fsm.AddBehavioursTo(1, stateBehaviour3, stateBehaviour4);
-
-            Assert.IsTrue(fsm.ContainsBehaviour(stateBehaviour3));
-            Assert.IsTrue(fsm.ContainsBehaviourOn(1, stateBehaviour3));
-            Assert.IsTrue(fsm.ContainsBehaviour(stateBehaviour4));
-            Assert.IsTrue(fsm.ContainsBehaviourOn(1, stateBehaviour4));
-            Assert.IsTrue(fsm.BehaviourCount() == 4);
-            Assert.IsTrue(fsm.BehaviourCountOf(1) == 4);
         }
 
         [Test]
@@ -95,12 +88,11 @@ namespace Tests.WithStructs
 
             var stateBehaviour1 = Substitute.For<IStateBehaviour>();
 
-            fsm.AddBehaviouralState(1);
+            fsm.AddWithBehaviours(1);
 
             fsm.AddBehaviourTo(1, stateBehaviour1);
             Assert.DoesNotThrow(() => fsm.AddBehaviourTo(1, stateBehaviour1));
             Assert.IsTrue(fsm.BehaviourCount() == 1);
-            Assert.IsTrue(fsm.BehaviourCountOf(1) == 1);
         }
 
         [Test]
@@ -111,7 +103,7 @@ namespace Tests.WithStructs
             var stateBehaviour1 = Substitute.For<IStateBehaviour>();
             var stateBehaviour2 = Substitute.For<IStateBehaviour>();
 
-            fsm.AddBehaviouralState(1, stateBehaviour1, stateBehaviour2);
+            fsm.AddWithBehaviours(1, stateBehaviour1, stateBehaviour2);
 
             fsm.RemoveBehaviourFrom(1, stateBehaviour1);
 
@@ -137,7 +129,7 @@ namespace Tests.WithStructs
 
             var stateBehaviour = new TestStateBehaviour();
 
-            fsm.AddBehaviouralState(1, stateBehaviour);
+            fsm.AddWithBehaviours(1, stateBehaviour);
 
             Assert.AreEqual(stateBehaviour, fsm.GetBehaviour<TestStateBehaviour, int, int>());
         }
@@ -149,7 +141,7 @@ namespace Tests.WithStructs
 
             var stateBehaviour = new TestStateBehaviour();
 
-            fsm.AddBehaviouralState(1, stateBehaviour);
+            fsm.AddWithBehaviours(1, stateBehaviour);
 
             Assert.AreEqual(stateBehaviour, fsm.GetBehaviourOf<TestStateBehaviour, int, int>(1));
         }
@@ -163,7 +155,7 @@ namespace Tests.WithStructs
             var stateBehaviour2 = new TestStateBehaviour();
             var stateBehaviour3 = Substitute.For<IStateBehaviour>();
 
-            fsm.AddBehaviouralState(1, stateBehaviour1, stateBehaviour2, stateBehaviour3);
+            fsm.AddWithBehaviours(1, stateBehaviour1, stateBehaviour2, stateBehaviour3);
 
             var behaviors = fsm.GetBehaviours<TestStateBehaviour, int, int>();
 
@@ -181,7 +173,7 @@ namespace Tests.WithStructs
             var stateBehaviour2 = new TestStateBehaviour();
             var stateBehaviour3 = Substitute.For<IStateBehaviour>();
 
-            fsm.AddBehaviouralState(1, stateBehaviour1, stateBehaviour2, stateBehaviour3);
+            fsm.AddWithBehaviours(1, stateBehaviour1, stateBehaviour2, stateBehaviour3);
 
             var behaviors = fsm.GetBehavioursOf<TestStateBehaviour, int, int>(1);
 
@@ -198,7 +190,7 @@ namespace Tests.WithStructs
             var stateBehaviour1 = Substitute.For<IStateBehaviour>();
             var stateBehaviour2 = Substitute.For<IStateBehaviour>();
 
-            fsm.AddBehaviouralState(1, stateBehaviour1, stateBehaviour2);
+            fsm.AddWithBehaviours(1, stateBehaviour1, stateBehaviour2);
             
             var behaviours = new List<IStateBehaviour>();
 
@@ -222,7 +214,7 @@ namespace Tests.WithStructs
             var stateBehaviour1 = Substitute.For<IStateBehaviour>();
             var stateBehaviour2 = Substitute.For<IStateBehaviour>();
 
-            fsm.AddBehaviouralState(1, stateBehaviour1, stateBehaviour2);
+            fsm.AddWithBehaviours(1, stateBehaviour1, stateBehaviour2);
 
             var behaviours = new List<IStateBehaviour>();
 
@@ -246,9 +238,9 @@ namespace Tests.WithStructs
 
             var stateBehaviour1 = Substitute.For<IStateBehaviour>();
 
-            Assert.Throws<ArgumentNullException>(() => fsm.AddBehaviouralState(1, stateBehaviour1, null));
+            Assert.Throws<ArgumentNullException>(() => fsm.AddWithBehaviours(1, stateBehaviour1, null));
             
-            fsm.AddBehaviouralState(1);
+            fsm.AddWithBehaviours(1);
 
             Assert.Throws<ArgumentNullException>(() => fsm.AddBehaviourTo(1, null));
             Assert.Throws<ArgumentNullException>(() => fsm.AddBehavioursTo(1, stateBehaviour1, null));
@@ -288,7 +280,7 @@ namespace Tests.WithStructs
             var stateBehaviour1 = Substitute.For<IStateBehaviour>();
             var stateBehaviour2 = Substitute.For<IStateBehaviour>();
 
-            fsm.AddBehaviouralState(1, stateBehaviour1, stateBehaviour2);
+            fsm.AddWithBehaviours(1, stateBehaviour1, stateBehaviour2);
 
             fsm.InitialState = 1;
 

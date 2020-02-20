@@ -6,14 +6,7 @@ namespace Paps.StateMachines.Extensions.BehaviouralStates
 {
     public static class StateMachineExtensions
     {
-        public static BehaviouralState AddBehaviouralState<TState, TTrigger>(this IStateMachine<TState, TTrigger> fsm, TState stateId)
-        {
-            var state = new BehaviouralState();
-            fsm.AddState(stateId, state);
-            return state;
-        }
-
-        public static BehaviouralState AddBehaviouralState<TState, TTrigger>(this IStateMachine<TState, TTrigger> fsm, TState stateId, params IStateBehaviour[] behaviours)
+        public static IBehaviouralState AddWithBehaviours<TState, TTrigger>(this IStateMachine<TState, TTrigger> fsm, TState stateId, params IStateBehaviour[] behaviours)
         {
             var state = new BehaviouralState(behaviours);
             fsm.AddState(stateId, state);
@@ -26,24 +19,11 @@ namespace Paps.StateMachines.Extensions.BehaviouralStates
 
             IState stateObj = fsm.GetStateById(stateId);
 
-            if (stateObj is BehaviouralState cast)
+            if (stateObj is IBehaviouralState cast)
             {
                 cast.AddBehaviour(behaviour);
             }
-            else throw new InvalidOperationException("State object with id " + stateId + " is not of type " + typeof(BehaviouralState).Name);
-        }
-
-        public static TBehaviour AddBehaviourTo<TBehaviour, TState, TTrigger>(this IStateMachine<TState, TTrigger> fsm, TState stateId) where TBehaviour : IStateBehaviour, new()
-        {
-            IState stateObj = fsm.GetStateById(stateId);
-
-            if (stateObj is BehaviouralState cast)
-            {
-                var behaviour = new TBehaviour();
-                cast.AddBehaviour(behaviour);
-                return behaviour;
-            }
-            else throw new InvalidOperationException("State object with id " + stateId + " is not of type " + typeof(BehaviouralState).Name);
+            else throw new InvalidOperationException("State object with id " + stateId + " is not of type " + typeof(IBehaviouralState).Name);
         }
 
         public static void AddBehavioursTo<TState, TTrigger>(this IStateMachine<TState, TTrigger> fsm, TState stateId, params IStateBehaviour[] behaviours)
@@ -52,14 +32,14 @@ namespace Paps.StateMachines.Extensions.BehaviouralStates
 
             IState stateObj = fsm.GetStateById(stateId);
 
-            if (stateObj is BehaviouralState cast)
+            if (stateObj is IBehaviouralState cast)
             {
                 for (int i = 0; i < behaviours.Length; i++)
                 {
                     cast.AddBehaviour(behaviours[i]);
                 }
             }
-            else throw new InvalidOperationException("State object with id " + stateId + " is not of type " + typeof(BehaviouralState).Name);
+            else throw new InvalidOperationException("State object with id " + stateId + " is not of type " + typeof(IBehaviouralState).Name);
         }
 
         public static void RemoveBehaviourFrom<TState, TTrigger>(this IStateMachine<TState, TTrigger> fsm, TState stateId, IStateBehaviour behaviour)
@@ -68,16 +48,16 @@ namespace Paps.StateMachines.Extensions.BehaviouralStates
 
             IState stateObj = fsm.GetStateById(stateId);
 
-            if (stateObj is BehaviouralState cast)
+            if (stateObj is IBehaviouralState cast)
             {
                 cast.RemoveBehaviour(behaviour);
             }
-            else throw new InvalidOperationException("State object with id " + stateId + " is not of type " + typeof(BehaviouralState).Name);
+            else throw new InvalidOperationException("State object with id " + stateId + " is not of type " + typeof(IBehaviouralState).Name);
         }
 
         public static TBehaviour GetBehaviour<TBehaviour, TState, TTrigger>(this IStateMachine<TState, TTrigger> fsm)
         {
-            BehaviouralState[] stateObjects = fsm.GetStates<BehaviouralState, TState, TTrigger>();
+            IBehaviouralState[] stateObjects = fsm.GetStates<IBehaviouralState, TState, TTrigger>();
 
             for (int i = 0; i < stateObjects.Length; i++)
             {
@@ -93,16 +73,16 @@ namespace Paps.StateMachines.Extensions.BehaviouralStates
         {
             IState stateObj = fsm.GetStateById(stateId);
 
-            if (stateObj is BehaviouralState cast)
+            if (stateObj is IBehaviouralState cast)
             {
                 return cast.GetBehaviour<TBehaviour>();
             }
-            else throw new InvalidOperationException("State object with id " + stateId + " is not of type " + typeof(BehaviouralState).Name);
+            else throw new InvalidOperationException("State object with id " + stateId + " is not of type " + typeof(IBehaviouralState).Name);
         }
 
         public static TBehaviour[] GetBehaviours<TBehaviour, TState, TTrigger>(this IStateMachine<TState, TTrigger> fsm)
         {
-            BehaviouralState[] stateObjects = fsm.GetStates<BehaviouralState, TState, TTrigger>();
+            IBehaviouralState[] stateObjects = fsm.GetStates<IBehaviouralState, TState, TTrigger>();
 
             if (stateObjects != null)
             {
@@ -125,18 +105,18 @@ namespace Paps.StateMachines.Extensions.BehaviouralStates
         {
             IState stateObj = fsm.GetStateById(stateId);
 
-            if (stateObj is BehaviouralState cast)
+            if (stateObj is IBehaviouralState cast)
             {
                 return cast.GetBehaviours<TBehaviour>();
             }
-            else throw new InvalidOperationException("State object with id " + stateId + " is not of type " + typeof(BehaviouralState).Name);
+            else throw new InvalidOperationException("State object with id " + stateId + " is not of type " + typeof(IBehaviouralState).Name);
         }
 
         public static bool ContainsBehaviour<TState, TTrigger>(this IStateMachine<TState, TTrigger> fsm, IStateBehaviour behaviour)
         {
             if (behaviour == null) throw new ArgumentNullException(nameof(behaviour));
 
-            BehaviouralState[] stateObjects = fsm.GetStates<BehaviouralState, TState, TTrigger>();
+            IBehaviouralState[] stateObjects = fsm.GetStates<IBehaviouralState, TState, TTrigger>();
 
             for (int i = 0; i < stateObjects.Length; i++)
             {
@@ -152,7 +132,7 @@ namespace Paps.StateMachines.Extensions.BehaviouralStates
 
             IState state = fsm.GetStateById(stateId);
 
-            if (state is BehaviouralState cast)
+            if (state is IBehaviouralState cast)
             {
                 return cast.ContainsBehaviour(behaviour);
             }
@@ -178,14 +158,14 @@ namespace Paps.StateMachines.Extensions.BehaviouralStates
 
             IState stateObj = fsm.GetStateById(stateId);
 
-            if (stateObj is BehaviouralState cast)
+            if (stateObj is IBehaviouralState cast)
             {
                 foreach (var behaviour in cast)
                 {
                     if (finishable(behaviour)) return;
                 }
             }
-            else throw new InvalidOperationException("State object with id " + stateId + " is not of type " + typeof(BehaviouralState).Name);
+            else throw new InvalidOperationException("State object with id " + stateId + " is not of type " + typeof(IBehaviouralState).Name);
         }
 
         public static int BehaviourCount<TState, TTrigger>(this IStateMachine<TState, TTrigger> fsm)
@@ -201,11 +181,11 @@ namespace Paps.StateMachines.Extensions.BehaviouralStates
         {
             IState stateObj = fsm.GetStateById(stateId);
 
-            if (stateObj is BehaviouralState cast)
+            if (stateObj is IBehaviouralState cast)
             {
                 return cast.BehaviourCount;
             }
-            else throw new InvalidOperationException("State object with id " + stateId + " is not of type " + typeof(BehaviouralState).Name);
+            else throw new InvalidOperationException("State object with id " + stateId + " is not of type " + typeof(IBehaviouralState).Name);
         }
     }
 }
