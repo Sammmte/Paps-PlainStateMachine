@@ -1,6 +1,6 @@
 {
   "name": "paps.plain-state-machine",
-  "version": "0.0.6-unity",
+  "version": "0.0.7-unity",
   "displayName": "Paps Plain State Machine",
   "unity": "2019.2",
   "description": "A simple plain state machine made in c#",

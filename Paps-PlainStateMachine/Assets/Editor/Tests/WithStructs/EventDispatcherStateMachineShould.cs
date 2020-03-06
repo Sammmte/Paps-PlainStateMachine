@@ -143,5 +143,24 @@ namespace Tests.WithStructs
 
             Assert.DoesNotThrow(() => fsm.HasEventHandler(stateId, someEvent => false));
         }
+
+        [Test]
+        public void Remove_Event_Handlers_Related_To_A_Removed_State()
+        {
+            var fsm = new PlainStateMachine<int, int>();
+
+            var stateId = 1;
+
+            var stateObj = Substitute.For<IState>();
+            var eventHandler = Substitute.For<IStateEventHandler>();
+
+            fsm.AddState(stateId, stateObj);
+
+            fsm.SubscribeEventHandlerTo(stateId, eventHandler);
+
+            fsm.RemoveState(stateId);
+
+            Assert.That(() => fsm.HasEventHandlerOn(stateId, eventHandler) == false, "Event was removed the moment the state was removed");
+        }
     }
 }

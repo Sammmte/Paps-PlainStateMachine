@@ -252,6 +252,7 @@ namespace Paps.StateMachines
                 _states.Remove(stateId);
 
                 RemoveTransitionsRelatedTo(stateId);
+                RemoveEventHandlersOf(stateId);
 
                 if(_states.Count == 0)
                 {
@@ -279,6 +280,11 @@ namespace Paps.StateMachines
             {
                 throw new InvalidOperationException("Cannot remove current state");
             }
+        }
+
+        private void RemoveEventHandlersOf(TState stateId)
+        {
+            _stateEventHandlers.Remove(stateId);
         }
 
         private void RemoveTransitionsRelatedTo(TState stateId)
