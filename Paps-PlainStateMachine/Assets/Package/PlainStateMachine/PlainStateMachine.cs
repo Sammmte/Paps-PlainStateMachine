@@ -563,7 +563,10 @@ namespace Paps.StateMachines
         {
             ValidateHasTransition(transition);
 
-            return _guardConditions[transition].ToArray();
+            if (_guardConditions.ContainsKey(transition))
+                return _guardConditions[transition].ToArray();
+            else
+                return null;
         }
 
         private void ValidateHasTransition(Transition<TState, TTrigger> transition)

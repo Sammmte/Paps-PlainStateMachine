@@ -4,6 +4,15 @@ namespace Paps.StateMachines.Extensions
 {
     public static class GuardedStateMachineExtensions
     {
+        public static void AddGuardConditionsTo<TState, TTrigger>(this IGuardedStateMachine<TState, TTrigger> fsm,
+            Transition<TState, TTrigger> transition, params IGuardCondition[] guardConditions)
+        {
+            foreach (var guardCondition in guardConditions)
+            {
+                fsm.AddGuardConditionTo(transition, guardCondition);
+            }
+        }
+        
         public static void AddGuardConditionTo<TState, TTrigger>(this IGuardedStateMachine<TState, TTrigger> fsm,
                 Transition<TState, TTrigger> transition, Func<bool> predicate)
         {

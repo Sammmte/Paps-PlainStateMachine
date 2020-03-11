@@ -1300,5 +1300,20 @@ namespace Tests.WithClasses
             Assert.DoesNotThrow(() => fsm.Trigger("0"));
             Assert.That(fsm.ContainsGuardConditionOn(transition, guardCondition), "Contains guard condition");
         }
+        
+        [Test]
+        public void Return_Null_If_There_Is_No_Guard_Conditions_Related_To_An_Existing_Transition()
+        {
+            var fsm = new PlainStateMachine<string, string>();
+            
+            var transition = new Transition<string, string>("1", "0", "2");
+            
+            fsm.AddEmpty("1");
+            fsm.AddEmpty("2");
+            
+            fsm.AddTransition(transition);
+            
+            Assert.IsNull(fsm.GetGuardConditionsOf(transition));
+        }
     }
 }
