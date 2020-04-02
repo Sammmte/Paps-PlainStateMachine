@@ -2,35 +2,61 @@
 using System.Linq;
 using System;
 using System.Collections;
+using System.Security.Cryptography;
 
 namespace Paps.StateMachines.Extensions.BehaviouralStates
 {
     public class BehaviouralState : IBehaviouralState
     {
-        private HashSet<IStateBehaviour> _behaviours;
+        private enum State
+        {
+            Idle,
+            Enter,
+            Update,
+            Exit
+        }
+
+        private State _internalState;
+
+        private int _currentBehaviourIndex;
+
+        private List<IStateBehaviour> _behaviours;
 
         public int BehaviourCount => _behaviours.Count;
 
         public BehaviouralState()
         {
-            _behaviours = new HashSet<IStateBehaviour>();
+            _behaviours = new List<IStateBehaviour>();
         }
 
-        public BehaviouralState(params IStateBehaviour[] behaviours)
+        public BehaviouralState(params IStateBehaviour[] behaviours) : this()
         {
-            if (behaviours.Any(behaviour => behaviour == null)) throw new ArgumentNullException("some behaviour objects were null");
+            if (behaviours.Any(behaviour => behaviour == null))
+                throw new ArgumentNullException("some behaviour objects were null");
 
-            _behaviours = new HashSet<IStateBehaviour>(behaviours);
+            foreach (var behaviour in behaviours)
+                AddBehaviour(behaviour);
         }
 
         public void AddBehaviour(IStateBehaviour behaviour)
         {
-            _behaviours.Add(behaviour);
+            if(_behaviours.Contains(behaviour) == false)
+                _behaviours.Add(behaviour);
         }
 
         public bool RemoveBehaviour(IStateBehaviour behaviour)
         {
-            return _behaviours.Remove(behaviour);
+            int indexOfBehaviour = _behaviours.IndexOf(behaviour);
+
+            if(_behaviours.Remove(behaviour))
+            {
+                if (indexOfBehaviour <= _currentBehaviourIndex && _currentBehaviourIndex > 0)
+                    _currentBehaviourIndex--;
+
+                return false;
+            }
+
+            return false;
         }
 
         public bool ContainsBehaviour(IStateBehaviour behaviour)
@@ -72,26 +98,46 @@ namespace Paps.StateMachines.Extensions.BehaviouralStates
 
         public void Enter()
         {
-            foreach(var behaviour in _behaviours)
-            {
-                behaviour.OnEnter();
-            }
+            if (_internalState != State.Idle)
+                InvalidateIteration(State.Enter);
+
+            _internalState = State.Enter;
+
+            for(_currentBehaviourIndex = 0; _currentBehaviourIndex < _behaviours.Count; _currentBehaviourIndex++)
+                _behaviours[_currentBehaviourIndex].OnEnter();
+
+            _internalState = State.Idle;
         }
 
         public void Update()
         {
-            foreach (var behaviour in _behaviours)
-            {
-                behaviour.OnUpdate();
-            }
+            if (_internalState != State.Idle)
+                InvalidateIteration(State.Update);
+
+            _internalState = State.Update;
+
+            for (_currentBehaviourIndex = 0; _currentBehaviourIndex < _behaviours.Count; _currentBehaviourIndex++)
+                _behaviours[_currentBehaviourIndex].OnUpdate();
+
+            _internalState = State.Idle;
         }
 
         public void Exit()
         {
-            foreach (var behaviour in _behaviours)
-            {
-                behaviour.OnExit();
-            }
+            if (_internalState != State.Idle)
+                InvalidateIteration(State.Exit);
+
+            _internalState = State.Exit;
+
+            for (_currentBehaviourIndex = 0; _currentBehaviourIndex < _behaviours.Count; _currentBehaviourIndex++)
+                _behaviours[_currentBehaviourIndex].OnExit();
+
+            _internalState = State.Idle;
+        }
+
+        private void InvalidateIteration(State desired)
+        {
+            throw new InvalidOperationException("Cannot " + desired.ToString().ToLower() + " while in " + _internalState);
         }
 
         public IEnumerator<IStateBehaviour> GetEnumerator()
