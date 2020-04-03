@@ -1,9 +1,6 @@
 ﻿using NSubstitute;
 using NUnit.Framework;
 using Paps.StateMachines.Extensions.BehaviouralStates;
-using System;
-using System.Diagnostics;
-using System.Diagnostics.Eventing.Reader;
 
 namespace Tests
 {
@@ -20,7 +17,7 @@ namespace Tests
         }
 
         [Test]
-        public void Keep_Iterating_When_A_Previous_Index_Is_Removed()
+        public void Keep_Iterating_When_A_Previous_Index_Is_Removed_On_Enter()
         {
             var stateBehaviour1 = Substitute.For<IStateBehaviour>();
             var stateBehaviour2 = Substitute.For<IStateBehaviour>();
@@ -39,7 +36,7 @@ namespace Tests
         }
 
         [Test]
-        public void Keep_Iterating_When_A_Posterior_Index_Is_Removed()
+        public void Keep_Iterating_When_A_Posterior_Index_Is_Removed_On_Enter()
         {
             var stateBehaviour1 = Substitute.For<IStateBehaviour>();
             var stateBehaviour2 = Substitute.For<IStateBehaviour>();
@@ -58,7 +55,7 @@ namespace Tests
         }
 
         [Test]
-        public void Throw_An_Exception_When_User_Tries_To_Enter_While_Iterating()
+        public void Keep_Iterating_When_A_Previous_Index_Is_Removed_On_Update()
         {
             var stateBehaviour1 = Substitute.For<IStateBehaviour>();
             var stateBehaviour2 = Substitute.For<IStateBehaviour>();
@@ -66,24 +63,18 @@ namespace Tests
 
             var state = new BehaviouralState(stateBehaviour1, stateBehaviour2, stateBehaviour3);
 
-            stateBehaviour2.When(behaviour => behaviour.OnEnter())
-                .Do(callbackInfo => state.Enter());
+            stateBehaviour2.When(behaviour => behaviour.OnUpdate())
+                .Do(callbackInfo => state.RemoveBehaviour(stateBehaviour1));
 
-            Assert.Throws<InvalidOperationException>(() => state.Enter());
-            Assert.Throws<InvalidOperationException>(() => state.Update());
-            Assert.Throws<InvalidOperationException>(() => state.Exit());
+            state.Update();
 
-            stateBehaviour1 = Substitute.For<IStateBehaviour>();
-            stateBehaviour2 = Substitute.For<IStateBehaviour>();
-            stateBehaviour3 = Substitute.For<IStateBehaviour>();
-
-            state = new BehaviouralState(stateBehaviour1, stateBehaviour2, stateBehaviour3);
-
-            Assert.DoesNotThrow(() => state.Enter());
+            stateBehaviour1.Received(1).OnUpdate();
+            stateBehaviour2.Received(1).OnUpdate();
+            stateBehaviour3.Received(1).OnUpdate();
         }
 
         [Test]
-        public void Throw_An_Exception_When_User_Tries_To_Update_While_Iterating()
+        public void Keep_Iterating_When_A_Posterior_Index_Is_Removed_On_Update()
         {
             var stateBehaviour1 = Substitute.For<IStateBehaviour>();
             var stateBehaviour2 = Substitute.For<IStateBehaviour>();
@@ -91,24 +82,18 @@ namespace Tests
 
             var state = new BehaviouralState(stateBehaviour1, stateBehaviour2, stateBehaviour3);
 
-            stateBehaviour2.When(behaviour => behaviour.OnEnter())
-                .Do(callbackInfo => state.Update());
+            stateBehaviour2.When(behaviour => behaviour.OnUpdate())
+                .Do(callbackInfo => state.RemoveBehaviour(stateBehaviour3));
 
-            Assert.Throws<InvalidOperationException>(() => state.Enter());
-            Assert.Throws<InvalidOperationException>(() => state.Update());
-            Assert.Throws<InvalidOperationException>(() => state.Exit());
+            state.Update();
 
-            stateBehaviour1 = Substitute.For<IStateBehaviour>();
-            stateBehaviour2 = Substitute.For<IStateBehaviour>();
-            stateBehaviour3 = Substitute.For<IStateBehaviour>();
-
-            state = new BehaviouralState(stateBehaviour1, stateBehaviour2, stateBehaviour3);
-
-            Assert.DoesNotThrow(() => state.Update());
+            stateBehaviour1.Received(1).OnUpdate();
+            stateBehaviour2.Received(1).OnUpdate();
+            stateBehaviour3.DidNotReceive().OnUpdate();
         }
 
         [Test]
-        public void Throw_An_Exception_When_User_Tries_To_Exit_While_Iterating()
+        public void Keep_Iterating_When_A_Previous_Index_Is_Removed_On_Exit()
         {
             var stateBehaviour1 = Substitute.For<IStateBehaviour>();
             var stateBehaviour2 = Substitute.For<IStateBehaviour>();
@@ -116,20 +101,33 @@ namespace Tests
 
             var state = new BehaviouralState(stateBehaviour1, stateBehaviour2, stateBehaviour3);
 
-            stateBehaviour2.When(behaviour => behaviour.OnEnter())
-                .Do(callbackInfo => state.Exit());
+            stateBehaviour2.When(behaviour => behaviour.OnExit())
+                .Do(callbackInfo => state.RemoveBehaviour(stateBehaviour1));
 
-            Assert.Throws<InvalidOperationException>(() => state.Enter());
-            Assert.Throws<InvalidOperationException>(() => state.Update());
-            Assert.Throws<InvalidOperationException>(() => state.Exit());
+            state.Exit();
 
-            stateBehaviour1 = Substitute.For<IStateBehaviour>();
-            stateBehaviour2 = Substitute.For<IStateBehaviour>();
-            stateBehaviour3 = Substitute.For<IStateBehaviour>();
+            stateBehaviour1.Received(1).OnExit();
+            stateBehaviour2.Received(1).OnExit();
+            stateBehaviour3.Received(1).OnExit();
+        }
 
-            state = new BehaviouralState(stateBehaviour1, stateBehaviour2, stateBehaviour3);
+        [Test]
+        public void Keep_Iterating_When_A_Posterior_Index_Is_Removed_On_Exit()
+        {
+            var stateBehaviour1 = Substitute.For<IStateBehaviour>();
+            var stateBehaviour2 = Substitute.For<IStateBehaviour>();
+            var stateBehaviour3 = Substitute.For<IStateBehaviour>();
 
-            Assert.DoesNotThrow(() => state.Exit());
+            var state = new BehaviouralState(stateBehaviour1, stateBehaviour2, stateBehaviour3);
+
+            stateBehaviour2.When(behaviour => behaviour.OnExit())
+                .Do(callbackInfo => state.RemoveBehaviour(stateBehaviour3));
+
+            state.Exit();
+
+            stateBehaviour1.Received(1).OnExit();
+            stateBehaviour2.Received(1).OnExit();
+            stateBehaviour3.DidNotReceive().OnExit();
         }
     }
 }

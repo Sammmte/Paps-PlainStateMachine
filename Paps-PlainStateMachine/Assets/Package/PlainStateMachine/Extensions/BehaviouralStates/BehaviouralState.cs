@@ -8,17 +8,9 @@ namespace Paps.StateMachines.Extensions.BehaviouralStates
 {
     public class BehaviouralState : IBehaviouralState
     {
-        private enum State
-        {
-            Idle,
-            Enter,
-            Update,
-            Exit
-        }
-
-        private State _internalState;
-
-        private int _currentBehaviourIndex;
+        private int _currentBehaviourEnterIndex;
+        private int _currentBehaviourUpdateIndex;
+        private int _currentBehaviourExitIndex;
 
         private List<IStateBehaviour> _behaviours;
 
@@ -50,8 +42,14 @@ namespace Paps.StateMachines.Extensions.BehaviouralStates
 
             if(_behaviours.Remove(behaviour))
             {
-                if (indexOfBehaviour <= _currentBehaviourIndex && _currentBehaviourIndex > 0)
-                    _currentBehaviourIndex--;
+                if (indexOfBehaviour <= _currentBehaviourEnterIndex && _currentBehaviourEnterIndex > 0)
+                    _currentBehaviourEnterIndex--;
+
+                if (indexOfBehaviour <= _currentBehaviourUpdateIndex && _currentBehaviourUpdateIndex > 0)
+                    _currentBehaviourUpdateIndex--;
+
+                if (indexOfBehaviour <= _currentBehaviourExitIndex && _currentBehaviourExitIndex > 0)
+                    _currentBehaviourExitIndex--;
 
                 return false;
             }
@@ -98,46 +96,20 @@ namespace Paps.StateMachines.Extensions.BehaviouralStates
 
         public void Enter()
         {
-            if (_internalState != State.Idle)
-                InvalidateIteration(State.Enter);
-
-            _internalState = State.Enter;
-
-            for(_currentBehaviourIndex = 0; _currentBehaviourIndex < _behaviours.Count; _currentBehaviourIndex++)
-                _behaviours[_currentBehaviourIndex].OnEnter();
-
-            _internalState = State.Idle;
+            for(_currentBehaviourEnterIndex = 0; _currentBehaviourEnterIndex < _behaviours.Count; _currentBehaviourEnterIndex++)
+                _behaviours[_currentBehaviourEnterIndex].OnEnter();
         }
 
         public void Update()
         {
-            if (_internalState != State.Idle)
-                InvalidateIteration(State.Update);
-
-            _internalState = State.Update;
-
-            for (_currentBehaviourIndex = 0; _currentBehaviourIndex < _behaviours.Count; _currentBehaviourIndex++)
-                _behaviours[_currentBehaviourIndex].OnUpdate();
-
-            _internalState = State.Idle;
+            for (_currentBehaviourUpdateIndex = 0; _currentBehaviourUpdateIndex < _behaviours.Count; _currentBehaviourUpdateIndex++)
+                _behaviours[_currentBehaviourUpdateIndex].OnUpdate();
         }
 
         public void Exit()
         {
-            if (_internalState != State.Idle)
-                InvalidateIteration(State.Exit);
-
-            _internalState = State.Exit;
-
-            for (_currentBehaviourIndex = 0; _currentBehaviourIndex < _behaviours.Count; _currentBehaviourIndex++)
-                _behaviours[_currentBehaviourIndex].OnExit();
-
-            _internalState = State.Idle;
-        }
-
-        private void InvalidateIteration(State desired)
-        {
-            throw new InvalidOperationException("Cannot " + desired.ToString().ToLower() + " while in " + _internalState);
+            for (_currentBehaviourExitIndex = 0; _currentBehaviourExitIndex < _behaviours.Count; _currentBehaviourExitIndex++)
+                _behaviours[_currentBehaviourExitIndex].OnExit();
         }
 
         public IEnumerator<IStateBehaviour> GetEnumerator()
