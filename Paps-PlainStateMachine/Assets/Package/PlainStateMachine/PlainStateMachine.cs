@@ -1,40 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Paps.Maybe;
 
 namespace Paps.StateMachines
 {
-    public class PlainStateMachine<TState, TTrigger> : IPlainStateMachine<TState, TTrigger>, IStartableStateMachine<TState, TTrigger>, IUpdatableStateMachine<TState, TTrigger>, 
-        IEventDispatcherStateMachine<TState, TTrigger>, IGuardedStateMachine<TState, TTrigger>
+    public class PlainStateMachine<TState, TTrigger> : IPlainStateMachine<TState, TTrigger>
     {
-        private enum PlainStateMachineInternalState
-        {
-            Stopped,
-            Idle,
-            Stopping,
-            Transitioning,
-            EvaluatingTransitions
-        }
-
         public int StateCount => _states.Count;
         public int TransitionCount => _transitions.Count;
-        public bool IsStarted => _internalState != PlainStateMachineInternalState.Stopped;
+        public bool IsStarted { get; private set; }
 
-        private TState _initialState;
-        public TState InitialState
-        {
-            get
-            {
-                return _initialState;
-            }
-            
-            set
-            {
-                ValidateHasStateWithId(value);
-
-                _initialState = value;
-            }
-        }
+        public Maybe<TState> InitialState { get; private set; }
 
         public event StateChanged<TState, TTrigger> OnBeforeStateChanges;
         public event StateChanged<TState, TTrigger> OnStateChanged;
@@ -48,29 +25,23 @@ namespace Paps.StateMachines
 
         private TState _protectedNextState;
 
-        private TState _currentState;
-        public TState CurrentState
+        private TState _currentState { get; set; }
+        public Maybe<TState> CurrentState
         {
             get
             {
-                ValidateIsStarted();
-
-                return _currentState;
-            }
-
-            private set
-            {
-                _currentState = value;
+                if (IsStarted)
+                    return _currentState.ToMaybe();
+                else
+                    return Maybe<TState>.Nothing;
             }
         }
         private IState _currentStateObject;
 
-        private PlainStateMachineInternalState _internalState = PlainStateMachineInternalState.Stopped;
-
         private StateEqualityComparer _stateComparer;
         private TriggerEqualityComparer _triggerComparer;
         
-        private TransitionEqualityComparer _transitionEqualityComparer;
+        private TransitionEqualityComparer<TState, TTrigger> _transitionEqualityComparer;
 
         public PlainStateMachine(IEqualityComparer<TState> stateComparer, IEqualityComparer<TTrigger> triggerComparer)
         {
@@ -80,7 +51,7 @@ namespace Paps.StateMachines
             _stateComparer = new StateEqualityComparer(stateComparer);
             _triggerComparer = new TriggerEqualityComparer(triggerComparer);
 
-            _transitionEqualityComparer = new TransitionEqualityComparer(_stateComparer, _triggerComparer);
+            _transitionEqualityComparer = new TransitionEqualityComparer<TState, TTrigger>(_stateComparer, _triggerComparer);
 
             _states = new Dictionary<TState, IState>(_stateComparer);
             _transitions = new HashSet<Transition<TState, TTrigger>>(_transitionEqualityComparer);
@@ -92,6 +63,13 @@ namespace Paps.StateMachines
         public PlainStateMachine() : this(EqualityComparer<TState>.Default, EqualityComparer<TTrigger>.Default)
         {
             
+        }
+
+        public void SetInitialState(TState stateId)
+        {
+            ValidateHasStateWithId(stateId);
+
+            InitialState = stateId.ToMaybe();
         }
 
         public void SetStateComparer(IEqualityComparer<TState> stateComparer)
@@ -112,22 +90,18 @@ namespace Paps.StateMachines
         {
             ValidateCanStart();
 
-            SetInternalState(PlainStateMachineInternalState.Idle);
+            //SetInternalState(PlainStateMachineInternalState.Idle);
+            IsStarted = true;
 
-            CurrentState = InitialState;
-            _currentStateObject = GetStateById(CurrentState);
+            _currentState = InitialState.Value;
+            _currentStateObject = GetStateById(_currentState);
             
             EnterCurrentState();
         }
 
-        private void SetInternalState(PlainStateMachineInternalState internalState)
-        {
-            _internalState = internalState;
-        }
-
         private void ValidateCanStart()
         {
-            ValidateIsNotIn(PlainStateMachineInternalState.Stopping);
+            //ValidateIsNotIn(PlainStateMachineInternalState.Stopping);
             ValidateIsNotStarted();
             ValidateIsNotEmpty();
             ValidateInitialState();
@@ -157,7 +131,14 @@ namespace Paps.StateMachines
 
         public void Stop()
         {
-            if(IsIn(PlainStateMachineInternalState.Idle))
+            if(IsStarted)
+            {
+                ExitCurrentState();
+            }
+
+            IsStarted = false;
+
+            /*if(IsIn(PlainStateMachineInternalState.Idle))
             {
                 _internalState = PlainStateMachineInternalState.Stopping;
                 ExitCurrentState();
@@ -166,12 +147,7 @@ namespace Paps.StateMachines
             else
             {
                 ThrowByInternalState();
-            }
-        }
-
-        private bool IsIn(PlainStateMachineInternalState internalState)
-        {
-            return _internalState == internalState;
+            }*/
         }
 
         private void ExitCurrentState()
@@ -182,7 +158,7 @@ namespace Paps.StateMachines
 
         private void ValidateInitialState()
         {
-            if (ContainsState(InitialState) == false)
+            if (InitialState.HasValue == false || ContainsState(InitialState.Value) == false)
                 throw new InvalidInitialStateException("State machine does not contains current initial state");
         }
 
@@ -237,7 +213,7 @@ namespace Paps.StateMachines
 
             if (_states.Count == 1)
             {
-                InitialState = stateId;
+                InitialState = stateId.ToMaybe();
             }
         }
 
@@ -245,7 +221,7 @@ namespace Paps.StateMachines
         {
             if(ContainsState(stateId))
             {
-                ValidateIsNotIn(PlainStateMachineInternalState.EvaluatingTransitions);
+                //ValidateIsNotIn(PlainStateMachineInternalState.EvaluatingTransitions);
                 ValidateIsNotCurrentIfIsStarted(stateId);
                 ValidateIsNotNextStateOnTransition(stateId);
 
@@ -256,7 +232,7 @@ namespace Paps.StateMachines
 
                 if(_states.Count == 0)
                 {
-                    _initialState = default;
+                    InitialState = Maybe<TState>.Nothing;
                 }
 
                 return true;
@@ -267,16 +243,16 @@ namespace Paps.StateMachines
 
         private void ValidateIsNotNextStateOnTransition(TState stateId)
         {
-            if (IsIn(PlainStateMachineInternalState.Transitioning))
+            /*if (IsIn(PlainStateMachineInternalState.Transitioning))
             {
                 if (_stateComparer.Equals(stateId, _protectedNextState))
                     throw new ProtectedStateException("Cannot remove protected state " + stateId + " because it takes part on the current transition");
-            }
+            }*/
         }
 
         private void ValidateIsNotCurrentIfIsStarted(TState stateId)
         {
-            if(IsStarted && _stateComparer.Equals(CurrentState, stateId))
+            if(IsStarted && _stateComparer.Equals(_currentState, stateId))
             {
                 throw new InvalidOperationException("Cannot remove current state");
             }
@@ -322,7 +298,7 @@ namespace Paps.StateMachines
         {
             ValidateHasStateWithId(transition.StateFrom);
             ValidateHasStateWithId(transition.StateTo);
-            ValidateIsNotIn(PlainStateMachineInternalState.EvaluatingTransitions);
+            //ValidateIsNotIn(PlainStateMachineInternalState.EvaluatingTransitions);
 
             _transitions.Add(transition);
         }
@@ -331,7 +307,7 @@ namespace Paps.StateMachines
         {
             if(ContainsTransition(transition))
             {
-                ValidateIsNotIn(PlainStateMachineInternalState.EvaluatingTransitions);
+                //ValidateIsNotIn(PlainStateMachineInternalState.EvaluatingTransitions);
 
                 _transitions.Remove(transition);
 
@@ -375,46 +351,31 @@ namespace Paps.StateMachines
         public void Trigger(TTrigger trigger)
         {
             ValidateIsStarted();
-            ValidateIsNotIn(PlainStateMachineInternalState.Stopping);
+            //ValidateIsNotIn(PlainStateMachineInternalState.Stopping);
+
+            bool shouldStart = _transitionCommandQueue.Count == 0;
 
             _transitionCommandQueue.Enqueue(new TransitionCommand() { trigger = trigger });
+
+            if(shouldStart)
+            {
+                TriggerQueued();
+            }
             
-            if (IsIn(PlainStateMachineInternalState.EvaluatingTransitions) == false &&
+            /*if (IsIn(PlainStateMachineInternalState.EvaluatingTransitions) == false &&
                 IsIn(PlainStateMachineInternalState.Transitioning) == false)
             {
                 SetInternalState(PlainStateMachineInternalState.EvaluatingTransitions);
                 TriggerQueued();
                 SetInternalState(PlainStateMachineInternalState.Idle);
-            }
-        }
-
-        private void ValidateIsNotIn(PlainStateMachineInternalState internalState)
-        {
-            if(IsIn(internalState)) ThrowByInternalState();
-        }
-
-        private void ThrowByInternalState()
-        {
-            switch (_internalState)
-            {
-                case PlainStateMachineInternalState.Stopped:
-                    throw new StateMachineNotStartedException();
-                case PlainStateMachineInternalState.Stopping:
-                    throw new StateMachineStoppingException();
-                case PlainStateMachineInternalState.Transitioning:
-                    throw new StateMachineTransitioningException();
-                case PlainStateMachineInternalState.EvaluatingTransitions:
-                    throw new StateMachineEvaluatingTransitionsException();
-                case PlainStateMachineInternalState.Idle:
-                    throw new StateMachineStartedException();
-            }
+            }*/
         }
 
         private void TriggerQueued()
         {
             while(_transitionCommandQueue.Count > 0)
             {
-                SetInternalState(PlainStateMachineInternalState.EvaluatingTransitions);
+                //SetInternalState(PlainStateMachineInternalState.EvaluatingTransitions);
 
                 TransitionCommand transition = _transitionCommandQueue.Dequeue();
 
@@ -430,7 +391,7 @@ namespace Paps.StateMachines
                 catch(MultipleValidTransitionsFromSameStateException)
                 {
                     _transitionCommandQueue.Clear();
-                    SetInternalState(PlainStateMachineInternalState.Idle);
+                    //SetInternalState(PlainStateMachineInternalState.Idle);
                     throw;
                 }
                 catch
@@ -449,13 +410,13 @@ namespace Paps.StateMachines
 
             foreach (Transition<TState, TTrigger> transition in _transitions)
             {
-                if (_stateComparer.Equals(transition.StateFrom, CurrentState) 
+                if (_stateComparer.Equals(transition.StateFrom, _currentState) 
                     && _triggerComparer.Equals(transition.Trigger, trigger)
                     && IsValidTransition(transition))
                 {
                     if(multipleValidGuardsFlag)
                     {
-                        throw new MultipleValidTransitionsFromSameStateException(CurrentState.ToString(), trigger.ToString());
+                        throw new MultipleValidTransitionsFromSameStateException(_currentState.ToString(), trigger.ToString());
                     }
                     
                     stateTo = transition.StateTo;
@@ -470,18 +431,18 @@ namespace Paps.StateMachines
 
         private void Transition(TTrigger trigger, TState stateTo)
         {
-            SetInternalState(PlainStateMachineInternalState.Transitioning);
+            //SetInternalState(PlainStateMachineInternalState.Transitioning);
 
             _protectedNextState = stateTo;
             
-            TState previous = CurrentState;
+            TState previous = _currentState;
             
             OnBeforeStateChanges?.Invoke(previous, trigger, stateTo);
             
             ExitCurrentState();
 
-            CurrentState = stateTo;
-            _currentStateObject = GetStateById(CurrentState);
+            _currentState = stateTo;
+            _currentStateObject = GetStateById(_currentState);
             
             OnStateChanged?.Invoke(previous, trigger, stateTo);
             
@@ -517,7 +478,7 @@ namespace Paps.StateMachines
         {
             ValidateHasTransition(transition);
             ValidateGuardConditionIsNotNull(guardCondition);
-            ValidateIsNotIn(PlainStateMachineInternalState.EvaluatingTransitions);
+            //ValidateIsNotIn(PlainStateMachineInternalState.EvaluatingTransitions);
 
             if(_guardConditions.ContainsKey(transition) == false)
             {
@@ -534,7 +495,7 @@ namespace Paps.StateMachines
 
             if (ContainsGuardConditionOn(transition, guardCondition))
             {
-                ValidateIsNotIn(PlainStateMachineInternalState.EvaluatingTransitions);
+                //ValidateIsNotIn(PlainStateMachineInternalState.EvaluatingTransitions);
 
                 _guardConditions[transition].Remove(guardCondition);
 
@@ -633,9 +594,9 @@ namespace Paps.StateMachines
         {
             ValidateIsStarted();
 
-            if(_stateEventHandlers.ContainsKey(CurrentState))
+            if(_stateEventHandlers.ContainsKey(_currentState))
             {
-                var eventHandlers = _stateEventHandlers[CurrentState];
+                var eventHandlers = _stateEventHandlers[_currentState];
 
                 foreach(IStateEventHandler eventHandler in eventHandlers)
                 {
@@ -649,39 +610,12 @@ namespace Paps.StateMachines
 
         public bool IsInState(TState stateId)
         {
-            return IsStarted && _stateComparer.Equals(CurrentState, stateId);
+            return IsStarted && _stateComparer.Equals(_currentState, stateId);
         }
 
         private struct TransitionCommand
         {
             public TTrigger trigger;
-        }
-
-        private class TransitionEqualityComparer : IEqualityComparer<Transition<TState, TTrigger>>
-        {
-            private IEqualityComparer<TState> _stateComparer;
-            private IEqualityComparer<TTrigger> _triggerComparer;
-
-            public TransitionEqualityComparer(IEqualityComparer<TState> stateComparer, IEqualityComparer<TTrigger> triggerComparer)
-            {
-                _stateComparer = stateComparer;
-                _triggerComparer = triggerComparer;
-            }
-
-            public bool Equals(Transition<TState, TTrigger> x, Transition<TState, TTrigger> y)
-            {
-                return _stateComparer.Equals(x.StateFrom, y.StateFrom) && _triggerComparer.Equals(x.Trigger, y.Trigger) && _stateComparer.Equals(x.StateTo, y.StateTo);
-            }
-
-            public int GetHashCode(Transition<TState, TTrigger> obj)
-            {
-                return (obj.StateFrom, obj.Trigger, obj.StateTo).GetHashCode();
-            }
-
-            public bool Equals(Transition<TState, TTrigger> transition, TState stateFrom, TTrigger trigger, TState stateTo)
-            {
-                return _stateComparer.Equals(transition.StateFrom, stateFrom) && _triggerComparer.Equals(transition.Trigger, trigger) && _stateComparer.Equals(transition.StateTo, stateTo);
-            }
         }
 
         private class StateEqualityComparer : IEqualityComparer<TState>

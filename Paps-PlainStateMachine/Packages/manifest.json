@@ -53,7 +53,7 @@
     "com.unity.modules.wind": "1.0.0",
     "com.unity.modules.xr": "1.0.0",
 	"com.iptech.nsubstitute": "1.0.1",
-	"paps.state-machines-core": "0.0.6"
+	"paps.state-machines-core": "0.0.7"
   }
   
 }

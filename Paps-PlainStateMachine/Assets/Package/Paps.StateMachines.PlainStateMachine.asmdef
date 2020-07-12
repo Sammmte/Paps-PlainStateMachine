@@ -1,7 +1,8 @@
 {
     "name": "Paps.StateMachines.PlainStateMachine",
     "references": [
-        "GUID:7152f99406f66634fa3d3005b71b5cb2"
+        "GUID:7152f99406f66634fa3d3005b71b5cb2",
+        "GUID:7b86e53a5a271f54b8d974c2c9b46109"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
