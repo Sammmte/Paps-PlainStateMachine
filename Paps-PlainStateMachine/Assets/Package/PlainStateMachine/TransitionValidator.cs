@@ -7,13 +7,8 @@ namespace Paps.StateMachines
     {
         private Dictionary<Transition<TState, TTrigger>, List<IGuardCondition>> _guardConditions;
 
-        public TransitionValidator(IEqualityComparer<TState> stateComparer, IEqualityComparer<TTrigger> triggerComparer)
+        public TransitionValidator(TransitionEqualityComparer<TState, TTrigger> transitionComparer)
         {
-            if(stateComparer == null) throw new ArgumentNullException(nameof(stateComparer));
-            if(triggerComparer == null) throw new ArgumentNullException(nameof(triggerComparer));
-
-            var transitionComparer = new TransitionEqualityComparer<TState, TTrigger>(stateComparer, triggerComparer);
-
             _guardConditions = new Dictionary<Transition<TState, TTrigger>, List<IGuardCondition>>(transitionComparer);
         }
 
